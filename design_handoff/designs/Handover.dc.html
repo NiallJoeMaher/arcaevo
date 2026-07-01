@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #ECE7DD; }
+  ::selection { background: #1E5C45; color: #F4F1EA; }
+  a:hover { opacity: 0.8; }
+</style>
+</helmet>
+
+<div style="font-family:'Hanken Grotesk',sans-serif; background:#ECE7DD; color:#1C2620; width:100%; overflow-x:hidden;">
+  <!-- HEADER -->
+  <header style="background:#161E18; color:#F4F1EA; padding:44px 40px;">
+    <div style="max-width:1080px; margin:0 auto;">
+      <div style="display:flex; align-items:center; gap:11px; margin-bottom:24px;">
+        <span style="font-weight:600; font-size:19px;">Arcaevo</span>
+        <span style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7FD3AE; border:1px solid rgba(127,211,174,0.3); border-radius:6px; padding:3px 8px;">DEVELOPER HANDOVER</span>
+      </div>
+      <h1 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:clamp(32px,4.4vw,46px); line-height:1.1; letter-spacing:-0.015em; margin:0 0 14px; max-width:20ch;">Build package for Claude Code.</h1>
+      <p style="font-size:17px; line-height:1.6; color:#9FB0A6; margin:0; max-width:64ch;">Everything needed to turn this clickable prototype into a production app: the route map, the component inventory, the data model, and the SEO/AEO metadata plan. Every page below is live and link-complete.</p>
+      <div style="display:flex; gap:12px; margin-top:24px; flex-wrap:wrap;">
+        <a href="Home.dc.html" style="background:#34A07C; color:#04130D; font-weight:600; font-size:14px; padding:11px 20px; border-radius:100px; text-decoration:none;">Open the live site →</a>
+        <a href="Admin.dc.html" style="border:1px solid rgba(255,255,255,0.24); color:#F4F1EA; font-weight:600; font-size:14px; padding:11px 20px; border-radius:100px; text-decoration:none;">Open the admin →</a>
+      </div>
+    </div>
+  </header>
+
+  <div style="max-width:1080px; margin:0 auto; padding:48px 40px 90px;">
+
+    <!-- SITEMAP -->
+    <section style="margin-bottom:56px;">
+      <div style="display:flex; align-items:baseline; gap:14px; border-top:1px solid rgba(28,38,32,0.16); padding-top:22px; margin-bottom:24px;">
+        <span style="font-family:'Geist Mono',monospace; font-size:12px; color:#1E5C45; letter-spacing:0.14em;">01</span>
+        <h2 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:32px; margin:0; letter-spacing:-0.01em;">Sitemap &amp; route map</h2>
+      </div>
+      <p style="font-size:15px; color:#4A554D; margin:0 0 24px; max-width:70ch;">Prototype files map to clean production routes. Data-driven pages (versus, blog, legal, admin) use a query param in the prototype and become path segments in production.</p>
+      <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:16px;">
+        <sc-for list="{{ groups }}" as="g" hint-placeholder-count="6">
+          <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:16px; padding:22px;">
+            <div style="font-family:'Geist Mono',monospace; font-size:11px; color:#1E5C45; letter-spacing:0.1em; margin-bottom:14px;">{{ g.title }}</div>
+            <div style="display:flex; flex-direction:column; gap:2px;">
+              <sc-for list="{{ g.routes }}" as="r" hint-placeholder-count="4">
+                <a href="{{ r.href }}" style="display:flex; justify-content:space-between; align-items:center; gap:12px; text-decoration:none; color:inherit; padding:9px 10px; border-radius:8px; background:rgba(28,38,32,0.02);">
+                  <span style="font-size:13.5px; font-weight:600;">{{ r.label }}</span>
+                  <span style="font-family:'Geist Mono',monospace; font-size:11px; color:#7C887F;">{{ r.route }}</span>
+                </a>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <!-- COMPONENT INVENTORY -->
+    <section style="margin-bottom:56px;">
+      <div style="display:flex; align-items:baseline; gap:14px; border-top:1px solid rgba(28,38,32,0.16); padding-top:22px; margin-bottom:24px;">
+        <span style="font-family:'Geist Mono',monospace; font-size:12px; color:#1E5C45; letter-spacing:0.14em;">02</span>
+        <h2 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:32px; margin:0; letter-spacing:-0.01em;">Component inventory</h2>
+      </div>
+      <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:16px; overflow:hidden;">
+        <div style="display:grid; grid-template-columns:1fr 1.6fr 0.9fr; gap:12px; padding:13px 22px; background:#1C2620; color:#8FA89A; font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.08em;">
+          <span>COMPONENT</span><span>PURPOSE</span><span>REUSE</span>
+        </div>
+        <sc-for list="{{ components }}" as="c" hint-placeholder-count="8">
+          <div style="display:grid; grid-template-columns:1fr 1.6fr 0.9fr; gap:12px; padding:14px 22px; border-bottom:1px solid rgba(28,38,32,0.07); align-items:center;">
+            <span style="font-size:13.5px; font-weight:600; font-family:'Geist Mono',monospace;">{{ c.name }}</span>
+            <span style="font-size:13.5px; color:#4A554D;">{{ c.purpose }}</span>
+            <span style="font-family:'Geist Mono',monospace; font-size:11px; color:#1E5C45;">{{ c.reuse }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <p style="font-size:14px; color:#4A554D; margin:18px 0 0; max-width:70ch;">Design tokens — Bone <code style="font-family:'Geist Mono',monospace;">#ECE7DD</code>, Surface <code style="font-family:'Geist Mono',monospace;">#FBFAF6</code>, Ink <code style="font-family:'Geist Mono',monospace;">#1C2620</code>, Forest <code style="font-family:'Geist Mono',monospace;">#1E5C45</code>, Vitality <code style="font-family:'Geist Mono',monospace;">#34A07C</code>, Amber <code style="font-family:'Geist Mono',monospace;">#D99A4E</code>. Type — Instrument Serif (display), Hanken Grotesk (UI), Geist Mono (data labels).</p>
+    </section>
+
+    <!-- DATA MODEL -->
+    <section style="margin-bottom:56px;">
+      <div style="display:flex; align-items:baseline; gap:14px; border-top:1px solid rgba(28,38,32,0.16); padding-top:22px; margin-bottom:24px;">
+        <span style="font-family:'Geist Mono',monospace; font-size:12px; color:#1E5C45; letter-spacing:0.14em;">03</span>
+        <h2 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:32px; margin:0; letter-spacing:-0.01em;">Data model &amp; entities</h2>
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:16px;">
+        <sc-for list="{{ entities }}" as="e" hint-placeholder-count="6">
+          <div style="background:#1C2620; color:#F4F1EA; border-radius:16px; padding:22px;">
+            <div style="font-family:'Geist Mono',monospace; font-size:13px; color:#7FD3AE; margin-bottom:12px;">{{ e.name }}</div>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              <sc-for list="{{ e.fields }}" as="f" hint-placeholder-count="4"><span style="font-family:'Geist Mono',monospace; font-size:12px; color:#9FB0A6;">{{ f }}</span></sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <!-- SEO / AEO PLAN -->
+    <section style="margin-bottom:40px;">
+      <div style="display:flex; align-items:baseline; gap:14px; border-top:1px solid rgba(28,38,32,0.16); padding-top:22px; margin-bottom:24px;">
+        <span style="font-family:'Geist Mono',monospace; font-size:12px; color:#1E5C45; letter-spacing:0.14em;">04</span>
+        <h2 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:32px; margin:0; letter-spacing:-0.01em;">SEO / AEO metadata plan</h2>
+      </div>
+      <p style="font-size:15px; color:#4A554D; margin:0 0 24px; max-width:72ch;">AEO (answer-engine optimisation) targets: every versus and article page leads with a direct-answer block, uses a question as its H1, and should ship <code style="font-family:'Geist Mono',monospace;">FAQPage</code> + <code style="font-family:'Geist Mono',monospace;">Article</code> JSON-LD. Comparison pages should also emit <code style="font-family:'Geist Mono',monospace;">BreadcrumbList</code>.</p>
+      <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:16px; overflow:hidden;">
+        <div style="display:grid; grid-template-columns:1fr 1.4fr 1fr; gap:12px; padding:13px 22px; background:#1C2620; color:#8FA89A; font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.08em;">
+          <span>PAGE TYPE</span><span>PRIMARY QUERY TARGET</span><span>STRUCTURED DATA</span>
+        </div>
+        <sc-for list="{{ seo }}" as="s" hint-placeholder-count="5">
+          <div style="display:grid; grid-template-columns:1fr 1.4fr 1fr; gap:12px; padding:14px 22px; border-bottom:1px solid rgba(28,38,32,0.07); align-items:center;">
+            <span style="font-size:13px; font-weight:600;">{{ s.type }}</span>
+            <span style="font-size:13px; color:#4A554D;">{{ s.query }}</span>
+            <span style="font-family:'Geist Mono',monospace; font-size:11px; color:#1E5C45;">{{ s.schema }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#1C2620; color:#CFE6DB; border-radius:16px; padding:22px 24px; margin-top:18px; font-size:14px; line-height:1.7;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; color:#7FD3AE; letter-spacing:0.1em; margin-bottom:10px;">GLOBAL CHECKLIST</div>
+        Unique <code style="font-family:'Geist Mono',monospace;">&lt;title&gt;</code> + meta description per route · one H1 per page · <code style="font-family:'Geist Mono',monospace;">Organization</code> + <code style="font-family:'Geist Mono',monospace;">Product</code> JSON-LD on home &amp; pricing · <code style="font-family:'Geist Mono',monospace;">sitemap.xml</code> + <code style="font-family:'Geist Mono',monospace;">robots.txt</code> · Open Graph + Twitter cards · self-referencing canonicals · fast LCP (inline critical CSS, defer fonts) · accessible landmarks &amp; alt text.
+      </div>
+    </section>
+
+    <!-- FULL INDEX (no dead links) -->
+    <section>
+      <div style="display:flex; align-items:baseline; gap:14px; border-top:1px solid rgba(28,38,32,0.16); padding-top:22px; margin-bottom:20px;">
+        <span style="font-family:'Geist Mono',monospace; font-size:12px; color:#1E5C45; letter-spacing:0.14em;">05</span>
+        <h2 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:32px; margin:0; letter-spacing:-0.01em;">Every page in the prototype</h2>
+      </div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <sc-for list="{{ allLinks }}" as="l" hint-placeholder-count="12">
+          <a href="{{ l.href }}" style="text-decoration:none; font-size:13px; font-weight:600; color:#1C2620; background:#FBFAF6; border:1px solid rgba(28,38,32,0.1); border-radius:100px; padding:9px 16px;">{{ l.label }}</a>
+        </sc-for>
+      </div>
+    </section>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      groups: [
+        { title: "MARKETING", routes: [
+          { label: "Home", route: "/", href: "Home.dc.html" },
+          { label: "How it works", route: "/how-it-works", href: "HowItWorks.dc.html" },
+          { label: "Pricing", route: "/pricing", href: "Pricing.dc.html" },
+          { label: "Science", route: "/science", href: "Science.dc.html" },
+          { label: "The app", route: "/app", href: "App.dc.html" },
+        ]},
+        { title: "COMPANY", routes: [
+          { label: "About", route: "/about", href: "About.dc.html" },
+          { label: "Contact", route: "/contact", href: "Contact.dc.html" },
+          { label: "Careers", route: "/careers", href: "Careers.dc.html" },
+          { label: "Help centre", route: "/help", href: "Help.dc.html" },
+        ]},
+        { title: "COMPARE (AEO)", routes: [
+          { label: "Compare index", route: "/compare", href: "Compare.dc.html" },
+          { label: "vs LetsGetChecked", route: "/vs/letsgetchecked", href: "Versus.dc.html?c=letsgetchecked" },
+          { label: "vs Thriva", route: "/vs/thriva", href: "Versus.dc.html?c=thriva" },
+          { label: "vs Function Health", route: "/vs/function-health", href: "Versus.dc.html?c=function-health" },
+        ]},
+        { title: "BLOG (AEO)", routes: [
+          { label: "Journal index", route: "/blog", href: "Blog.dc.html" },
+          { label: "ApoB vs cholesterol", route: "/blog/apob-vs-cholesterol", href: "Article.dc.html?post=apob-vs-cholesterol" },
+          { label: "How often to test", route: "/blog/how-often-blood-test-ireland", href: "Article.dc.html?post=how-often-blood-test-ireland" },
+          { label: "Reference Change Value", route: "/blog/reference-change-value", href: "Article.dc.html?post=reference-change-value" },
+        ]},
+        { title: "TRUST & LEGAL", routes: [
+          { label: "Privacy policy", route: "/legal/privacy", href: "Legal.dc.html?doc=privacy" },
+          { label: "Data deletion & export", route: "/legal/data-deletion", href: "Legal.dc.html?doc=data-deletion" },
+          { label: "Terms of service", route: "/legal/terms", href: "Legal.dc.html?doc=terms" },
+          { label: "Clinical safety", route: "/legal/clinical-safety", href: "Legal.dc.html?doc=clinical-safety" },
+        ]},
+        { title: "ADMIN (INTERNAL)", routes: [
+          { label: "Business dashboard", route: "/admin", href: "Admin.dc.html?panel=analytics" },
+          { label: "Members", route: "/admin/members", href: "Admin.dc.html?panel=members" },
+          { label: "Lab orders", route: "/admin/orders", href: "Admin.dc.html?panel=orders" },
+          { label: "Review queue", route: "/admin/review", href: "Admin.dc.html?panel=review" },
+        ]},
+      ],
+      components: [
+        { name: "SiteNav", purpose: "Sticky top navigation with active-state highlighting", reuse: "All pages" },
+        { name: "SiteFooter", purpose: "Footer with product, company & legal link columns", reuse: "All pages" },
+        { name: "PhoneFrame", purpose: "iOS device bezel wrapping app screens", reuse: "Home, App" },
+        { name: "MarkerBar", purpose: "Optimal-range band with value dot", reuse: "App, Science, Admin" },
+        { name: "FusionChart", purpose: "Two-series overlay (bloods over wearable)", reuse: "Home, How it works, Blog" },
+        { name: "VerdictChip", purpose: "REAL / NOISE / RETEST status pill (RCV)", reuse: "App, Admin, Blog" },
+        { name: "PricingCard", purpose: "Plan card with feature list", reuse: "Home, Pricing" },
+        { name: "CompareTable", purpose: "Dimension × Arcaevo × competitor grid", reuse: "Versus" },
+        { name: "FaqAccordion", purpose: "Expandable Q&A (also AEO source)", reuse: "Help, Pricing" },
+        { name: "DocLayout", purpose: "Sidebar + article body for legal docs", reuse: "Legal" },
+        { name: "AdminShell", purpose: "Sidebar + topbar admin frame", reuse: "All admin panels" },
+        { name: "DataTable", purpose: "Header + rows with status pills", reuse: "Members, Orders, Biomarkers" },
+      ],
+      entities: [
+        { name: "User", fields: ["id, name, email, dob", "address, region", "plan_id → Plan", "consents: bloods, wearables", "created_at, deleted_at"] },
+        { name: "Order", fields: ["id, user_id → User", "type: fingerprick | venous", "stage: placed…results", "lab_id, phlebotomist_id", "eta, tracking_ref"] },
+        { name: "TestResult", fields: ["id, order_id → Order", "reviewed_by → Clinician", "status: pending | signed | flagged", "released_at", "markers: [BiomarkerReading]"] },
+        { name: "BiomarkerReading", fields: ["marker_code, value, unit", "optimal_min, optimal_max", "rcv_pct, verdict", "prior_value, delta_real"] },
+        { name: "BiomarkerRule", fields: ["marker_code, unit", "optimal range, rcv_pct", "escalation_threshold", "version, updated_by"] },
+        { name: "WearableSignal", fields: ["user_id → User", "source: apple_health (v1)…", "metric: hrv | sleep | vo2…", "series[timestamp, value]"] },
+      ],
+      seo: [
+        { type: "Versus page", query: "\u201carcaevo vs [competitor]\u201d, \u201c[competitor] alternative\u201d", schema: "FAQ + Breadcrumb" },
+        { type: "Blog article", query: "\u201cwhat is apob\u201d, \u201chow often blood test ireland\u201d", schema: "Article + FAQ" },
+        { type: "Pricing", query: "\u201chealth testing membership ireland\u201d", schema: "Product + Offer" },
+        { type: "Home", query: "\u201cat-home blood test interpretation ireland\u201d", schema: "Organization" },
+        { type: "Legal", query: "n/a — noindex optional, keep crawlable", schema: "\u2014" },
+      ],
+      allLinks: [
+        { label: "Home", href: "Home.dc.html" },
+        { label: "How it works", href: "HowItWorks.dc.html" },
+        { label: "Pricing", href: "Pricing.dc.html" },
+        { label: "Science", href: "Science.dc.html" },
+        { label: "The app", href: "App.dc.html" },
+        { label: "About", href: "About.dc.html" },
+        { label: "Contact", href: "Contact.dc.html" },
+        { label: "Careers", href: "Careers.dc.html" },
+        { label: "Help", href: "Help.dc.html" },
+        { label: "Compare", href: "Compare.dc.html" },
+        { label: "vs LetsGetChecked", href: "Versus.dc.html?c=letsgetchecked" },
+        { label: "vs Randox", href: "Versus.dc.html?c=randox-health" },
+        { label: "vs Thriva", href: "Versus.dc.html?c=thriva" },
+        { label: "vs Function", href: "Versus.dc.html?c=function-health" },
+        { label: "vs Medichecks", href: "Versus.dc.html?c=medichecks" },
+        { label: "vs Zoe", href: "Versus.dc.html?c=zoe" },
+        { label: "vs Everlab", href: "Versus.dc.html?c=everlab" },
+        { label: "vs Superpower", href: "Versus.dc.html?c=superpower" },
+        { label: "Blog", href: "Blog.dc.html" },
+        { label: "Article: ApoB", href: "Article.dc.html?post=apob-vs-cholesterol" },
+        { label: "Article: How often", href: "Article.dc.html?post=how-often-blood-test-ireland" },
+        { label: "Article: RCV", href: "Article.dc.html?post=reference-change-value" },
+        { label: "Article: Fusion", href: "Article.dc.html?post=wearables-and-bloods-fusion" },
+        { label: "Privacy", href: "Legal.dc.html?doc=privacy" },
+        { label: "Data deletion", href: "Legal.dc.html?doc=data-deletion" },
+        { label: "GDPR consent", href: "Legal.dc.html?doc=gdpr-consent" },
+        { label: "Cookies", href: "Legal.dc.html?doc=cookies" },
+        { label: "Terms", href: "Legal.dc.html?doc=terms" },
+        { label: "Sub-processors", href: "Legal.dc.html?doc=dpa" },
+        { label: "Clinical safety", href: "Legal.dc.html?doc=clinical-safety" },
+        { label: "Admin: Dashboard", href: "Admin.dc.html?panel=analytics" },
+        { label: "Admin: Members", href: "Admin.dc.html?panel=members" },
+        { label: "Admin: Orders", href: "Admin.dc.html?panel=orders" },
+        { label: "Admin: Review", href: "Admin.dc.html?panel=review" },
+        { label: "Admin: Biomarkers", href: "Admin.dc.html?panel=biomarkers" },
+        { label: "Admin: Support", href: "Admin.dc.html?panel=support" },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

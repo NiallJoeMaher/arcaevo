@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #ECE7DD; }
+  ::selection { background: #1E5C45; color: #F4F1EA; }
+  a:hover { opacity: 0.72; }
+</style>
+</helmet>
+
+<div style="font-family:'Hanken Grotesk',sans-serif; background:#ECE7DD; color:#1C2620; width:100%; overflow-x:hidden;">
+  <dc-import name="SiteNav" active="app" hint-size="100%,72px"></dc-import>
+
+  <section style="max-width:1180px; margin:0 auto; padding:64px 40px 40px; display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:center;">
+    <div>
+      <div style="font-family:'Geist Mono',monospace; font-size:12px; letter-spacing:0.14em; color:#1E5C45; margin-bottom:20px;">THE APP · iOS &amp; APPLE WATCH</div>
+      <h1 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:clamp(38px,5vw,56px); line-height:1.04; letter-spacing:-0.015em; margin:0 0 20px;">Your trends, in your pocket and on your wrist.</h1>
+      <p style="font-size:18px; line-height:1.6; color:#4A554D; margin:0 0 28px; max-width:44ch;">Bloods fused with sleep, HRV and VO₂max on one timeline. The phone leads with synthesis; the Watch shows only the one action that matters now.</p>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; font-family:'Geist Mono',monospace; font-size:12px; color:#4A554D; margin-bottom:28px;">
+        <span style="padding:8px 14px; border:1px solid rgba(28,38,32,0.16); border-radius:100px;">Apple Watch</span><span style="padding:8px 14px; border:1px solid rgba(28,38,32,0.16); border-radius:100px;">Apple Health</span><span style="padding:8px 14px; border:1px solid rgba(28,38,32,0.16); border-radius:100px;">iPhone</span><span style="padding:8px 14px; border:1px dashed rgba(28,38,32,0.2); border-radius:100px; color:#9AA39C;">WHOOP · Oura · Garmin — soon</span>
+      </div>
+      <a href="Pricing.dc.html" style="display:inline-block; background:#1E5C45; color:#fff; padding:15px 28px; border-radius:100px; font-weight:600; font-size:16px; text-decoration:none;">Get started</a>
+    </div>
+    <div style="display:flex; justify-content:center; align-items:flex-end; gap:20px;">
+      <div style="width:230px; height:470px; background:#1C2620; border-radius:40px; padding:8px; box-shadow:0 30px 60px -30px rgba(28,38,32,0.55);">
+        <div style="width:100%; height:100%; background:#1C2620; border-radius:33px; overflow:hidden; padding:24px 18px 0; color:#F4F1EA;">
+          <div style="font-family:'Geist Mono',monospace; font-size:10px; color:#8FA89A; letter-spacing:0.1em; margin-bottom:14px;">GOOD MORNING, AOIFE</div>
+          <div style="display:flex; align-items:center; gap:14px; margin-bottom:18px;">
+            <svg viewBox="0 0 120 120" style="width:86px; height:86px;"><circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="10"></circle><circle cx="60" cy="60" r="50" fill="none" stroke="#34A07C" stroke-width="10" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="60" transform="rotate(-90 60 60)"></circle></svg>
+            <div style="margin-left:-74px; text-align:center; width:86px;"><div style="font-family:'Geist Mono',monospace; font-size:26px; font-weight:500; line-height:1;">81</div><div style="font-size:8px; color:#8FA89A;">HEALTH SCORE</div></div>
+          </div>
+          <div style="background:rgba(255,255,255,0.06); border-radius:14px; padding:13px; margin-bottom:10px;"><div style="font-family:'Geist Mono',monospace; font-size:9px; color:#8FA89A; letter-spacing:0.1em; margin-bottom:6px;">FOCUS THIS WEEK</div><div style="font-size:14px; font-weight:600; line-height:1.3;">Add a 20-min walk after dinner</div></div>
+          <div style="background:rgba(255,255,255,0.06); border-radius:14px; padding:13px;"><div style="font-family:'Geist Mono',monospace; font-size:9px; color:#8FA89A; letter-spacing:0.1em; margin-bottom:8px;">VO₂ MAX + APOB</div><svg viewBox="0 0 220 60" style="width:100%; height:48px;"><polyline points="6,50 46,46 86,36 126,38 166,26 200,18 214,14" fill="none" stroke="#34A07C" stroke-width="2.5" stroke-linecap="round"></polyline><polyline points="6,36 46,38 86,40 126,34 166,36 200,42 214,46" fill="none" stroke="#D99A4E" stroke-width="2.5" stroke-dasharray="2 4" stroke-linecap="round"></polyline></svg></div>
+        </div>
+      </div>
+      <div style="width:120px; height:146px; background:#1C2620; border-radius:34px; padding:8px; margin-bottom:36px; box-shadow:0 18px 36px -20px rgba(28,38,32,0.5);">
+        <div style="width:100%; height:100%; background:#000; border-radius:28px; overflow:hidden; padding:14px 12px 0; color:#F4F1EA;">
+          <div style="font-size:10px; color:#34A07C; font-weight:600; margin-bottom:8px;">Arcaevo</div>
+          <div style="font-family:'Geist Mono',monospace; font-size:7px; color:#8FA89A; letter-spacing:0.1em; margin-bottom:5px;">FOCUS</div>
+          <div style="font-size:13px; font-weight:600; line-height:1.2; margin-bottom:10px;">Walk 20 min</div>
+          <div style="background:rgba(52,160,124,0.16); border-radius:9px; padding:6px 8px; font-size:9px; color:#7FD3AE;">Targets HbA1c</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURE GRID -->
+  <section style="padding:60px 40px;">
+    <div style="max-width:1100px; margin:0 auto;">
+      <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:18px;">
+        <sc-for list="{{ features }}" as="f" hint-placeholder-count="6">
+          <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:18px; padding:24px;">
+            <div style="font-family:'Geist Mono',monospace; font-size:11px; color:#1E5C45; letter-spacing:0.1em; margin-bottom:12px;">{{ f.tag }}</div>
+            <h3 style="font-size:17px; font-weight:700; margin:0 0 8px;">{{ f.t }}</h3>
+            <p style="font-size:14px; line-height:1.55; color:#4A554D; margin:0;">{{ f.d }}</p>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section style="padding:20px 40px 90px;">
+    <div style="max-width:900px; margin:0 auto; text-align:center; background:#1E5C45; border-radius:24px; padding:56px 40px; color:#fff;">
+      <h3 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:36px; margin:0 0 12px; letter-spacing:-0.01em;">Free to download. Yours the moment you test.</h3>
+      <p style="font-size:16px; color:#CFE6DB; margin:0 0 26px;">The app comes with every plan — Fusion, Essential and Performance.</p>
+      <a href="Pricing.dc.html" style="display:inline-block; background:#F4F1EA; color:#1C2620; padding:15px 32px; border-radius:100px; font-weight:600; font-size:16px; text-decoration:none;">See plans &amp; pricing</a>
+    </div>
+  </section>
+
+  <dc-import name="SiteFooter" hint-size="100%,360px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      features: [
+        { tag: "HOME", t: "Lead with synthesis", d: "Not forty numbers on arrival \u2014 one Health Score, one focus, and the top three things to do first, ranked for you." },
+        { tag: "FUSION", t: "One timeline for everything", d: "Blood draws plotted over the wearable signal that explains them. See the story, not two disconnected charts." },
+        { tag: "COACH", t: "Ask your data anything", d: "A conversational coach grounded in your results and the rules. \u2018Why not statins?\u2019, \u2018What\u2019s ApoB?\u2019 \u2014 answered plainly." },
+        { tag: "LOOP", t: "\u201cDid it work?\u201d verdicts", d: "Log a change; at your next test we tell you whether the marker really moved, or whether it was within test noise." },
+        { tag: "WATCH", t: "One action on the wrist", d: "A baseline complication, one-tap quick-log for supplements and workouts, and a next-test countdown \u2014 never a dashboard squeezed onto a watch face." },
+        { tag: "PRIVACY", t: "Export or delete in a tap", d: "Your data, EU-hosted and never sold. Share a clinician PDF with your GP, or erase everything permanently, whenever you like." },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

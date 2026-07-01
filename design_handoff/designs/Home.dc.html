@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #ECE7DD; }
+  ::selection { background: #1E5C45; color: #F4F1EA; }
+  a { transition: opacity .15s; }
+  a:hover { opacity: 0.72; }
+</style>
+</helmet>
+
+<div style="font-family:'Hanken Grotesk',sans-serif; background:#ECE7DD; color:#1C2620; width:100%; overflow-x:hidden;">
+  <dc-import name="SiteNav" active="home" hint-size="100%,72px"></dc-import>
+
+  <!-- HERO -->
+  <section style="max-width:1180px; margin:0 auto; padding:64px 40px 72px;">
+    <div style="display:grid; grid-template-columns:1.05fr 0.95fr; gap:48px; align-items:center;">
+      <div>
+        <div style="font-family:'Geist Mono',monospace; font-size:12px; letter-spacing:0.14em; color:#1E5C45; margin-bottom:22px;">THE INTERPRETATION LAYER · DUBLIN</div>
+        <h1 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:clamp(40px,5.4vw,62px); line-height:1.02; letter-spacing:-0.015em; margin:0 0 22px;">The numbers were never the problem. The roadmap was.</h1>
+        <p style="font-size:19px; line-height:1.55; color:#4A554D; margin:0 0 34px; max-width:46ch;">Everyone else hands you a panel of biomarkers and walks away. Arcaevo fuses your bloods with your Apple Watch, reads them off your own baseline, and gives you two things to change — then proves whether they worked.</p>
+        <div style="display:flex; gap:14px; align-items:center; flex-wrap:wrap;">
+          <a href="Pricing.dc.html" style="background:#1E5C45; color:#fff; padding:15px 28px; border-radius:100px; font-weight:600; font-size:16px; text-decoration:none;">Order your first test</a>
+          <a href="HowItWorks.dc.html" style="font-size:15px; color:#1C2620; font-weight:600; text-decoration:none;">See how it works →</a>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:34px; font-family:'Geist Mono',monospace; font-size:11px; color:#4A554D;">
+          <span style="padding:8px 14px; border:1px solid rgba(28,38,32,0.16); border-radius:100px;">ACCREDITED EU LABS</span>
+          <span style="padding:8px 14px; border:1px solid rgba(28,38,32,0.16); border-radius:100px;">CLINICIAN-REVIEWED</span>
+          <span style="padding:8px 14px; border:1px solid rgba(28,38,32,0.16); border-radius:100px;">GDPR · EU-HOSTED</span>
+        </div>
+      </div>
+      <div style="background:#1C2620; border-radius:24px; padding:26px; color:#F4F1EA; box-shadow:0 30px 70px -34px rgba(28,38,32,0.6);">
+        <div style="display:flex; align-items:center; gap:18px; margin-bottom:22px;">
+          <svg viewBox="0 0 120 120" style="width:96px; height:96px;"><circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="10"></circle><circle cx="60" cy="60" r="50" fill="none" stroke="#34A07C" stroke-width="10" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="60" transform="rotate(-90 60 60)"></circle></svg>
+          <div style="margin-left:-84px; text-align:center; width:96px;"><div style="font-family:'Geist Mono',monospace; font-size:30px; font-weight:500; line-height:1;">81</div><div style="font-size:9px; color:#8FA89A; letter-spacing:0.08em;">HEALTH SCORE</div></div>
+          <div style="margin-left:4px;"><div style="font-size:13px; color:#8FA89A;">Up 4 pts</div><div style="font-size:13px; color:#8FA89A;">this quarter</div></div>
+        </div>
+        <div style="background:rgba(255,255,255,0.06); border-radius:16px; padding:15px; margin-bottom:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px;"><span style="font-weight:600; font-size:14px;">ApoB</span><span style="font-family:'Geist Mono',monospace; font-size:13px;">0.74 g/L</span></div>
+          <div style="height:9px; border-radius:100px; background:linear-gradient(90deg,#E8C58A 0%,#E8C58A 16%,#9AD3B8 30%,#9AD3B8 70%,#E8C58A 84%,#E8C58A 100%); position:relative;"><div style="position:absolute; left:40%; top:50%; transform:translate(-50%,-50%); width:14px; height:14px; border-radius:50%; background:#fff;"></div></div>
+        </div>
+        <div style="background:rgba(52,160,124,0.16); border-radius:16px; padding:14px; display:flex; gap:10px; align-items:center;"><span style="color:#7FD3AE; font-size:16px;">✦</span><span style="font-size:13px; color:#BFE6D3;">HRV down 15% on baseline → focus: walk after dinner</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LOGO STRIP / TRUST -->
+  <section style="background:#FBFAF6; border-top:1px solid rgba(28,38,32,0.08); border-bottom:1px solid rgba(28,38,32,0.08);">
+    <div style="max-width:1180px; margin:0 auto; padding:26px 40px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:20px;">
+      <span style="font-family:'Geist Mono',monospace; font-size:11px; letter-spacing:0.12em; color:#7C887F;">BUILT FOR</span>
+      <div style="display:flex; gap:30px; flex-wrap:wrap; align-items:baseline; font-weight:600; font-size:16px; color:#4A554D;">
+        <span>Apple Watch</span><span>Apple Health</span><span>iPhone</span><span style="font-weight:500; font-size:13px; color:#9AA39C;">WHOOP, Oura &amp; Garmin — on the roadmap</span>
+      </div>
+      <a href="Science.dc.html" style="font-family:'Geist Mono',monospace; font-size:11px; letter-spacing:0.1em; color:#1E5C45; text-decoration:none;">READ THE SCIENCE →</a>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section style="background:#FBFAF6; padding:84px 40px;">
+    <div style="max-width:1180px; margin:0 auto;">
+      <div style="text-align:center; margin-bottom:54px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:12px; letter-spacing:0.14em; color:#1E5C45; margin-bottom:14px;">HOW IT WORKS</div>
+        <h2 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:42px; margin:0; letter-spacing:-0.01em;">Test. Understand. Act.</h2>
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:28px;">
+        <div><div style="font-family:'Geist Mono',monospace; font-size:13px; color:#1E5C45; margin-bottom:16px;">01</div><h3 style="font-size:21px; font-weight:700; margin:0 0 10px;">Test</h3><p style="font-size:15px; line-height:1.55; color:#4A554D; margin:0 0 16px;">Finger-prick kit to your door, or a nurse to your home for a full venous draw. You choose the depth.</p><div style="display:flex; gap:8px;"><span style="font-size:11px; font-family:'Geist Mono',monospace; padding:5px 10px; background:rgba(28,38,32,0.05); border-radius:100px; color:#4A554D;">15–35</span><span style="font-size:11px; font-family:'Geist Mono',monospace; padding:5px 10px; background:rgba(30,92,69,0.1); border-radius:100px; color:#1E5C45;">45–80 markers</span></div></div>
+        <div><div style="font-family:'Geist Mono',monospace; font-size:13px; color:#1E5C45; margin-bottom:16px;">02</div><h3 style="font-size:21px; font-weight:700; margin:0 0 10px;">Understand</h3><p style="font-size:15px; line-height:1.55; color:#4A554D; margin:0;">Results land in a beautiful dashboard — every marker against its optimal range, layered with your sleep, HRV and activity.</p></div>
+        <div><div style="font-family:'Geist Mono',monospace; font-size:13px; color:#1E5C45; margin-bottom:16px;">03</div><h3 style="font-size:21px; font-weight:700; margin:0 0 10px;">Act</h3><p style="font-size:15px; line-height:1.55; color:#4A554D; margin:0;">Your AI coach gives you one or two prioritised changes — and tracks whether they're working at your next test.</p></div>
+      </div>
+      <div style="text-align:center; margin-top:44px;"><a href="HowItWorks.dc.html" style="font-size:15px; color:#1E5C45; font-weight:600; text-decoration:none;">The full walkthrough →</a></div>
+    </div>
+  </section>
+
+  <!-- DIFFERENTIATORS -->
+  <section style="background:#1C2620; color:#F4F1EA; padding:84px 40px;">
+    <div style="max-width:1180px; margin:0 auto;">
+      <div style="margin-bottom:52px; max-width:62ch;">
+        <div style="font-family:'Geist Mono',monospace; font-size:12px; letter-spacing:0.14em; color:#7FD3AE; margin-bottom:14px;">WHAT NOBODY ELSE DOES</div>
+        <h2 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:42px; margin:0 0 14px; letter-spacing:-0.01em;">Five things the others can't copy.</h2>
+        <p style="font-size:16px; line-height:1.6; color:#9FB0A6; margin:0;">Your blood, your Apple Watch, your baseline. The EU-native membership that tells you what actually moved your numbers.</p>
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(6,1fr); gap:24px;">
+        <div style="grid-column:span 2; background:rgba(255,255,255,0.05); border-radius:20px; padding:26px;">
+          <div style="font-family:'Geist Mono',monospace; font-size:11px; color:#7FD3AE; letter-spacing:0.1em; margin-bottom:18px;">01 · FUSION</div>
+          <svg viewBox="0 0 240 70" style="width:100%; height:60px; margin-bottom:18px;"><rect x="0" y="26" width="240" height="22" rx="4" fill="rgba(52,160,124,0.16)"></rect><polyline points="6,52 66,46 126,34 186,24 232,18" fill="none" stroke="#34A07C" stroke-width="2.5" stroke-linecap="round"></polyline><polyline points="18,40 90,34 162,52 224,48" fill="none" stroke="#F4F1EA" stroke-width="2.5" stroke-linecap="round"></polyline><circle cx="18" cy="40" r="4" fill="#F4F1EA"></circle><circle cx="162" cy="52" r="4" fill="#F4F1EA"></circle></svg>
+          <h3 style="font-size:18px; font-weight:700; margin:0 0 8px;">Bloods &amp; your Apple Watch, one line</h3>
+          <p style="font-size:14px; line-height:1.55; color:#9FB0A6; margin:0;">Your rising resting HR and your falling vitamin D, on the same timeline. We connect the dots no one else does.</p>
+        </div>
+        <div style="grid-column:span 2; background:rgba(255,255,255,0.05); border-radius:20px; padding:26px;">
+          <div style="font-family:'Geist Mono',monospace; font-size:11px; color:#7FD3AE; letter-spacing:0.1em; margin-bottom:18px;">02 · YOUR BASELINE</div>
+          <div style="height:60px; display:flex; align-items:flex-end; gap:5px; margin-bottom:18px;"><div style="flex:1; height:38%; background:rgba(255,255,255,0.15); border-radius:3px;"></div><div style="flex:1; height:52%; background:rgba(255,255,255,0.15); border-radius:3px;"></div><div style="flex:1; height:44%; background:rgba(255,255,255,0.15); border-radius:3px;"></div><div style="flex:1; height:70%; background:#34A07C; border-radius:3px;"></div><div style="flex:1; height:60%; background:rgba(255,255,255,0.15); border-radius:3px;"></div><div style="flex:1; height:48%; background:rgba(255,255,255,0.15); border-radius:3px;"></div></div>
+          <h3 style="font-size:18px; font-weight:700; margin:0 0 8px;">Off your own normal</h3>
+          <p style="font-size:14px; line-height:1.55; color:#9FB0A6; margin:0;">&ldquo;Within range&rdquo; is useless. We flag what moved against <em>your</em> history, beyond test noise — using Reference Change Value.</p>
+        </div>
+        <div style="grid-column:span 2; background:rgba(255,255,255,0.05); border-radius:20px; padding:26px;">
+          <div style="font-family:'Geist Mono',monospace; font-size:11px; color:#7FD3AE; letter-spacing:0.1em; margin-bottom:18px;">03 · THE LOOP</div>
+          <div style="height:60px; display:flex; align-items:center; gap:8px; margin-bottom:18px;"><span style="font-family:'Geist Mono',monospace; font-size:14px; color:#9FB0A6;">0.92</span><span style="color:#34A07C; font-size:18px;">→</span><span style="font-family:'Geist Mono',monospace; font-size:18px; color:#fff; font-weight:600;">0.74</span><span style="font-family:'Geist Mono',monospace; font-size:9px; padding:4px 9px; background:rgba(52,160,124,0.2); color:#7FD3AE; border-radius:100px; margin-left:auto;">REAL ✓</span></div>
+          <h3 style="font-size:18px; font-weight:700; margin:0 0 8px;">Did it actually work?</h3>
+          <p style="font-size:14px; line-height:1.55; color:#9FB0A6; margin:0;">Log a change; we tie it to the marker and tell you, at your next test, whether it really moved — or it was just noise.</p>
+        </div>
+        <div style="grid-column:span 3; background:rgba(255,255,255,0.05); border-radius:20px; padding:26px;">
+          <div style="font-family:'Geist Mono',monospace; font-size:11px; color:#7FD3AE; letter-spacing:0.1em; margin-bottom:18px;">04 · EU-NATIVE</div>
+          <div style="height:60px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:18px;">
+            <span style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.08em; padding:7px 12px; border:1px solid rgba(127,211,174,0.3); color:#7FD3AE; border-radius:100px;">DUBLIN REGION</span>
+            <span style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.08em; padding:7px 12px; border:1px solid rgba(127,211,174,0.3); color:#7FD3AE; border-radius:100px;">GDPR-NATIVE</span>
+            <span style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.08em; padding:7px 12px; border:1px solid rgba(127,211,174,0.3); color:#7FD3AE; border-radius:100px;">CONSENT YOU CONTROL</span>
+          </div>
+          <h3 style="font-size:18px; font-weight:700; margin:0 0 8px;">Your data never leaves the EU</h3>
+          <p style="font-size:14px; line-height:1.55; color:#9FB0A6; margin:0;">Function, Superpower, Ultrahuman and WHOOP are US-based. Your health data stays in Dublin, under explicit consent you can withdraw — and export or delete in a tap.</p>
+        </div>
+        <div style="grid-column:span 3; background:rgba(255,255,255,0.05); border-radius:20px; padding:26px;">
+          <div style="font-family:'Geist Mono',monospace; font-size:11px; color:#7FD3AE; letter-spacing:0.1em; margin-bottom:18px;">05 · ON YOUR WRIST</div>
+          <div style="height:60px; display:flex; align-items:center; gap:14px; margin-bottom:18px;">
+            <div style="width:52px; height:60px; background:#000; border:2px solid rgba(255,255,255,0.18); border-radius:14px; padding:8px 7px; flex-shrink:0;">
+              <div style="font-size:6px; color:#34A07C; font-weight:600; margin-bottom:3px;">Arcaevo</div>
+              <div style="font-family:'Geist Mono',monospace; font-size:13px; font-weight:500; color:#F4F1EA; line-height:1;">+4</div>
+              <div style="font-size:5px; color:#8FA89A; margin-top:2px;">VS BASELINE</div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              <span style="font-family:'Geist Mono',monospace; font-size:10px; color:#9FB0A6;">BASELINE COMPLICATION</span>
+              <span style="font-family:'Geist Mono',monospace; font-size:10px; color:#9FB0A6;">ONE-TAP QUICK-LOG</span>
+              <span style="font-family:'Geist Mono',monospace; font-size:10px; color:#9FB0A6;">NEXT-TEST COUNTDOWN</span>
+            </div>
+          </div>
+          <h3 style="font-size:18px; font-weight:700; margin:0 0 8px;">A real Apple Watch app</h3>
+          <p style="font-size:14px; line-height:1.55; color:#9FB0A6; margin:0;">Most blood memberships have no watch app at all. We put your baseline on your wrist — plus one-tap logging that feeds your experiments.</p>
+        </div>
+      </div>
+      <div style="margin-top:44px; display:flex; gap:20px; flex-wrap:wrap;"><a href="Compare.dc.html" style="font-size:15px; color:#7FD3AE; font-weight:600; text-decoration:none;">See how we compare →</a></div>
+    </div>
+  </section>
+
+  <!-- PRICING TEASER -->
+  <section style="padding:84px 40px;">
+    <div style="max-width:1180px; margin:0 auto;">
+      <div style="text-align:center; margin-bottom:52px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:12px; letter-spacing:0.14em; color:#1E5C45; margin-bottom:14px;">MEMBERSHIP</div>
+        <h2 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:42px; margin:0; letter-spacing:-0.01em;">One annual membership. Tests included.</h2>
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:22px; align-items:stretch;">
+        <a href="Pricing.dc.html" style="text-decoration:none; color:inherit; background:#FBFAF6; border:1px solid rgba(28,38,32,0.1); border-radius:22px; padding:30px; display:block;">
+          <div style="font-weight:700; font-size:18px; margin-bottom:6px;">Fusion</div>
+          <div style="font-size:13px; color:#7C887F; margin-bottom:20px;">Your watch &amp; your own bloodwork</div>
+          <div style="font-family:'Instrument Serif',serif; font-size:46px; line-height:1;">€119<span style="font-size:16px; color:#7C887F; font-family:'Hanken Grotesk';">/yr</span></div>
+          <div style="height:1px; background:rgba(28,38,32,0.1); margin:22px 0;"></div>
+          <div style="font-size:14px; color:#4A554D; line-height:2;">Apple Watch &amp; Health sync<br>Upload any past bloodwork<br>Baselines, insights &amp; the loop</div>
+        </a>
+        <a href="Pricing.dc.html" style="text-decoration:none; color:inherit; background:#1C2620; color:#F4F1EA; border-radius:22px; padding:30px; position:relative; box-shadow:0 24px 50px -28px rgba(28,38,32,0.6); display:block;">
+          <div style="position:absolute; top:22px; right:22px; font-family:'Geist Mono',monospace; font-size:10px; background:#34A07C; color:#04130D; padding:4px 9px; border-radius:100px; letter-spacing:0.06em;">MOST POPULAR</div>
+          <div style="font-weight:700; font-size:18px; margin-bottom:6px;">Essential</div>
+          <div style="font-size:13px; color:#8FA89A; margin-bottom:20px;">Two blood tests a year</div>
+          <div style="font-family:'Instrument Serif',serif; font-size:46px; line-height:1;">€329<span style="font-size:16px; color:#8FA89A; font-family:'Hanken Grotesk';">/yr</span></div>
+          <div style="height:1px; background:rgba(255,255,255,0.12); margin:22px 0;"></div>
+          <div style="font-size:14px; color:#CFD6CF; line-height:2;">Full baseline + recheck kits<br>Clinician-reviewed results<br>Everything in Fusion</div>
+        </a>
+        <a href="Pricing.dc.html" style="text-decoration:none; color:inherit; background:#FBFAF6; border:1px solid rgba(28,38,32,0.1); border-radius:22px; padding:30px; display:block;">
+          <div style="font-weight:700; font-size:18px; margin-bottom:6px;">Performance</div>
+          <div style="font-size:13px; color:#7C887F; margin-bottom:20px;">Deep venous panel, nurse included</div>
+          <div style="font-family:'Instrument Serif',serif; font-size:46px; line-height:1;">€399<span style="font-size:16px; color:#7C887F; font-family:'Hanken Grotesk';">/yr</span></div>
+          <div style="height:1px; background:rgba(28,38,32,0.1); margin:22px 0;"></div>
+          <div style="font-size:14px; color:#4A554D; line-height:2;">1 venous draw · 80+ markers<br>Dublin mobile phlebotomy<br>Everything in Essential</div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOUNDER + CTA -->
+  <section style="padding:20px 40px 90px;">
+    <div style="max-width:760px; margin:0 auto 64px; text-align:center;">
+      <div style="width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,#5FB592,#1E5C45); margin:0 auto 24px;"></div>
+      <p style="font-family:'Instrument Serif',serif; font-size:26px; line-height:1.4; color:#1C2620; margin:0 0 20px; letter-spacing:-0.005em;">&ldquo;I built Arcaevo because health data should belong to you — calm, clear, and yours. Not a PDF you can't read, and never something we'd sell.&rdquo;</p>
+      <div style="font-size:14px; color:#7C887F; font-family:'Geist Mono',monospace;">— FOUNDER, ARCAEVO · <a href="About.dc.html" style="color:#1E5C45; text-decoration:none;">OUR STORY</a></div>
+    </div>
+    <div style="max-width:900px; margin:0 auto; text-align:center; background:#1E5C45; border-radius:24px; padding:56px 40px; color:#fff;">
+      <h3 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:38px; margin:0 0 12px; letter-spacing:-0.01em;">Start your baseline.</h3>
+      <p style="font-size:16px; color:#CFE6DB; margin:0 0 26px;">Join Essential and your first kit ships today. Not ready to test? Fusion starts at €119 a year.</p>
+      <div style="display:flex; gap:14px; justify-content:center; flex-wrap:wrap;">
+        <a href="Pricing.dc.html" style="display:inline-block; background:#F4F1EA; color:#1C2620; padding:15px 32px; border-radius:100px; font-weight:600; font-size:16px; text-decoration:none;">See membership plans</a>
+        <a href="Help.dc.html" style="display:inline-block; border:1px solid rgba(255,255,255,0.4); color:#fff; padding:15px 32px; border-radius:100px; font-weight:600; font-size:16px; text-decoration:none;">Questions? Help centre</a>
+      </div>
+    </div>
+  </section>
+
+  <dc-import name="SiteFooter" hint-size="100%,360px"></dc-import>
+</div>
+</x-dc>
+</body>
+</html>

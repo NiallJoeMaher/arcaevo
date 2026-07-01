@@ -1,0 +1,43 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: arcaevo-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongo-express:
+    image: mongo-express:1
+    container_name: arcaevo-mongo-express
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://mongo:27017/
+      ME_CONFIG_BASICAUTH: "false"
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: arcaevo-web
+    ports:
+      - "3000:3000"
+    environment:
+      MONGODB_URI: mongodb://mongo:27017/arcaevo
+      ADMIN_PASSWORD: change-me-local
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+volumes:
+  mongo-data:

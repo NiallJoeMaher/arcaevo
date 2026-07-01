@@ -1,26 +1,67 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* ── Colors ─────────────────────────────────────────────── */
+  --color-bone: #ece7dd; /* page background */
+  --color-surface: #fbfaf6; /* cards / light sections */
+  --color-ink: #1c2620; /* text / dark sections */
+  --color-forest: #1e5c45; /* primary accent, CTAs */
+  --color-vitality: #34a07c; /* highlight green, badges, chart lines */
+  --color-vitality-light: #7fd3ae; /* tint — kickers/links on dark */
+  --color-vitality-tint: #9ad3b8; /* tint — chart bands */
+  --color-vitality-faint: #cfe6db; /* tint — subtitles on forest */
+  --color-amber: #d99a4e; /* secondary / warning */
+  --color-bone-white: #f4f1ea; /* buttons / text on dark */
+  --color-ink-deep: #161e18; /* footer background */
+  --color-muted: #4a554d; /* muted text on light */
+  --color-muted-dark: #9fb0a6; /* muted text on dark */
+  --color-muted-dark-soft: #8fa89a; /* softer muted text on dark */
+  --color-caption: #7c887f; /* captions */
+
+  /* Hairlines */
+  --color-hairline-soft: rgba(28, 38, 32, 0.08);
+  --color-hairline: rgba(28, 38, 32, 0.1);
+  --color-hairline-mid: rgba(28, 38, 32, 0.12);
+  --color-hairline-strong: rgba(28, 38, 32, 0.16);
+  --color-hairline-dark: rgba(255, 255, 255, 0.12);
+  --color-hairline-dark-strong: rgba(255, 255, 255, 0.15);
+
+  /* ── Typography ─────────────────────────────────────────── */
+  --font-serif: var(--font-instrument-serif), Georgia, serif;
+  --font-sans: var(--font-hanken-grotesk), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  /* ── Shape & depth ──────────────────────────────────────── */
+  --radius-pill: 100px; /* pills / buttons */
+  --radius-card-sm: 14px;
+  --radius-card: 20px;
+  --radius-card-lg: 22px;
+  --radius-card-xl: 24px;
+
+  --shadow-card-dark: 0 24px 50px -28px rgba(28, 38, 32, 0.6);
+  --shadow-hero-card: 0 30px 70px -34px rgba(28, 38, 32, 0.6);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+::selection {
+  background: var(--color-forest);
+  color: var(--color-bone-white);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-bone);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+a {
+  transition: opacity 0.15s;
+}
+
+a:hover {
+  opacity: 0.72;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-forest);
+  outline-offset: 2px;
 }

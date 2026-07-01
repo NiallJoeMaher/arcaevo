@@ -14,6 +14,7 @@ Every loop iteration: read this file first, do the next unchecked work, update t
 - **Payments**: Stripe — MOCKED (no keys). Blood testing: LetsGetChecked — MOCKED. See docs/MOCKED_APIS.md.
 - **Analytics**: PostHog EU — stubbed off by default (no US-hosted scripts, per handoff).
 - **Region**: eu-west-1 everywhere in CDK.
+- **Hosting (user-confirmed 2026-07-02)**: Vercel (EU region, fra1/dub1) is the primary host for apps/web — fastest to market. The Dockerfile + docker-compose stack is kept working at all times so we can move to AWS (ECS/Fargate via CDK) later without a rewrite. CDK covers the AWS-side footprint only (secrets, exports bucket); no duplicate web hosting infra unless we migrate.
 
 ## Ground rules for agents
 
@@ -33,16 +34,16 @@ Every loop iteration: read this file first, do the next unchecked work, update t
 - [ ] Initial commit
 
 ### Phase 1 — Web foundation (apps/web)
-- [ ] Design tokens in globals.css, fonts in layout, base metadata
-- [ ] SiteNav + SiteFooter components
-- [ ] Home `/` (pixel-fidelity)
-- [ ] Pricing `/pricing`
+- [x] Design tokens in globals.css, fonts in layout, base metadata
+- [x] SiteNav + SiteFooter components
+- [x] Home `/` (pixel-fidelity)
+- [x] Pricing `/pricing`
 
 ### Phase 2 — Content extraction (apps/web/src/content)
-- [ ] Versus/compare data → `src/content/compare.ts`
-- [ ] Blog articles → `src/content/articles.ts`
-- [ ] Legal docs → `src/content/legal.ts`
-- [ ] Help FAQ groups → `src/content/help.ts`
+- [x] Versus/compare data → `src/content/compare.ts`
+- [x] Blog articles → `src/content/articles.ts`
+- [x] Legal docs → `src/content/legal.ts`
+- [x] Help FAQ groups → `src/content/help.ts`
 
 ### Phase 3 — Remaining marketing pages
 - [ ] /how-it-works, /science, /app, /about, /careers, /contact
@@ -73,12 +74,15 @@ Every loop iteration: read this file first, do the next unchecked work, update t
 - [ ] CDK app: eu-west-1; stacks documented (Atlas is external — document connection via secrets)
 - [ ] `cdk synth` passes
 
-### Phase 9 — Verification
+### Phase 9 — Tests + verification (USER REQUIREMENT: e2e-testable when done)
 - [ ] `npm run build` passes in apps/web
+- [ ] Unit tests (vitest) for lib logic (RCV verdicts, refund rules, vendor mocks)
+- [ ] Playwright e2e suite: all routes render, pricing figures verbatim, help accordion, admin login + tabs, API smoke (order lifecycle via mock LGC)
 - [ ] Link check across all routes
 - [ ] Lighthouse ≥95 perf/SEO/a11y on Home + Pricing
 - [ ] xcodebuild succeeds for iOS + watch targets
-- [ ] docker compose config validates
+- [ ] `cdk synth` passes
+- [ ] `docker compose up --build` running and healthy at end of build (web :3000, mongo :27017, mongo-express :8081), seeded
 
 ## Wanted deps (agents append here instead of installing)
 
@@ -87,3 +91,5 @@ Every loop iteration: read this file first, do the next unchecked work, update t
 ## Log
 
 - 2026-07-02: Loop started. Repo scaffolded, plan written.
+- 2026-07-02: Phase 1 complete — design tokens mapped in globals.css @theme (colors, hairlines, radii, shadows; selection/link-hover/focus-visible base styles), fonts (Instrument Serif, Hanken Grotesk, Geist Mono via next/font) + base metadata (title template, metadataBase) in layout.tsx, SiteNav/SiteFooter components, pixel-faithful Home `/` and `/pricing` pages, default scaffold page + public SVGs removed. `npx next build` passes with zero errors.
+- 2026-07-02: Phase 2 content extraction done — compare.ts (8 versus pages + compare index), articles.ts (4 blog posts + blog index), legal.ts (7 docs), help.ts (4 FAQ groups), index.ts barrel. Verbatim from designs; typed unions; `npx tsc --noEmit` passes.

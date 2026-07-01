@@ -46,11 +46,12 @@ Every loop iteration: read this file first, do the next unchecked work, update t
 - [x] Help FAQ groups → `src/content/help.ts`
 
 ### Phase 3 — Remaining marketing pages
-- [ ] /how-it-works, /science, /app, /about, /careers, /contact
-- [ ] /compare + /compare/[slug], /blog + /blog/[slug], /legal/[doc], /help
+- [x] /how-it-works, /science, /app, /about, /careers, /contact
+- [x] /compare + /compare/[slug], /blog + /blog/[slug], /legal/[doc], /help
 
 ### Phase 4 — SEO/AEO
-- [ ] Per-route metadata, JSON-LD (Organization+Product, FAQPage+Article, BreadcrumbList), sitemap.ts, robots.ts, OG cards
+- [x] Site-wide SEO infra: src/lib/seo.ts (SITE_URL, canonicalUrl, jsonLd, Organization/Product schema), Organization+Product JSON-LD on Home & Pricing, canonicals for / and /pricing, sitemap.ts (30 URLs), robots.ts (disallow /admin,/api), default opengraph-image.tsx + twitter-image.tsx
+- [ ] Per-route metadata + FAQPage/Article/BreadcrumbList JSON-LD (owned by the route-building agents)
 
 ### Phase 5 — API + data layer (apps/web)
 - [ ] Mongo connection lib + typed models (User, Membership, TestOrder, BiomarkerReading, BiomarkerRule, WearableSignal)
@@ -63,12 +64,12 @@ Every loop iteration: read this file first, do the next unchecked work, update t
 - [ ] /admin auth-gated skeleton per Admin.dc.html (dashboard, members, results, support tabs)
 
 ### Phase 7 — iOS + watchOS (apps/ios)
-- [ ] XcodeGen project.yml (iOS app + watchOS app targets)
-- [ ] SwiftUI iOS app: onboarding, dashboard (baseline/insights), results, orders, settings
-- [ ] HealthKit integration layer (real reads where possible; mock data source fallback)
-- [ ] watchOS companion: today ring + latest insight
-- [ ] API client pointing at web /api/v1
-- [ ] Builds with xcodebuild (verify)
+- [x] XcodeGen project.yml (iOS app + watchOS app targets)
+- [x] SwiftUI iOS app: onboarding, dashboard (baseline/insights), results, orders, settings
+- [x] HealthKit integration layer (real reads where possible; mock data source fallback)
+- [x] watchOS companion: today ring + latest insight
+- [x] API client pointing at web /api/v1
+- [ ] Builds with xcodebuild (verify) — blocked on this machine: Xcode 16.4 system content missing (`IDESimulatorFoundation` plugin fails to load; `xcodebuild -runFirstLaunch` needs admin auth). `xcodegen generate` succeeds; all sources fully compile per-target via `xcrun swiftc -emit-object` against iphonesimulator + watchsimulator SDKs.
 
 ### Phase 8 — Infra (infra/cdk)
 - [ ] CDK app: eu-west-1; stacks documented (Atlas is external — document connection via secrets)
@@ -93,3 +94,5 @@ Every loop iteration: read this file first, do the next unchecked work, update t
 - 2026-07-02: Loop started. Repo scaffolded, plan written.
 - 2026-07-02: Phase 1 complete — design tokens mapped in globals.css @theme (colors, hairlines, radii, shadows; selection/link-hover/focus-visible base styles), fonts (Instrument Serif, Hanken Grotesk, Geist Mono via next/font) + base metadata (title template, metadataBase) in layout.tsx, SiteNav/SiteFooter components, pixel-faithful Home `/` and `/pricing` pages, default scaffold page + public SVGs removed. `npx next build` passes with zero errors.
 - 2026-07-02: Phase 2 content extraction done — compare.ts (8 versus pages + compare index), articles.ts (4 blog posts + blog index), legal.ts (7 docs), help.ts (4 FAQ groups), index.ts barrel. Verbatim from designs; typed unions; `npx tsc --noEmit` passes.
+- 2026-07-02: Phase 3 (part 1) done — six marketing pages built pixel-faithfully from designs: /how-it-works (4-step walkthrough, fusion-engine explainer + hs-CRP/HRV chart, "what lands in your app"), /science (4 pillars, RCV formula card + verdict pills, marker evidence, wellness-not-diagnosis safety bar → /legal/clinical-safety), /app (iPhone + Watch mockups, 6-feature grid, v1 = Apple Watch/Health/iPhone with WHOOP·Oura·Garmin "soon" dashed pill), /about (story, 3 values, stats band, team, careers/contact CTA), /careers (perks + 5 roles linking to /contact), /contact (channel list + client-component prototype form with sent-state, GP/112 disclaimer). Verbatim copy, per-route metadata, SiteNav active props, aria-hidden decorative visuals, labelled form fields. `npx next build` passes with zero errors.
+- 2026-07-02: Phase 7 built — apps/ios: XcodeGen project.yml (Arcaevo iOS 17 app w/ HealthKit entitlement + usage string, ArcaevoWatch watchOS 10 companion, shared ArcaevoKit sources group compiled into both targets); ArcaevoKit models (User/Membership/TestOrder/BiomarkerReading/WearableSignal/Insight) + async APIClient → http://localhost:3000/api/v1 w/ static demo bearer token + seeded DemoDataProvider fallback (app always demos); iOS screens (3-page onboarding + HealthKit prompt + mock sign-in, Today w/ readiness ring + Swift Charts sparklines + "did it work?" card, Results grouped by panel w/ baseline bands + RCV verdict tints, Orders w/ 6-step status timeline + add-on POST, Settings w/ tier + Apple Health state + export/delete links + disclaimer); HealthKit layer (real HKHealthStore HRV/RHR/sleep/VO2max behind HealthDataProviding, MockHealthStore auto-selected in simulator/denied); watch single-view today ring + latest insight + test status; apps/ios/README.md. `xcodegen generate` OK; xcodebuild blocked locally (Xcode system content missing, `-runFirstLaunch` needs admin) — verified instead via full `xcrun swiftc -emit-object` compile of both targets against iOS + watchOS simulator SDKs (clean).

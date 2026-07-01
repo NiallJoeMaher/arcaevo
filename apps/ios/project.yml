@@ -1,0 +1,95 @@
+name: Arcaevo
+options:
+  bundleIdPrefix: co.arcaevo
+  deploymentTarget:
+    iOS: "17.0"
+    watchOS: "10.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    CODE_SIGN_STYLE: Automatic
+    CURRENT_PROJECT_VERSION: "1"
+    MARKETING_VERSION: "0.1.0"
+
+targets:
+  # ---------------------------------------------------------------
+  # iOS app
+  # ---------------------------------------------------------------
+  Arcaevo:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: Arcaevo
+      # ArcaevoKit is a shared sources group compiled into both the
+      # iOS and watchOS targets (models + API client + demo data).
+      - path: ArcaevoKit
+    dependencies:
+      - target: ArcaevoWatch
+    entitlements:
+      path: Arcaevo/Arcaevo.entitlements
+      properties:
+        com.apple.developer.healthkit: true
+    info:
+      path: Arcaevo/Info.plist
+      properties:
+        CFBundleDisplayName: Arcaevo
+        UILaunchScreen:
+          UIColorName: ""
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        NSHealthShareUsageDescription: >-
+          Arcaevo reads your heart rate variability, resting heart rate,
+          sleep and VO2 max from Apple Health to build your personal
+          baseline and plain-language insights. Wellness only —
+          not a medical device, not a diagnosis.
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+        ITSAppUsesNonExemptEncryption: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: co.arcaevo.app
+        TARGETED_DEVICE_FAMILY: "1"
+
+  # ---------------------------------------------------------------
+  # watchOS companion app (single-target watchOS app, watchOS 10+)
+  # ---------------------------------------------------------------
+  ArcaevoWatch:
+    type: application
+    platform: watchOS
+    deploymentTarget: "10.0"
+    sources:
+      - path: ArcaevoWatch
+      - path: ArcaevoKit
+    info:
+      path: ArcaevoWatch/Info.plist
+      properties:
+        CFBundleDisplayName: Arcaevo
+        WKApplication: true
+        WKCompanionAppBundleIdentifier: co.arcaevo.app
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+        ITSAppUsesNonExemptEncryption: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: co.arcaevo.app.watchkitapp
+
+schemes:
+  Arcaevo:
+    build:
+      targets:
+        Arcaevo: all
+    run:
+      config: Debug
+    archive:
+      config: Release
+  ArcaevoWatch:
+    build:
+      targets:
+        ArcaevoWatch: all
+    run:
+      config: Debug
+    archive:
+      config: Release

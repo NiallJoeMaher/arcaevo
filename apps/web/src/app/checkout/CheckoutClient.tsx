@@ -266,7 +266,15 @@ export default function CheckoutClient({
     const eligible = eligibility.state === "eligible";
     return (
       <Card>
-        <form onSubmit={handleEligibility} className="px-7 pb-7 pt-[30px]" noValidate>
+        {/* key: each step must mount a FRESH form. Reusing the DOM node lets a
+            click's default action (form submit) land on the next step's submit
+            button after the re-render — skipping the details step entirely. */}
+        <form
+          key="step-eligibility"
+          onSubmit={handleEligibility}
+          className="px-7 pb-7 pt-[30px]"
+          noValidate
+        >
           <div className={kickerCls}>{stepKicker(1)}</div>
           <h1 className="mb-2 font-serif text-[24px] font-normal leading-[1.15]">
             First — can we reach you?
@@ -358,6 +366,7 @@ export default function CheckoutClient({
     return (
       <Card>
         <form
+          key="step-details"
           onSubmit={(e) => {
             e.preventDefault();
             setError(null);
@@ -455,6 +464,7 @@ export default function CheckoutClient({
   return (
     <Card>
       <form
+        key="step-payment"
         onSubmit={(e) => {
           e.preventDefault();
           void handlePay();

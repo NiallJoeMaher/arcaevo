@@ -200,7 +200,7 @@ export default function PricingPage() {
                 <br />✓ Everything in Fusion
               </div>
               <Link
-                href="/checkout"
+                href="/checkout?tier=essential"
                 className="mt-[22px] block rounded-pill bg-bone-white p-[13px] text-center font-semibold text-ink no-underline"
               >
                 Start Essential
@@ -234,7 +234,7 @@ export default function PricingPage() {
                 <br />✓ Everything in Essential
               </div>
               <Link
-                href="/checkout"
+                href="/checkout?tier=performance"
                 className="mt-[22px] block rounded-pill border border-ink p-[13px] text-center font-semibold text-ink no-underline"
               >
                 Start Performance

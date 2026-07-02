@@ -8,14 +8,20 @@
  * server-selection timeout is 30s).
  */
 import { collections } from "@/lib/db";
+import { LAUNCH_ALLOWLIST } from "@/lib/eligibility";
 import {
   CADENCE_UPGRADE_EUR,
+  CONSENT_VERSION,
   type BiomarkerReading,
   type BiomarkerRule,
+  type Consent,
+  type ConsentPurpose,
+  type EligibilityConfig,
   type MembershipTier,
   type SupportTicket,
   type TestOrder,
   type User,
+  type WaitlistEntry,
 } from "@/lib/models";
 
 function withTimeout<T>(promise: Promise<T>, ms = 4000): Promise<T> {
@@ -248,6 +254,233 @@ export async function loadSupport(): Promise<SupportData | null> {
 }
 
 // ---------------------------------------------------------------------------
+// Waitlist demand by county (v2 — design_handoff_v2 §18 ADM-1)
+// ---------------------------------------------------------------------------
+
+export interface WaitlistCountyRow {
+  county: string;
+  count: number;
+  /** Most-requested routing keys within the county (top 3, by signups). */
+  topKeys: { key: string; count: number }[];
+  oldest: Date;
+}
+
+export interface WaitlistDemandData {
+  /** Sorted by signups, busiest county first. */
+  counties: WaitlistCountyRow[];
+  total: number;
+}
+
+export async function loadWaitlistDemand(): Promise<WaitlistDemandData | null> {
+  try {
+    const entries = await withTimeout(
+      collections
+        .waitlist()
+        .then((c) => c.find().sort({ createdAt: 1 }).toArray())
+    );
+
+    const byCounty = new Map<string, WaitlistEntry[]>();
+    for (const entry of entries) {
+      const list = byCounty.get(entry.county);
+      if (list) list.push(entry);
+      else byCounty.set(entry.county, [entry]);
+    }
+
+    const counties: WaitlistCountyRow[] = [...byCounty.entries()]
+      .map(([county, list]) => {
+        const keyCounts = new Map<string, number>();
+        for (const entry of list)
+          keyCounts.set(entry.routingKey, (keyCounts.get(entry.routingKey) ?? 0) + 1);
+        return {
+          county,
+          count: list.length,
+          topKeys: [...keyCounts.entries()]
+            .map(([key, count]) => ({ key, count }))
+            .sort((a, b) => b.count - a.count || a.key.localeCompare(b.key))
+            .slice(0, 3),
+          oldest: list[0].createdAt, // entries are sorted oldest-first
+        };
+      })
+      .sort((a, b) => b.count - a.count || a.county.localeCompare(b.county));
+
+    return { counties, total: entries.length };
+  } catch {
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Eircode eligibility config + rejected-key log (v2 — §18 ADM-2)
+// ---------------------------------------------------------------------------
+
+/** One allowlist edit, appended by POST /api/v1/admin/eligibility. */
+export interface EligibilityChange {
+  at: Date;
+  added: string[];
+  removed: string[];
+}
+
+/**
+ * The `eligibility_config` document as stored. The changeLog lives outside
+ * the zod schema (models.ts is v2-frozen) — it's written only by the admin
+ * eligibility route and read only here.
+ */
+export type EligibilityConfigDoc = EligibilityConfig & {
+  changeLog?: EligibilityChange[];
+};
+
+export interface RejectedKeyRow {
+  key: string;
+  county: string;
+  count: number;
+  last: Date;
+}
+
+export interface EligibilityAdminData {
+  allowedRoutingKeys: readonly string[];
+  /** Null when the config doc is missing (fallback = launch allowlist). */
+  updatedAt: Date | null;
+  /** Newest change first. */
+  changeLog: EligibilityChange[];
+  rejectionsLast7d: number;
+  rejectionsTotal: number;
+  /** Rejected routing keys grouped, most-hit first. */
+  topRejected: RejectedKeyRow[];
+}
+
+export async function loadEligibilityAdmin(): Promise<EligibilityAdminData | null> {
+  try {
+    const [config, rejections] = await withTimeout(
+      Promise.all([
+        collections
+          .eligibilityConfig()
+          .then(
+            (c) =>
+              c.findOne({ _id: "launch" }) as Promise<EligibilityConfigDoc | null>
+          ),
+        collections
+          .eligibilityRejections()
+          .then((c) => c.find().sort({ at: -1 }).toArray()),
+      ])
+    );
+
+    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const byKey = new Map<string, RejectedKeyRow>();
+    for (const r of rejections) {
+      const row = byKey.get(r.routingKey);
+      if (row) {
+        row.count += 1;
+        if (r.at > row.last) row.last = r.at;
+      } else {
+        byKey.set(r.routingKey, {
+          key: r.routingKey,
+          county: r.county,
+          count: 1,
+          last: r.at,
+        });
+      }
+    }
+
+    return {
+      allowedRoutingKeys: config?.allowedRoutingKeys ?? LAUNCH_ALLOWLIST,
+      updatedAt: config?.updatedAt ?? null,
+      changeLog: [...(config?.changeLog ?? [])].reverse(),
+      rejectionsLast7d: rejections.filter((r) => r.at >= weekAgo).length,
+      rejectionsTotal: rejections.length,
+      topRejected: [...byKey.values()].sort(
+        (a, b) => b.count - a.count || a.key.localeCompare(b.key)
+      ),
+    };
+  } catch {
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Consent audit log (v2 — §18 ADM-3)
+// ---------------------------------------------------------------------------
+
+export interface ConsentAuditRow {
+  consent: Consent;
+  memberName: string;
+  memberEmail: string;
+  /** Latest decision for this member+purpose (drives "RE-CONSENT DUE"). */
+  isLatest: boolean;
+}
+
+export interface ConsentAuditData {
+  /** Newest decision first — already filtered by purpose when one is given. */
+  rows: ConsentAuditRow[];
+  /** Unfiltered decision counts, for the filter chips. */
+  countsByPurpose: Record<ConsentPurpose, number>;
+  totalDecisions: number;
+  /** Members whose latest health_processing grant is on an older wording
+   * version — they get the re-consent screen on next sign-in. */
+  reconsentDue: number;
+  currentVersion: string;
+}
+
+export async function loadConsentAudit(
+  purpose: ConsentPurpose | null
+): Promise<ConsentAuditData | null> {
+  try {
+    const [consents, users] = await withTimeout(
+      Promise.all([
+        collections
+          .consents()
+          .then((c) => c.find().sort({ timestamp: -1, _id: -1 }).toArray()),
+        collections.users().then((c) => c.find().toArray()),
+      ])
+    );
+
+    const userById = new Map(users.map((u) => [u._id, u]));
+    const latestSeen = new Set<string>();
+    const countsByPurpose: Record<ConsentPurpose, number> = {
+      health_processing: 0,
+      clinician_review: 0,
+      research: 0,
+    };
+    let reconsentDue = 0;
+    const rows: ConsentAuditRow[] = [];
+
+    for (const consent of consents) {
+      countsByPurpose[consent.purpose] += 1;
+      // Consents are append-only and sorted newest-first, so the first doc we
+      // see per member+purpose is the current decision (consents.ts logic).
+      const latestKey = `${consent.userId}:${consent.purpose}`;
+      const isLatest = !latestSeen.has(latestKey);
+      if (isLatest) {
+        latestSeen.add(latestKey);
+        if (
+          consent.purpose === "health_processing" &&
+          consent.granted &&
+          consent.version !== CONSENT_VERSION
+        )
+          reconsentDue += 1;
+      }
+      if (purpose && consent.purpose !== purpose) continue;
+      const user = userById.get(consent.userId);
+      rows.push({
+        consent,
+        memberName: user?.name ?? consent.userId,
+        memberEmail: user?.email ?? "—",
+        isLatest,
+      });
+    }
+
+    return {
+      rows,
+      countsByPurpose,
+      totalDecisions: consents.length,
+      reconsentDue,
+      currentVersion: CONSENT_VERSION,
+    };
+  } catch {
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Sidebar badges (review-queue + open-ticket counts)
 // ---------------------------------------------------------------------------
 
@@ -293,6 +526,13 @@ export function formatDayMonth(d: Date): string {
 /** "Mar 2025" */
 export function formatMonthYear(d: Date): string {
   return `${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+/** "23 Jun 2026, 14:05" — full audit timestamps (consent log, config edits). */
+export function formatDateTime(d: Date): string {
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}, ${hh}:${mm}`;
 }
 
 /** "2m" · "5h" · "3d" — relative age like the design's inbox timestamps. */

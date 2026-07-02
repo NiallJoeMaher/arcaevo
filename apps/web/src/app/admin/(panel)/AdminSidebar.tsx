@@ -33,6 +33,10 @@ const NAV: {
   { href: "/admin/members", icon: "◍", label: "Members" },
   { href: "/admin/results", icon: "✚", label: "Review queue", badge: "review" },
   { href: "/admin/support", icon: "✉", label: "Support", badge: "support" },
+  // v2 ops views (design_handoff_v2 §18 ADM-1/2/3)
+  { href: "/admin/waitlist", icon: "◔", label: "Waitlist" },
+  { href: "/admin/eligibility", icon: "◫", label: "Eligibility" },
+  { href: "/admin/consent", icon: "❋", label: "Consent audit" },
 ];
 
 export default function AdminSidebar({ badges }: { badges: SidebarBadges }) {

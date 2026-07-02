@@ -19,7 +19,8 @@ services:
     image: mongo-express:1
     container_name: arcaevo-mongo-express
     ports:
-      - "8081:8081"
+      # Host 8083 — 8081/8082 are held by other projects' mongo-express containers.
+      - "8083:8081"
     environment:
       ME_CONFIG_MONGODB_URL: mongodb://mongo:27017/
       ME_CONFIG_BASICAUTH: "false"

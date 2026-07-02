@@ -91,13 +91,13 @@ export default function SiteFooter() {
           </div>
         </div>
         <div className="mt-11 flex flex-wrap items-center justify-between gap-3 border-t border-[rgba(255,255,255,0.08)] pt-[22px]">
-          <span className="max-w-[62ch] text-xs leading-[1.5] text-[#6E7E74]">
+          <span className="max-w-[62ch] text-xs leading-[1.5] text-[#7E8E84]">
             © 2026 Arcaevo Health, Ireland · Wellness &amp; optimisation, not
             medical diagnosis. Always consult your GP for medical concerns.
           </span>
           <Link
             href="/admin"
-            className="font-mono text-[11px] tracking-[0.06em] text-[#5B6A61] no-underline"
+            className="font-mono text-[11px] tracking-[0.06em] text-[#79897F] no-underline"
           >
             Staff login →
           </Link>

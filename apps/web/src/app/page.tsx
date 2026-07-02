@@ -254,7 +254,7 @@ export default function Home() {
               <span>Apple Watch</span>
               <span>Apple Health</span>
               <span>iPhone</span>
-              <span className="text-[13px] font-medium text-[#9AA39C]">
+              <span className="text-[13px] font-medium text-[#6C756E]">
                 WHOOP, Oura &amp; Garmin — on the roadmap
               </span>
             </div>
@@ -519,7 +519,7 @@ export default function Home() {
             </p>
             <div className="font-mono text-sm text-caption">
               — FOUNDER, ARCAEVO ·{" "}
-              <Link href="/about" className="text-forest no-underline">
+              <Link href="/about" className="text-forest underline underline-offset-2">
                 OUR STORY
               </Link>
             </div>

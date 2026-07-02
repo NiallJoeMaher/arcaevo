@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import { jsonLd, organizationJsonLd, membershipProductJsonLd } from "@/lib/seo";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 /* ── Hero visual: health-score ring + ApoB band + insight chip ── */
 
@@ -545,6 +551,15 @@ export default function Home() {
       </main>
 
       <SiteFooter />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLd(organizationJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLd(membershipProductJsonLd) }}
+      />
     </div>
   );
 }

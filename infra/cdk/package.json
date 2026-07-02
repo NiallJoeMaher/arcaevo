@@ -1,0 +1,21 @@
+{
+  "name": "arcaevo-infra",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "synth": "cdk synth",
+    "diff": "cdk diff",
+    "deploy": "cdk deploy"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.0",
+    "aws-cdk": "^2.1100.0",
+    "ts-node": "^10.9.2",
+    "typescript": "~5.8.0"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2.220.0",
+    "constructs": "^10.4.0"
+  }
+}

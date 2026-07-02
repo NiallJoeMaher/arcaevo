@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Standalone output for the multi-stage Dockerfile (node server.js runner).
+  output: "standalone",
 };
 
 export default nextConfig;

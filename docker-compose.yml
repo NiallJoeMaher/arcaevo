@@ -3,7 +3,9 @@ services:
     image: mongo:7
     container_name: arcaevo-mongo
     ports:
-      - "27017:27017"
+      # Host 27018 because 27017 is commonly taken by other local Mongo containers.
+      # Inside the compose network the web container still uses mongo:27017.
+      - "27018:27017"
     volumes:
       - mongo-data:/data/db
     healthcheck:

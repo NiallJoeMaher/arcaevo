@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import { jsonLd, organizationJsonLd, membershipProductJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Pricing",
   description:
     "One annual membership. Tests included. Billed once a year, so your tests are covered upfront — the first one ships or gets booked the day you join. Fusion €119/yr · Essential €329/yr · Performance €399/yr.",
+  alternates: { canonical: "/pricing" },
 };
 
 const COMPARISON_ROWS: {
@@ -409,6 +411,15 @@ export default function PricingPage() {
       </main>
 
       <SiteFooter />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLd(organizationJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLd(membershipProductJsonLd) }}
+      />
     </div>
   );
 }

@@ -20,12 +20,13 @@ Health membership for Ireland: members connect their Apple Watch, order a blood 
 # Full stack (web + Mongo + mongo-express on :8081)
 docker compose up --build
 
-# Or web dev server against dockerised Mongo
+# Or web dev server against dockerised Mongo (exposed on host port 27018)
 docker compose up -d mongo
-cd apps/web && npm install && npm run dev   # http://localhost:3000
+cd apps/web && npm install
+MONGODB_URI=mongodb://localhost:27018/arcaevo npm run dev   # http://localhost:3000
 
 # Seed demo data
-cd apps/web && npm run seed
+cd apps/web && MONGODB_URI=mongodb://localhost:27018/arcaevo npm run seed
 ```
 
 ### iOS / watchOS

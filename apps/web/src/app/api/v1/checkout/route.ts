@@ -1,0 +1,179 @@
+/**
+ * POST /api/v1/checkout — create a membership checkout session (design §07).
+ *
+ * Body: { tier, cadenceUpgrade?, eircode?, email?, name?, dob? }
+ *
+ * Rules enforced SERVER-SIDE (never trust the pricing page):
+ *  - Essential/Performance require an eligible Eircode routing key (§06).
+ *    Fusion is never gated — sold worldwide.
+ *  - Signed-in members skip account creation; guests create the account
+ *    inline (email required; E1 verify email goes out; checkout continues).
+ *  - Annual billing only. Quarterly upgrade +€130/yr (Essential only).
+ *  - Payment happens on the WEB via the MOCK Stripe vendor (+ Apple Pay on
+ *    web, which is just a Stripe payment method — same mock session).
+ *
+ * The membership starts as "pending"; the Stripe webhook
+ * (checkout.session.completed) activates it and sends the E4 receipt.
+ */
+import { memberFromRequest } from "@/lib/auth";
+import { parseJsonBody, siteUrl } from "@/lib/api";
+import { collections } from "@/lib/db";
+import { checkEligibility } from "@/lib/eligibility";
+import { sendEmail } from "@/lib/emails";
+import { createMemberUser, issueMagicLink } from "@/lib/member-auth";
+import {
+  CADENCE_UPGRADE_EUR,
+  CheckoutInput,
+  TIER_PRICE_EUR,
+  type Membership,
+} from "@/lib/models";
+import { paymentsVendor } from "@/lib/vendors/stripe.mock";
+
+export async function POST(req: Request) {
+  const parsed = await parseJsonBody(req, CheckoutInput);
+  if (!parsed.ok) return parsed.response;
+  const { tier, cadenceUpgrade, eircode, email, name } = parsed.data;
+
+  // --- step 1: eligibility (Essential/Performance only — Fusion never gated)
+  if (tier !== "fusion") {
+    if (!eircode) {
+      return Response.json(
+        {
+          error: "eircode_required",
+          message:
+            "Essential and Performance ship kits / send a nurse — we need your Eircode routing key first.",
+        },
+        { status: 422 }
+      );
+    }
+    const eligibility = await checkEligibility(eircode);
+    if (eligibility.status === "invalid") {
+      return Response.json(
+        {
+          error: "invalid_eircode",
+          message:
+            "That doesn't look like an Eircode — we only need the first 3 characters (e.g. D08).",
+        },
+        { status: 422 }
+      );
+    }
+    if (eligibility.status === "ineligible") {
+      return Response.json(
+        {
+          error: "not_in_service_area",
+          message: `Not in ${eligibility.county} yet — but you're next. Join the early-access list, or start with Fusion (€119/yr, no shipping).`,
+          routingKey: eligibility.routingKey,
+          county: eligibility.county,
+          waitlist: true,
+        },
+        { status: 403 }
+      );
+    }
+  }
+
+  if (cadenceUpgrade && tier !== "essential") {
+    return Response.json(
+      {
+        error: "invalid_upgrade",
+        message: "The quarterly cadence upgrade applies to Essential only.",
+      },
+      { status: 422 }
+    );
+  }
+
+  // --- step 2: who's buying? Signed-in member, or guest account inline. -----
+  let member = await memberFromRequest(req);
+  let guestCreated = false;
+  if (!member) {
+    if (!email) {
+      return Response.json(
+        {
+          error: "email_required",
+          message:
+            "Sign in, or pass an email — we'll create your account as part of checkout.",
+        },
+        { status: 401 }
+      );
+    }
+    const users = await collections.users();
+    member = await users.findOne({ email: email.toLowerCase() });
+    if (!member) {
+      member = await createMemberUser({ email, name });
+      guestCreated = true;
+      // Guest signup inline: the E1 verify email rides along with checkout.
+      const issued = await issueMagicLink(email, "verify");
+      if (!issued.throttled) {
+        await sendEmail("e1_verify", email.toLowerCase(), {
+          confirmUrl: `${siteUrl()}/verify?token=${issued.token}`,
+        });
+      }
+    }
+  }
+
+  // One live membership per member.
+  const memberships = await collections.memberships();
+  const existing = await memberships.findOne({
+    memberId: member._id,
+    status: { $in: ["active", "past_due"] },
+  });
+  if (existing) {
+    return Response.json(
+      {
+        error: "already_member",
+        message: `You already have a ${existing.tier} membership — manage it in Account.`,
+      },
+      { status: 409 }
+    );
+  }
+
+  // --- price + pending membership --------------------------------------------
+  const priceEur =
+    TIER_PRICE_EUR[tier] + (cadenceUpgrade ? CADENCE_UPGRADE_EUR : 0);
+  const now = new Date();
+  const renewalDate = new Date(now);
+  renewalDate.setFullYear(renewalDate.getFullYear() + 1);
+
+  const count = await memberships.countDocuments();
+  const membership: Membership = {
+    _id: `sub_${String(count + 1).padStart(4, "0")}`,
+    memberId: member._id,
+    tier,
+    term: "annual",
+    termStart: now,
+    renewalDate,
+    cadenceUpgrade,
+    status: "pending", // webhook checkout.session.completed → active + E4
+    priceEur,
+    stripeSubscriptionId: null,
+    dunningStage: "none",
+    dunningStartedAt: null,
+  };
+  // Replace any prior pending/canceled membership attempt for this member.
+  await memberships.deleteMany({ memberId: member._id, status: "pending" });
+  await memberships.insertOne(membership);
+
+  // --- MOCK Stripe checkout session (card + Apple Pay on web) -----------------
+  const checkout = await paymentsVendor.createCheckoutSession({
+    memberId: member._id,
+    description: `${tier} membership · 1 year${cadenceUpgrade ? " + quarterly cadence" : ""}`,
+    amountEur: priceEur,
+  });
+
+  return Response.json(
+    {
+      checkout, // { sessionId, url, amountEur } — MOCK: url is not hosted
+      membership: {
+        id: membership._id,
+        tier,
+        priceEur,
+        status: membership.status,
+        renewalDate,
+      },
+      member: { id: member._id, email: member.email },
+      guestAccountCreated: guestCreated,
+      refundNote:
+        "Full refund until your kit ships or your draw is booked.",
+    },
+    { status: 201 }
+  );
+}

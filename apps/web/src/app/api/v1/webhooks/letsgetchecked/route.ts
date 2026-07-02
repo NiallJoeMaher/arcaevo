@@ -131,6 +131,7 @@ async function ingestResults(
           ? computeRcvVerdict(prior.value, result.value, rule)
           : null,
       clinicianReviewed: false, // lands in the admin needs-review queue
+      source: "lab", // Arcaevo pipeline results are lab-sourced (v2)
     });
   }
   if (docs.length) await readingsCol.insertMany(docs);

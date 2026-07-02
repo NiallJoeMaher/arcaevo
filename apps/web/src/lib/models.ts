@@ -57,6 +57,37 @@ export type WearableSignalType = z.infer<typeof WearableSignalType>;
 export const SupportTicketStatus = z.enum(["open", "pending", "closed"]);
 export type SupportTicketStatus = z.infer<typeof SupportTicketStatus>;
 
+// --- v2 (accounts, auth, commerce — design_handoff_v2) -----------------------
+
+/** GDPR Art. 9(2)(a) consent purposes (design_handoff_v2 §04). */
+export const ConsentPurpose = z.enum([
+  "health_processing", // required
+  "clinician_review", // required for tests
+  "research", // optional, OFF by default
+]);
+export type ConsentPurpose = z.infer<typeof ConsentPurpose>;
+
+/** Which surface the consent (or auth action) happened on. */
+export const ConsentSurface = z.enum(["web", "ios"]);
+export type ConsentSurface = z.infer<typeof ConsentSurface>;
+
+/**
+ * Current consent-notice wording version. Bump on material changes to the
+ * Health Data Notice — users with grants on an older version are shown the
+ * re-consent screen on next sign-in (design_handoff_v2 §04 "Versioned").
+ */
+export const CONSENT_VERSION = "2026-07-01";
+
+/** Where a biomarker value came from. Self-reported (uploaded/typed) values
+ * render as hollow gold dots forever and are excluded from clinician-reviewed
+ * claims (design_handoff_v2 §13). */
+export const BiomarkerSource = z.enum(["lab", "self_reported"]);
+export type BiomarkerSource = z.infer<typeof BiomarkerSource>;
+
+/** Dunning ladder (design_handoff_v2 §14 X2): day 0 → 3 → 10 → 14 → pause. */
+export const DunningStage = z.enum(["none", "day0", "day3", "day10", "paused"]);
+export type DunningStage = z.infer<typeof DunningStage>;
+
 // ---------------------------------------------------------------------------
 // Pricing (verbatim from design handoff — do not change)
 // ---------------------------------------------------------------------------
@@ -104,6 +135,15 @@ export const UserSchema = z.object({
   isDemo: z.boolean().default(false),
   /** Ops flag surfaced in the admin members table. */
   flag: z.enum(["active", "new", "churn_risk"]).default("active"),
+  // --- v2 auth fields (password optional — magic link covers everyone) ------
+  /** scrypt-derived hash (see member-auth.ts). Null = magic-link-only user. */
+  passwordHash: z.string().nullable().default(null),
+  /** True once the E1 verify / first magic link has been used. */
+  emailVerified: z.boolean().default(false),
+  /** Consecutive wrong-password count. 5 failures → 15-minute cool-off. */
+  failedAttempts: z.number().int().default(0),
+  /** While set and in the future, password sign-in is refused. */
+  cooloffUntil: z.date().nullable().default(null),
 });
 export type User = z.infer<typeof UserSchema>;
 
@@ -117,10 +157,17 @@ export const MembershipSchema = z.object({
   renewalDate: z.date(),
   /** Quarterly cadence upgrade (+€130/yr, Essential only in the designs). */
   cadenceUpgrade: z.boolean().default(false),
-  status: z.enum(["active", "past_due", "canceled"]).default("active"),
+  /** "pending" = checkout session created, webhook not yet confirmed (v2). */
+  status: z
+    .enum(["active", "past_due", "canceled", "pending"])
+    .default("active"),
   priceEur: z.number(),
   /** MOCK: fake Stripe subscription id from stripe.mock.ts */
   stripeSubscriptionId: z.string().nullable().default(null),
+  // --- v2 dunning (0/3/10/14 days → read-only pause, nothing deleted) --------
+  dunningStage: DunningStage.default("none"),
+  /** When the first failed renewal charge happened (null when not dunning). */
+  dunningStartedAt: z.date().nullable().default(null),
 });
 export type Membership = z.infer<typeof MembershipSchema>;
 
@@ -161,6 +208,8 @@ export const BiomarkerReadingSchema = z.object({
   /** RCV verdict vs the prior reading (null for the first reading). */
   rcvVerdict: RcvVerdict.nullable().default(null),
   clinicianReviewed: z.boolean().default(false),
+  /** v2: lab (Arcaevo pipeline) vs self_reported (uploaded/typed bloodwork). */
+  source: BiomarkerSource.default("lab"),
 });
 export type BiomarkerReading = z.infer<typeof BiomarkerReadingSchema>;
 
@@ -213,6 +262,152 @@ export const OutboxEmailSchema = z.object({
 export type OutboxEmail = z.infer<typeof OutboxEmailSchema>;
 
 // ---------------------------------------------------------------------------
+// v2 documents (accounts, auth, commerce)
+// ---------------------------------------------------------------------------
+
+/** One consent decision — append-only audit trail, never updated in place. */
+export const ConsentSchema = z.object({
+  _id: z.string(), // e.g. "consent_0001"
+  userId: z.string(),
+  purpose: ConsentPurpose,
+  granted: z.boolean(),
+  /** Wording version of the Health Data Notice at decision time. */
+  version: z.string(),
+  timestamp: z.date(),
+  surface: ConsentSurface,
+});
+export type Consent = z.infer<typeof ConsentSchema>;
+
+export const WaitlistEntrySchema = z.object({
+  _id: z.string(), // e.g. "wait_0001"
+  email: z.string(),
+  /** First 3 chars of the Eircode — the only part we ever store. */
+  routingKey: z.string(),
+  county: z.string(),
+  /** Position within the county queue (1-based, assigned at join). */
+  position: z.number().int(),
+  createdAt: z.date(),
+});
+export type WaitlistEntry = z.infer<typeof WaitlistEntrySchema>;
+
+export const GiftCodeSchema = z.object({
+  _id: z.string(), // the code itself, e.g. "GIFT-K4F2-9QXA"
+  tier: MembershipTier, // Essential only at launch (design §16)
+  priceEur: z.number(),
+  purchaserEmail: z.string(),
+  recipientEmail: z.string().nullable().default(null),
+  /** Optional gift note, shown to the recipient only. */
+  note: z.string().nullable().default(null),
+  delivery: z.enum(["email", "printed"]),
+  createdAt: z.date(),
+  /** Set at activation — the membership year starts here, not at purchase. */
+  redeemedBy: z.string().nullable().default(null), // userId
+  redeemedAt: z.date().nullable().default(null),
+});
+export type GiftCode = z.infer<typeof GiftCodeSchema>;
+
+export const ReferralCodeSchema = z.object({
+  _id: z.string(), // the code itself, e.g. "AOIFE-K4"
+  userId: z.string(),
+  /** Give a month / get a month — counts, no leaderboards (design §16). */
+  joinedCount: z.number().int().default(0),
+  freeMonthsApplied: z.number().int().default(0),
+  createdAt: z.date(),
+});
+export type ReferralCode = z.infer<typeof ReferralCodeSchema>;
+
+export const ShareLinkAccessSchema = z.object({
+  at: z.date(),
+  /** Coarse location only — shown to the member ("Opened twice — Dublin"). */
+  location: z.string(),
+});
+export type ShareLinkAccess = z.infer<typeof ShareLinkAccessSchema>;
+
+/** GP share link — revocable, 30-day expiry, access logged (design §15). */
+export const ShareLinkSchema = z.object({
+  _id: z.string(), // e.g. "share_0001"
+  token: z.string(), // URL token: arcaevo.com/s/<token>
+  userId: z.string(),
+  createdAt: z.date(),
+  expiresAt: z.date(),
+  revoked: z.boolean().default(false),
+  accessLog: z.array(ShareLinkAccessSchema).default([]),
+});
+export type ShareLink = z.infer<typeof ShareLinkSchema>;
+
+export const MagicLinkPurpose = z.enum(["verify", "signin", "reset"]);
+export type MagicLinkPurpose = z.infer<typeof MagicLinkPurpose>;
+
+/** Magic-link token — 30-minute expiry, single-use. Only the SHA-256 hash of
+ * the token is stored; the raw token exists only inside the emailed URL. */
+export const MagicLinkTokenSchema = z.object({
+  _id: z.string(), // e.g. "mlt_0001"
+  tokenHash: z.string(),
+  email: z.string(),
+  purpose: MagicLinkPurpose,
+  createdAt: z.date(),
+  expiresAt: z.date(),
+  usedAt: z.date().nullable().default(null),
+});
+export type MagicLinkToken = z.infer<typeof MagicLinkTokenSchema>;
+
+/** Member session — random 256-bit token stored SHA-256-hashed. */
+export const SessionSchema = z.object({
+  _id: z.string(), // e.g. "sess_<hash prefix>"
+  tokenHash: z.string(),
+  userId: z.string(),
+  createdAt: z.date(),
+  lastSeen: z.date(),
+  userAgent: z.string(),
+});
+export type Session = z.infer<typeof SessionSchema>;
+
+/** Eircode routing-key allowlist — config, not code (design §06). */
+export const EligibilityConfigSchema = z.object({
+  _id: z.literal("launch"),
+  allowedRoutingKeys: z.array(z.string()),
+  updatedAt: z.date(),
+});
+export type EligibilityConfig = z.infer<typeof EligibilityConfigSchema>;
+
+/** Rejected routing-key log — key only, no address, drives expansion. */
+export const EligibilityRejectionSchema = z.object({
+  _id: z.string(), // e.g. "elig_rej_0001"
+  routingKey: z.string(),
+  county: z.string(),
+  at: z.date(),
+});
+export type EligibilityRejection = z.infer<typeof EligibilityRejectionSchema>;
+
+/** One uploaded bloodwork document going through AI extraction → user
+ * confirmation (design §13). MOCK: extraction is deterministic fake data. */
+export const BloodworkUploadSchema = z.object({
+  _id: z.string(), // e.g. "upload_0001"
+  memberId: z.string(),
+  kind: z.enum(["photo", "pdf", "manual"]),
+  fileName: z.string().nullable().default(null),
+  /** Lab/source name AI read off the document, e.g. "St. Vincent's". */
+  sourceName: z.string(),
+  documentDate: z.string(), // "YYYY-MM-DD" as read from the document
+  status: z.enum(["pending_confirmation", "confirmed", "discarded"]),
+  extracted: z.array(
+    z.object({
+      code: z.string(),
+      name: z.string(),
+      unit: z.string(),
+      value: z.number(),
+      /** 0–1. Below CONFIDENCE_THRESHOLD ⇒ flagged, blocks until resolved. */
+      confidence: z.number(),
+      /** Present on low-confidence reads, e.g. [41, 47] for "41 or 47?". */
+      alternatives: z.array(z.number()).nullable().default(null),
+    })
+  ),
+  createdAt: z.date(),
+  confirmedAt: z.date().nullable().default(null),
+});
+export type BloodworkUpload = z.infer<typeof BloodworkUploadSchema>;
+
+// ---------------------------------------------------------------------------
 // API input schemas
 // ---------------------------------------------------------------------------
 
@@ -250,4 +445,102 @@ export const CreateSupportTicketInput = z.object({
 
 export const ReviewResultInput = z.object({
   reviewed: z.boolean().default(true),
+});
+
+// --- v2 API inputs -----------------------------------------------------------
+
+export const SignupInput = z.object({
+  email: z.string().email(),
+  /** Optional — a magic link covers everyone (design §03 W1). */
+  password: z.string().min(10).optional(),
+  surface: ConsentSurface.default("web"),
+});
+export type SignupInput = z.infer<typeof SignupInput>;
+
+export const MagicLinkRequestInput = z.object({
+  email: z.string().email(),
+  purpose: z.enum(["signin", "verify"]).default("signin"),
+});
+
+export const MagicLinkVerifyInput = z.object({
+  token: z.string().min(1),
+});
+
+export const SigninInput = z.object({
+  email: z.string().email(),
+  password: z.string().min(1),
+});
+
+export const ResetRequestInput = z.object({
+  email: z.string().email(),
+});
+
+export const ResetConfirmInput = z.object({
+  token: z.string().min(1),
+  newPassword: z.string().min(10),
+});
+
+export const ConsentGrantInput = z.object({
+  surface: ConsentSurface.default("web"),
+  grants: z
+    .array(z.object({ purpose: ConsentPurpose, granted: z.boolean() }))
+    .min(1),
+});
+
+export const EligibilityCheckInput = z.object({
+  /** Full Eircode or just the routing key — only the first 3 chars are used. */
+  eircode: z.string().min(1),
+});
+
+export const WaitlistJoinInput = z.object({
+  email: z.string().email(),
+  eircode: z.string().min(1),
+});
+
+export const CheckoutInput = z.object({
+  tier: MembershipTier,
+  /** Quarterly cadence upgrade, Essential only (+€130/yr). */
+  cadenceUpgrade: z.boolean().default(false),
+  /** Required for essential/performance — checked server-side. */
+  eircode: z.string().optional(),
+  /** Guest checkout: account is created inline (design §07). */
+  email: z.string().email().optional(),
+  name: z.string().optional(),
+  /** DOB is a lab requirement, collected at checkout step 2. */
+  dob: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+});
+
+export const GiftCreateInput = z.object({
+  purchaserEmail: z.string().email(),
+  recipientEmail: z.string().email().optional(),
+  note: z.string().max(280).optional(),
+  delivery: z.enum(["email", "printed"]).default("email"),
+});
+
+export const GiftRedeemInput = z.object({
+  code: z.string().min(1),
+  /** Essential ships kits — the same Eircode gate applies at redemption. */
+  eircode: z.string().min(1),
+});
+
+export const ShareCreateInput = z.object({
+  /** Days until expiry (default 30 per design §15). */
+  expiresInDays: z.number().int().min(1).max(90).default(30),
+});
+
+export const BloodworkUploadInput = z.object({
+  kind: z.enum(["photo", "pdf", "manual"]),
+  fileName: z.string().optional(),
+  /** For kind "manual": the user-typed values (skip AI extraction). */
+  manualValues: z
+    .array(z.object({ code: z.string(), value: z.number(), unit: z.string() }))
+    .optional(),
+});
+
+export const BloodworkConfirmInput = z.object({
+  uploadId: z.string().min(1),
+  /** The user-confirmed value for every marker (flagged ones resolved). */
+  values: z.array(z.object({ code: z.string(), value: z.number() })).min(1),
+  /** When the original sample was taken, e.g. the document date. */
+  takenAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
 });

@@ -14,7 +14,12 @@ export async function GET() {
     collections
       .biomarkerReadings()
       .then((c) =>
-        c.find({ clinicianReviewed: false }).sort({ takenAt: 1 }).toArray()
+        c
+          // v2: self-reported (uploaded) values are NEVER clinician-reviewed —
+          // they don't belong in the sign-off queue (design_handoff_v2 §13).
+          .find({ clinicianReviewed: false, source: { $ne: "self_reported" } })
+          .sort({ takenAt: 1 })
+          .toArray()
       ),
     collections.users().then((c) => c.find().toArray()),
     collections.biomarkerRules().then((c) => c.find().toArray()),

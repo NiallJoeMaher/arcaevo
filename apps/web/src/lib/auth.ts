@@ -11,6 +11,10 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 import { collections } from "@/lib/db";
+import {
+  memberFromSessionToken,
+  sessionTokenFromCookies,
+} from "@/lib/member-auth";
 import type { User } from "@/lib/models";
 
 export const ADMIN_COOKIE_NAME = "arcaevo_admin_session";
@@ -104,20 +108,30 @@ export async function requireAdmin(): Promise<Response | null> {
 }
 
 // ---------------------------------------------------------------------------
-// Member (demo bearer token)
+// Member (demo bearer token OR v2 session — see member-auth.ts)
 // ---------------------------------------------------------------------------
 
 /**
- * Resolve the member for a Bearer-token request.
- * MOCK: only "demo-member-token" is accepted; it maps to the seeded demo user.
+ * Resolve the member for a request. Three ways in, checked in order:
+ *  1. `Bearer demo-member-token` — the seeded demo user (iOS app; MOCK).
+ *  2. `Bearer <session token>` — a v2 session token (iOS after real sign-in).
+ *  3. The `arcaevo_member_session` cookie — v2 web session (member-auth.ts).
  */
 export async function memberFromRequest(req: Request): Promise<User | null> {
   const header = req.headers.get("authorization") ?? "";
   const match = /^Bearer\s+(.+)$/i.exec(header);
-  if (!match) return null;
-  if (!safeEqual(match[1].trim(), DEMO_MEMBER_TOKEN)) return null;
-  const users = await collections.users();
-  return users.findOne({ isDemo: true });
+  if (match) {
+    const bearer = match[1].trim();
+    if (safeEqual(bearer, DEMO_MEMBER_TOKEN)) {
+      const users = await collections.users();
+      return users.findOne({ isDemo: true });
+    }
+    // v2: any other bearer value is treated as a session token.
+    return memberFromSessionToken(bearer);
+  }
+  // v2: fall back to the member session cookie.
+  const token = await sessionTokenFromCookies();
+  return token ? memberFromSessionToken(token) : null;
 }
 
 /**
@@ -137,7 +151,7 @@ export async function requireMember(
       {
         error: "unauthorized",
         message:
-          "Bearer token required. Use POST /api/v1/auth/demo to obtain the demo token.",
+          "Sign in required — bearer token (POST /api/v1/auth/demo for the demo token) or member session cookie (POST /api/v1/auth/signin).",
       },
       { status: 401 }
     ),

@@ -15,6 +15,16 @@ import type {
   WearableSignal,
   SupportTicket,
   OutboxEmail,
+  Consent,
+  WaitlistEntry,
+  GiftCode,
+  ReferralCode,
+  ShareLink,
+  MagicLinkToken,
+  Session,
+  EligibilityConfig,
+  EligibilityRejection,
+  BloodworkUpload,
 } from "@/lib/models";
 
 const DEFAULT_URI = "mongodb://localhost:27017/arcaevo";
@@ -75,6 +85,20 @@ export const collections = {
   outbox: () => collection<OutboxEmail>("outbox"),
   /** MOCK: letsgetchecked.mock.ts fake order state machine. */
   lgcMockOrders: () => collection<LgcMockOrder>("vendor_lgc_mock_orders"),
+  // --- v2 (accounts, auth, commerce) ---------------------------------------
+  consents: () => collection<Consent>("consents"),
+  waitlist: () => collection<WaitlistEntry>("waitlist"),
+  giftCodes: () => collection<GiftCode>("gift_codes"),
+  referralCodes: () => collection<ReferralCode>("referral_codes"),
+  shareLinks: () => collection<ShareLink>("share_links"),
+  magicLinkTokens: () => collection<MagicLinkToken>("magic_link_tokens"),
+  sessions: () => collection<Session>("sessions"),
+  /** Eircode routing-key allowlist — config, not code (seeded). */
+  eligibilityConfig: () => collection<EligibilityConfig>("eligibility_config"),
+  /** Rejected routing keys (key only, no address) — demand signal. */
+  eligibilityRejections: () =>
+    collection<EligibilityRejection>("eligibility_rejections"),
+  bloodworkUploads: () => collection<BloodworkUpload>("bloodwork_uploads"),
 };
 
 /** Close the shared client (used by scripts like seed.ts; not by the app). */

@@ -30,6 +30,11 @@ const seedUser = {
   joinedAt: new Date("2025-09-14T00:00:00Z"),
   isDemo: true,
   flag: "active",
+  // v2 auth fields (magic-link-only member)
+  passwordHash: null,
+  emailVerified: false,
+  failedAttempts: 0,
+  cooloffUntil: null,
 };
 
 const seedMembership = {
@@ -43,6 +48,9 @@ const seedMembership = {
   status: "active",
   priceEur: 329,
   stripeSubscriptionId: "sub_mock_0a1b2c3d",
+  // v2 dunning fields (not currently in dunning)
+  dunningStage: "none",
+  dunningStartedAt: null,
 };
 
 const seedOrder = {
@@ -70,6 +78,7 @@ const seedReading = {
   baselineBand: { low: 0.85, high: 1.05 },
   rcvVerdict: "improved",
   clinicianReviewed: true,
+  source: "lab", // v2: lab | self_reported
 };
 
 const seedRule = {

@@ -53,3 +53,28 @@ Nothing here is wired to a real vendor yet. Every mock lives behind a small inte
 ## 10. Mobile phlebotomy (Performance tier, Dublin) — NOT MODELLED WITH A VENDOR
 
 - `TestOrder` supports `type: "venous"` with `bookingStatus`, but there is no vendor adapter at all yet. Vendor TBD.
+
+## 11. AI bloodwork extraction (Fusion upload flow) — MOCKED
+
+- **Where**: `apps/web/src/lib/vendors/ai-extraction.mock.ts` (`extractBloodwork`), used by `POST /api/v1/uploads/bloodwork`.
+- **What's mocked**: no file bytes travel and no model runs. A deterministic fnv1a hash of the file name fabricates 8–12 plausible marker values with per-value confidence; ~half of uploads include one low-confidence read with two candidate values (the designed "was this 41 or 47?" state), which blocks `…/confirm` until the user resolves it. Confirmed values are written as `BiomarkerReading` docs with `source: "self_reported"` (hollow gold dots, never clinician-reviewed).
+- **To productionise**: EU-hosted OCR/vision extraction, unit normalisation (mg/dL ↔ mmol/L) with the original preserved, original-file storage (user-deletable), human-in-the-loop for low-confidence reads.
+
+## 12. Member authentication (v2 web) — REAL PATTERN, DEV-GRADE PIECES
+
+- **Where**: `apps/web/src/lib/member-auth.ts` + `/api/v1/auth/*` (signup, magic-link request/verify, signin, signout, reset request/confirm).
+- **Real**: opaque 256-bit session tokens stored SHA-256-hashed in the `sessions` collection (individually revocable); scrypt password hashing (node:crypto, N=16384/r=8/p=1, optional password); 30-min single-use magic links (hash-only storage, 60s resend throttle); 5-fail → 15-min cool-off; non-revealing responses.
+- **MOCK bits**: magic-link/verify/reset emails go to the Mongo `outbox`, never sent (§7); the legacy `demo-member-token` bearer still maps to the seeded demo member (§4); no rate limiting beyond the cool-off; no CSRF token (cookie is SameSite=Lax + all mutations are JSON POSTs); the seed's e2e password user uses a FIXED scrypt salt for determinism — never do that in production code paths.
+- **To productionise**: real ESP for link delivery, IP/global rate limits, passkeys + optional TOTP at +3 months, Sign in with Apple later (linked by verified email).
+
+## 13. Apple Pay (on the web) — MOCKED VIA STRIPE MOCK
+
+- Design (§07): all payment on the web, card or Apple Pay — no IAP. Apple Pay on web is just a Stripe payment method, so the mock checkout session from §2 stands in for both. No merchant validation, no Apple Pay JS. To productionise: Stripe Payment Request Button + Apple Pay domain verification file.
+
+## 14. GeoIP for GP-share access logs — HARDCODED
+
+- `GET /api/v1/share/[token]` appends `{ at, location: "Dublin" }` to the link's access log on every open. The coarse location is hardcoded; productionise with city-level GeoIP at the edge (log city only, per the design's "Opened twice — Dublin, 3 July").
+
+## 15. Clinician identity on GP shares — MOCK PERSONA
+
+- The share summary (`/api/v1/share/[token]`) and E6/E7 emails name "Dr. S. Nolan, IMC 412887" — a fictional reviewer from the designs. Replace with the real reviewing clinician + IMC number from the medical-ops partner.

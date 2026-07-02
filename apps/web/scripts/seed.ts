@@ -10,21 +10,30 @@
  * wearable signals for the demo member, support tickets, outbox emails, and
  * one complete "did it work?" story (baseline → change → recheck → improved).
  */
+import { scryptSync } from "node:crypto";
 import { closeClient, collections, type LgcMockOrder } from "../src/lib/db";
 import {
   TIER_PRICE_EUR,
   ADDON_PRICE_EUR,
+  CONSENT_VERSION,
   type BiomarkerReading,
   type BiomarkerRule,
+  type Consent,
+  type EligibilityConfig,
+  type GiftCode,
   type Membership,
   type MembershipTier,
   type OutboxEmail,
+  type ReferralCode,
+  type ShareLink,
   type SupportTicket,
   type TestOrder,
   type TestOrderStatus,
   type User,
+  type WaitlistEntry,
   type WearableSignal,
 } from "../src/lib/models";
+import { LAUNCH_ALLOWLIST } from "../src/lib/eligibility";
 import { computeBaselineBand, computeRcvVerdict } from "../src/lib/rcv";
 
 // --- determinism helpers ----------------------------------------------------
@@ -123,6 +132,18 @@ function emailFor(name: string): string {
   return `${name.toLowerCase().replace(/[^a-z ]/g, "").replace(/ /g, ".")}@example.ie`;
 }
 
+/**
+ * Deterministic scrypt hash for the seeded e2e password member. FIXED salt so
+ * re-seeding is byte-identical — NEVER do this outside a seed script (real
+ * signups use member-auth.ts hashPassword with a random per-password salt).
+ * Format matches member-auth.ts verifyPassword.
+ */
+function seedPasswordHash(password: string): string {
+  const salt = Buffer.from("arcaevo-seedsalt"); // 16 bytes, fixed
+  const key = scryptSync(password, salt, 64, { N: 16384, r: 8, p: 1 });
+  return `scrypt:16384:8:1:${salt.toString("base64url")}:${key.toString("base64url")}`;
+}
+
 // --- main --------------------------------------------------------------------
 
 async function seed() {
@@ -138,6 +159,17 @@ async function seed() {
     tickets: await collections.supportTickets(),
     outbox: await collections.outbox(),
     lgc: await collections.lgcMockOrders(),
+    // v2 collections
+    consents: await collections.consents(),
+    waitlist: await collections.waitlist(),
+    giftCodes: await collections.giftCodes(),
+    referralCodes: await collections.referralCodes(),
+    shareLinks: await collections.shareLinks(),
+    magicLinkTokens: await collections.magicLinkTokens(),
+    sessions: await collections.sessions(),
+    eligibilityConfig: await collections.eligibilityConfig(),
+    eligibilityRejections: await collections.eligibilityRejections(),
+    bloodworkUploads: await collections.bloodworkUploads(),
   };
   await Promise.all(Object.values(cols).map((c) => c.deleteMany({})));
 
@@ -152,16 +184,37 @@ async function seed() {
     joinedAt: daysAgo(400 - i * 14), // deterministic spread over ~13 months
     isDemo: i === 0,
     flag: spec.flag,
+    passwordHash: null, // seeded members are magic-link-only…
+    emailVerified: true,
+    failedAttempts: 0,
+    cooloffUntil: null,
   }));
+  // …except THE e2e password member: demo@arcaevo.test / demo-password-123.
+  const passwordMember: User = {
+    _id: `mem_${String(users.length + 1).padStart(4, "0")}`, // mem_0026
+    name: "Demo Tester",
+    email: "demo@arcaevo.test",
+    joinedAt: daysAgo(10),
+    isDemo: false,
+    flag: "new",
+    passwordHash: seedPasswordHash("demo-password-123"),
+    emailVerified: true,
+    failedAttempts: 0,
+    cooloffUntil: null,
+  };
+  users.push(passwordMember);
   await cols.users.insertMany(users);
 
-  const memberships: Membership[] = users.map((u, i) => {
+  // The password member (free account, Fusion-lite home) has NO membership.
+  const memberships: Membership[] = users.slice(0, MEMBER_SPECS.length).map((u, i) => {
     const tier = MEMBER_SPECS[i].tier;
     const termStart = u.joinedAt;
     const renewalDate = new Date(termStart);
     renewalDate.setFullYear(renewalDate.getFullYear() + 1);
     // Terms older than a year have renewed once already.
     if (renewalDate < ANCHOR) renewalDate.setFullYear(renewalDate.getFullYear() + 1);
+    // churn_risk members are mid-dunning: charge failed 4 days ago → day3.
+    const dunning = MEMBER_SPECS[i].flag === "churn_risk";
     return {
       _id: `sub_${String(i + 1).padStart(4, "0")}`,
       memberId: u._id,
@@ -170,9 +223,11 @@ async function seed() {
       termStart,
       renewalDate,
       cadenceUpgrade: i === 0 || i === 8, // demo member is on quarterly cadence
-      status: MEMBER_SPECS[i].flag === "churn_risk" ? ("past_due" as const) : ("active" as const),
+      status: dunning ? ("past_due" as const) : ("active" as const),
       priceEur: TIER_PRICE_EUR[tier],
       stripeSubscriptionId: `sub_mock_seed_${String(i + 1).padStart(4, "0")}`,
+      dunningStage: dunning ? ("day3" as const) : ("none" as const),
+      dunningStartedAt: dunning ? daysAgo(4) : null,
     };
   });
   await cols.memberships.insertMany(memberships);
@@ -280,6 +335,7 @@ async function seed() {
     takenAt: Date;
     priorValues: number[]; // chronological values BEFORE this one
     clinicianReviewed: boolean;
+    source?: "lab" | "self_reported"; // v2 — hollow gold dots when self_reported
   }): void {
     readingSeq += 1;
     const rule = ruleByCode.get(params.code)!;
@@ -297,6 +353,7 @@ async function seed() {
       rcvVerdict:
         prior === undefined ? null : computeRcvVerdict(prior, params.value, rule),
       clinicianReviewed: params.clinicianReviewed,
+      source: params.source ?? "lab",
     });
   }
 
@@ -318,10 +375,22 @@ async function seed() {
   };
   const baselineTaken = daysAgo(160);
   const recheckTaken = daysAgo(38);
+
+  // v2: one SELF-REPORTED point predating the story — Aoife uploaded an old
+  // St. Vincent's result (design §13 U3: hollow gold dot, never clinician-
+  // reviewed). Later lab vitamin_d readings chain off it.
+  const selfReportedPriors: Record<string, number> = { vitamin_d: 44 };
+  addReading({
+    memberId: "mem_0001", orderId: null, code: "vitamin_d", value: 44,
+    takenAt: daysAgo(420), priorValues: [], clinicianReviewed: false,
+    source: "self_reported",
+  });
+
   for (const [code, value] of Object.entries(demoBaseline)) {
     addReading({
       memberId: "mem_0001", orderId: demoBaselineOrder._id, code, value,
-      takenAt: baselineTaken, priorValues: [], clinicianReviewed: true,
+      takenAt: baselineTaken, priorValues: selfReportedPriors[code] ? [selfReportedPriors[code]] : [],
+      clinicianReviewed: true,
     });
   }
   for (const [code, value] of Object.entries(demoRecheck)) {
@@ -417,6 +486,92 @@ async function seed() {
   }));
   await cols.outbox.insertMany(emails);
 
+  // --- v2: eligibility config (config, not code) -------------------------------
+  const eligibilityConfig: EligibilityConfig = {
+    _id: "launch",
+    allowedRoutingKeys: [...LAUNCH_ALLOWLIST],
+    updatedAt: ANCHOR,
+  };
+  await cols.eligibilityConfig.insertOne(eligibilityConfig);
+
+  // Rejected-key log — the demand signal the waitlist admin view reads.
+  await cols.eligibilityRejections.insertMany([
+    { _id: "elig_rej_0001", routingKey: "T12", county: "Cork", at: daysAgo(9) },
+    { _id: "elig_rej_0002", routingKey: "T12", county: "Cork", at: daysAgo(6) },
+    { _id: "elig_rej_0003", routingKey: "H91", county: "Galway", at: daysAgo(3) },
+  ]);
+
+  // --- v2: waitlist -------------------------------------------------------------
+  const waitlistEntries: WaitlistEntry[] = [
+    {
+      _id: "wait_0001", email: "sinead.corkonian@example.ie",
+      routingKey: "T12", county: "Cork", position: 1, createdAt: daysAgo(9),
+    },
+    {
+      _id: "wait_0002", email: "padraic.galway@example.ie",
+      routingKey: "H91", county: "Galway", position: 1, createdAt: daysAgo(3),
+    },
+  ];
+  await cols.waitlist.insertMany(waitlistEntries);
+
+  // --- v2: consent grants (append-only audit; versioned) -------------------------
+  const consentDocs: Consent[] = [
+    // Demo member (Aoife) consented on iOS at sign-up: both required purposes
+    // granted, research explicitly declined (off by default — design §04).
+    { purpose: "health_processing" as const, granted: true, userId: "mem_0001", surface: "ios" as const, at: 400 },
+    { purpose: "clinician_review" as const, granted: true, userId: "mem_0001", surface: "ios" as const, at: 400 },
+    { purpose: "research" as const, granted: false, userId: "mem_0001", surface: "ios" as const, at: 400 },
+    // e2e password member consented on web; opted INTO research.
+    { purpose: "health_processing" as const, granted: true, userId: passwordMember._id, surface: "web" as const, at: 10 },
+    { purpose: "clinician_review" as const, granted: true, userId: passwordMember._id, surface: "web" as const, at: 10 },
+    { purpose: "research" as const, granted: true, userId: passwordMember._id, surface: "web" as const, at: 10 },
+  ].map((c, i) => ({
+    _id: `consent_${String(i + 1).padStart(4, "0")}`,
+    userId: c.userId,
+    purpose: c.purpose,
+    granted: c.granted,
+    version: CONSENT_VERSION,
+    timestamp: daysAgo(c.at),
+    surface: c.surface,
+  }));
+  await cols.consents.insertMany(consentDocs);
+
+  // --- v2: one active GP share link for the demo member (design §15) -------------
+  const shareLink: ShareLink = {
+    _id: "share_0001",
+    token: "k7f2demo", // deterministic; the GP page is /s/k7f2demo
+    userId: "mem_0001",
+    createdAt: daysAgo(2),
+    expiresAt: daysAgo(-28), // 30-day life: 2 days old, 28 to go
+    revoked: false,
+    accessLog: [{ at: daysAgo(1), location: "Dublin" }],
+  };
+  await cols.shareLinks.insertOne(shareLink);
+
+  // --- v2: an unredeemed gift + the demo member's referral code (design §16) -----
+  const giftCode: GiftCode = {
+    _id: "GIFT-DEMO-2026",
+    tier: "essential",
+    priceEur: TIER_PRICE_EUR.essential,
+    purchaserEmail: "gift.buyer@example.ie",
+    recipientEmail: "dara.gift@example.ie",
+    note: "Happy 40th, Dara. Now you can stop guessing.",
+    delivery: "email",
+    createdAt: daysAgo(5),
+    redeemedBy: null,
+    redeemedAt: null,
+  };
+  await cols.giftCodes.insertOne(giftCode);
+
+  const referralCode: ReferralCode = {
+    _id: "AOIFE-K4",
+    userId: "mem_0001",
+    joinedCount: 2,
+    freeMonthsApplied: 2,
+    createdAt: daysAgo(300),
+  };
+  await cols.referralCodes.insertOne(referralCode);
+
   // Summary -------------------------------------------------------------------
   console.log(`  users:              ${users.length} (demo: mem_0001 · Aoife Byrne · token "demo-member-token")`);
   console.log(`  memberships:        ${memberships.length} (essential ${memberships.filter((m) => m.tier === "essential").length} · performance ${memberships.filter((m) => m.tier === "performance").length} · fusion ${memberships.filter((m) => m.tier === "fusion").length})`);
@@ -426,6 +581,12 @@ async function seed() {
   console.log(`  wearable signals:   ${wearables.length} (90 days × 4 types, demo member)`);
   console.log(`  support tickets:    ${tickets.length}`);
   console.log(`  outbox emails:      ${emails.length}`);
+  console.log(`  v2 · eligibility:   ${eligibilityConfig.allowedRoutingKeys.length} routing keys allowed · 3 rejections logged`);
+  console.log(`  v2 · waitlist:      ${waitlistEntries.length} entries (Cork, Galway)`);
+  console.log(`  v2 · consents:      ${consentDocs.length} grants (mem_0001 + ${passwordMember._id}, version ${CONSENT_VERSION})`);
+  console.log(`  v2 · share link:    /s/${shareLink.token} (mem_0001, active, 1 open logged)`);
+  console.log(`  v2 · gift code:     ${giftCode._id} (unredeemed) · referral ${referralCode._id}`);
+  console.log(`  v2 · password user: ${passwordMember.email} / "demo-password-123" (${passwordMember._id}, no membership)`);
   console.log("Seed complete.");
 }
 

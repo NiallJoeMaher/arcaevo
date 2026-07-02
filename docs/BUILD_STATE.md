@@ -76,10 +76,10 @@ Every loop iteration: read this file first, do the next unchecked work, update t
 - [x] `cdk synth` passes
 
 ### Phase 9 — Tests + verification (USER REQUIREMENT: e2e-testable when done)
-- [ ] `npm run build` passes in apps/web
+- [x] `npm run build` passes in apps/web
 - [x] Unit tests (vitest) for lib logic (RCV verdicts, refund rules, vendor mocks)
-- [ ] Playwright e2e suite: all routes render, pricing figures verbatim, help accordion, admin login + tabs, API smoke (order lifecycle via mock LGC)
-- [ ] Link check across all routes
+- [x] Playwright e2e suite: 24 tests / 7 specs, all green (routes+h1/title, link crawl, pricing verbatim, help accordion, admin login/tabs/sign-off, API smoke incl. mock-LGC order lifecycle + wearable source rejection, SEO/JSON-LD). `npm run e2e` (prod build + standalone server + seeded Mongo on host :27019)
+- [x] Link check across all routes (links.spec.ts crawls every internal href on every sitemap page)
 - [ ] Lighthouse ≥95 perf/SEO/a11y on Home + Pricing
 - [ ] xcodebuild succeeds for iOS + watch targets
 - [x] `cdk synth` passes

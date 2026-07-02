@@ -3,9 +3,10 @@ services:
     image: mongo:7
     container_name: arcaevo-mongo
     ports:
-      # Host 27018 because 27017 is commonly taken by other local Mongo containers.
+      # Host 27019 because 27017/27018 are taken by other local Mongo containers
+      # (assemblpro-mongodb, eventson-mongo) on this machine.
       # Inside the compose network the web container still uses mongo:27017.
-      - "27018:27017"
+      - "27019:27017"
     volumes:
       - mongo-data:/data/db
     healthcheck:

@@ -28,7 +28,7 @@ const PILLARS = [
   {
     tag: "04 · TRANSPARENT AI",
     title: "The model only explains",
-    body: "Claude turns the rule output into plain English and answers your questions, grounded strictly in your numbers and the rules. It cannot set a threshold or overrule the clinician.",
+    body: "The AI turns the rule output into plain English and answers your questions, grounded strictly in your numbers and the rules. It cannot set a threshold or overrule the clinician.",
   },
 ];
 
@@ -82,7 +82,7 @@ export default function SciencePage() {
           </h1>
           <p className="m-0 max-w-[60ch] text-[19px] leading-[1.55] text-muted">
             Rules written from peer-reviewed literature decide every clinical
-            call — never a language model. Claude rewrites them into plain
+            call — never a language model. The AI rewrites them into plain
             English and answers your questions, but it can&apos;t invent a
             threshold. That&apos;s our safety posture, and our trust story.
           </p>

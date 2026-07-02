@@ -161,11 +161,14 @@ export default function PricingPage() {
                 <br />✓ EU-hosted · export or delete anytime
               </div>
               <Link
-                href="/contact"
+                href="/join"
                 className="mt-[22px] block rounded-pill border border-ink p-[13px] text-center font-semibold text-ink no-underline"
               >
                 Start Fusion
               </Link>
+              <div className="mt-[10px] text-center text-[11.5px] text-caption">
+                Available everywhere — nothing ships
+              </div>
             </div>
 
             <div className="relative flex flex-col rounded-card-lg bg-ink p-8 text-bone-white shadow-card-dark">
@@ -197,11 +200,14 @@ export default function PricingPage() {
                 <br />✓ Everything in Fusion
               </div>
               <Link
-                href="/contact"
+                href="/checkout"
                 className="mt-[22px] block rounded-pill bg-bone-white p-[13px] text-center font-semibold text-ink no-underline"
               >
                 Start Essential
               </Link>
+              <div className="mt-[10px] text-center text-[11.5px] text-muted-dark-soft">
+                Dublin service area — quick Eircode check first
+              </div>
             </div>
 
             <div className="flex flex-col rounded-card-lg border border-hairline bg-surface p-8">
@@ -228,11 +234,14 @@ export default function PricingPage() {
                 <br />✓ Everything in Essential
               </div>
               <Link
-                href="/contact"
+                href="/checkout"
                 className="mt-[22px] block rounded-pill border border-ink p-[13px] text-center font-semibold text-ink no-underline"
               >
                 Start Performance
               </Link>
+              <div className="mt-[10px] text-center text-[11.5px] text-caption">
+                Dublin service area — quick Eircode check first
+              </div>
             </div>
           </div>
           <p className="mb-0 mt-5 text-center text-[13px] text-caption">

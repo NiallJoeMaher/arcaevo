@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #ECE7DD; }
+  ::selection { background: #1E5C45; color: #F4F1EA; }
+  a:hover { opacity: 0.72; }
+</style>
+</helmet>
+
+<div style="font-family:'Hanken Grotesk',sans-serif; background:#ECE7DD; color:#1C2620; width:100%; overflow-x:hidden;">
+  <dc-import name="SiteNav" active="how" hint-size="100%,72px"></dc-import>
+
+  <!-- HERO -->
+  <section style="max-width:900px; margin:0 auto; padding:72px 40px 48px; text-align:center;">
+    <div style="font-family:'Geist Mono',monospace; font-size:12px; letter-spacing:0.14em; color:#1E5C45; margin-bottom:20px;">HOW IT WORKS</div>
+    <h1 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:clamp(38px,5vw,58px); line-height:1.04; letter-spacing:-0.015em; margin:0 0 22px;">From a drop of blood to a two-line plan.</h1>
+    <p style="font-size:19px; line-height:1.55; color:#4A554D; margin:0 auto; max-width:56ch;">Four steps. You test, we fuse and interpret, you get a short list of what to change, and at your next test we tell you whether it worked.</p>
+  </section>
+
+  <!-- STEP DETAIL -->
+  <section style="max-width:1000px; margin:0 auto; padding:32px 40px 40px; display:flex; flex-direction:column; gap:20px;">
+    <sc-for list="{{ steps }}" as="s" hint-placeholder-count="4">
+      <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:22px; padding:34px; display:grid; grid-template-columns:120px 1fr; gap:28px; align-items:start;">
+        <div style="font-family:'Instrument Serif',serif; font-size:64px; color:#1E5C45; line-height:0.9;">{{ s.n }}</div>
+        <div>
+          <h2 style="font-size:24px; font-weight:700; margin:0 0 10px; letter-spacing:-0.01em;">{{ s.title }}</h2>
+          <p style="font-size:16px; line-height:1.6; color:#4A554D; margin:0 0 16px; max-width:62ch;">{{ s.body }}</p>
+          <div style="font-family:'Geist Mono',monospace; font-size:12px; color:#1E5C45; letter-spacing:0.04em;">{{ s.meta }}</div>
+        </div>
+      </div>
+    </sc-for>
+  </section>
+
+  <!-- FUSION EXPLAINER -->
+  <section style="background:#1C2620; color:#F4F1EA; padding:80px 40px; margin-top:40px;">
+    <div style="max-width:1000px; margin:0 auto; display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:center;">
+      <div>
+        <div style="font-family:'Geist Mono',monospace; font-size:12px; letter-spacing:0.14em; color:#7FD3AE; margin-bottom:16px;">THE FUSION ENGINE</div>
+        <h2 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:36px; margin:0 0 18px; letter-spacing:-0.01em;">Bloods explain the trend. Wearables explain the blood.</h2>
+        <p style="font-size:16px; line-height:1.6; color:#9FB0A6; margin:0 0 16px;">A single blood draw is a snapshot. Your wearable is a film. We overlay them so a spike in hs-CRP lines up with the week your HRV collapsed — and a rising HbA1c sits next to your falling step count.</p>
+        <p style="font-size:16px; line-height:1.6; color:#9FB0A6; margin:0;">Deterministic rules — written from the clinical literature — decide every call. The AI only turns those rules into plain English. It can't invent a threshold.</p>
+        <a href="Science.dc.html" style="display:inline-block; margin-top:22px; color:#7FD3AE; font-weight:600; text-decoration:none;">How the rules engine works →</a>
+      </div>
+      <div style="background:rgba(255,255,255,0.05); border-radius:20px; padding:26px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:11px; color:#8FA89A; letter-spacing:0.1em; margin-bottom:8px;">hs-CRP vs HRV · 12 MONTHS</div>
+        <svg viewBox="0 0 300 150" style="width:100%; height:auto; display:block;">
+          <rect x="0" y="58" width="300" height="40" rx="6" fill="rgba(52,160,124,0.16)"></rect>
+          <polyline points="6,110 56,104 106,86 156,90 206,70 256,52 294,44" fill="none" stroke="#34A07C" stroke-width="2.5" stroke-linecap="round"></polyline>
+          <polyline points="20,74 90,66 160,104 230,98 288,118" fill="none" stroke="#F4F1EA" stroke-width="2.5" stroke-linecap="round"></polyline>
+          <circle cx="20" cy="74" r="4.5" fill="#D99A4E"></circle><circle cx="90" cy="66" r="4.5" fill="#D99A4E"></circle><circle cx="160" cy="104" r="4.5" fill="#34A07C"></circle><circle cx="230" cy="98" r="4.5" fill="#34A07C"></circle><circle cx="288" cy="118" r="4.5" fill="#34A07C"></circle>
+        </svg>
+        <div style="background:rgba(52,160,124,0.14); border-radius:12px; padding:13px; margin-top:14px; font-size:13px; line-height:1.5; color:#CFE6DB;">As HRV climbed back to baseline, <strong style="color:#fff;">hs-CRP fell 2.1 → 0.6</strong>. Same story, told once.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHAT YOU GET -->
+  <section style="padding:80px 40px;">
+    <div style="max-width:1000px; margin:0 auto;">
+      <h2 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:36px; margin:0 0 36px; letter-spacing:-0.01em; text-align:center;">What lands in your app</h2>
+      <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:18px;">
+        <sc-for list="{{ outputs }}" as="o" hint-placeholder-count="4">
+          <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:18px; padding:24px;">
+            <h3 style="font-size:17px; font-weight:700; margin:0 0 8px;">{{ o.t }}</h3>
+            <p style="font-size:14.5px; line-height:1.55; color:#4A554D; margin:0;">{{ o.d }}</p>
+          </div>
+        </sc-for>
+      </div>
+      <div style="text-align:center; margin-top:44px;"><a href="Pricing.dc.html" style="display:inline-block; background:#1E5C45; color:#fff; padding:15px 30px; border-radius:100px; font-weight:600; font-size:16px; text-decoration:none;">Choose your test →</a></div>
+    </div>
+  </section>
+
+  <dc-import name="SiteFooter" hint-size="100%,360px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      steps: [
+        { n: "01", title: "Order & test", body: "Pick a finger-prick kit posted to your door, or book an in-home venous draw where a phlebotomist comes to you. Fasting reminders arrive on your Watch the night before.", meta: "15–80 MARKERS · IRELAND-WIDE · 5–7 DAY TURNAROUND" },
+        { n: "02", title: "Fuse & interpret", body: "Your results are matched to your wearable history and read against your own baseline, not just the population range. A registered clinician signs off every panel before you see it.", meta: "DETERMINISTIC RULES · CLINICIAN-REVIEWED" },
+        { n: "03", title: "Get your two levers", body: "Not forty numbers — a ranked shortlist. Usually one or two changes that move the markers that matter most for you right now, written in plain English by the coach.", meta: "PRIORITISED · PERSONAL · ACTIONABLE" },
+        { n: "04", title: "Close the loop", body: "Log the change. At your next test we compare against Reference Change Value and tell you plainly: real improvement, within noise, or needs a retest. No guessing whether it worked.", meta: "\u201cDID IT WORK?\u201d VERDICTS · RCV-BASED" },
+      ],
+      outputs: [
+        { t: "A single Health Score", d: "One number that captures where you stand, with the biological age it implies and what moved it since last time." },
+        { t: "Every marker, in its optimal band", d: "Not just \u2018normal\u2019 \u2014 the tighter optimal range, with a plain-English note on why each marker matters." },
+        { t: "Five-systems view", d: "Cardiovascular, metabolic, nutrients, inflammation and hormonal \u2014 each rated optimal, watch or discuss." },
+        { t: "A coach that knows your data", d: "Ask anything about your results. Answers are grounded in your numbers and the rules, never invented." },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

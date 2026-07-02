@@ -85,6 +85,37 @@ Every loop iteration: read this file first, do the next unchecked work, update t
 - [x] `cdk synth` passes
 - [x] `docker compose up --build` running and healthy, seeded — web :3000, mongo host :27019 (27017/27018 held by other projects), mongo-express :8083 (8081/8082 held by other projects)
 
+## V2 — accounts, auth, commerce (handoff: design_handoff_v2/, started 2026-07-02 morning)
+
+Spec: `design_handoff_v2/README.md` (rules) + `designs/AccountFlows.dc.html` (19 sections, all screens/emails/edge states). iOS Prototype.dc.html deferred until user hands over native design updates.
+
+Non-negotiables: email + magic-link auth only (no social, no SIWA at launch); Eircode gate only at checkout for Essential/Performance (routing-key allowlist = config, fail → waitlist + Fusion cross-sell); GDPR Art.9 consent screen (3 purposes, research off by default, versioned, revocable); results never in email; dunning 0/3/10/14 → read-only pause, nothing deleted; renewal email cancel = equal weight; uploaded bloodwork → user confirms every AI value, self-reported = hollow gold dots; payment on web only (Stripe mock + Apple Pay on web mock).
+
+### Phase 10 — v2 backend (src/lib + api + emails)
+- [ ] Models: Consent (purpose/version/timestamp/surface), WaitlistEntry (routing key, county), GiftCode, ReferralCode, ShareLink (expiry/revoked/access log), MagicLinkToken, Session; User gains optional passwordHash + failed-attempt cooloff; BiomarkerReading gains source: lab|self_reported
+- [ ] Member auth: session cookie, /join /signin magic-link + password flows, 30-min single-use links (60s resend throttle), 5-fail 15-min cooloff, non-revealing responses, reset signs out other sessions
+- [ ] Eircode eligibility: config collection seeded with launch allowlist (D01–D18, D20, D22, D24, D6W, A94, A96, K32, K34, K36, K45, K56, K67, K78), routing-key-only validation, rejected keys logged
+- [ ] Consent grants API (versioned, re-consent trigger), waitlist join/position, checkout API (mock Stripe), gift/redeem, GP share links, bloodwork upload confirm (mock AI extraction)
+- [ ] 11 transactional emails, one layout, rendered to Mongo outbox (E1–E11 per §12/§14)
+- [ ] Seed extensions + unit tests for eircode/magic-link/dunning logic
+
+### Phase 11 — product web app (new routes)
+- [ ] /join /signin /verify /consent per §03–04 (edge states included)
+- [ ] /checkout (3 steps: eligibility → details → payment) /early-access /welcome per §05–07
+- [ ] /book /gift /redeem /s/[token] per §08, §15–16
+- [ ] /account /account/security /account/privacy per §10, §17 (delete flow: type-DELETE, export first)
+
+### Phase 12 — marketing updates (v2 deltas only)
+- [ ] Pricing CTAs → /join (Fusion) and /checkout (Essential/Performance) with eligibility hint lines
+- [ ] "AI" copy replaces vendor names on Science + App pages (verify against v2 designs)
+
+### Phase 13 — admin additions
+- [ ] /admin/waitlist (demand by county), /admin/eligibility (Eircode config editor), /admin/consent (audit log) per §18
+
+### Phase 14 — v2 verification
+- [ ] e2e: join→verify→consent flow (magic link via outbox), eircode pass (D08) / fail (T12) → waitlist, checkout mock, account pages, pricing CTA targets
+- [ ] Full regression: existing 24 e2e + 69 unit tests stay green; build + Lighthouse spot-check
+
 ## Wanted deps (agents append here instead of installing)
 
 - `vitest` (dev, apps/web) — unit tests for lib logic: rcv.ts verdicts/baseline bands (pure functions, test-ready), stripe.mock refund rules, LGC mock state machine. Add `"test": "vitest run"` to scripts once installed.

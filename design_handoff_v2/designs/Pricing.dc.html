@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #ECE7DD; }
+  ::selection { background: #1E5C45; color: #F4F1EA; }
+  a:hover { opacity: 0.72; }
+</style>
+</helmet>
+
+<div style="font-family:'Hanken Grotesk',sans-serif; background:#ECE7DD; color:#1C2620; width:100%; overflow-x:hidden;">
+  <dc-import name="SiteNav" active="pricing" hint-size="100%,72px"></dc-import>
+
+  <section style="max-width:900px; margin:0 auto; padding:72px 40px 40px; text-align:center;">
+    <div style="font-family:'Geist Mono',monospace; font-size:12px; letter-spacing:0.14em; color:#1E5C45; margin-bottom:20px;">MEMBERSHIP &amp; PRICING</div>
+    <h1 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:clamp(38px,5vw,58px); line-height:1.04; letter-spacing:-0.015em; margin:0 0 20px;">One annual membership. Tests included.</h1>
+    <p style="font-size:19px; line-height:1.55; color:#4A554D; margin:0 auto 8px; max-width:54ch;">Billed once a year, so your tests are covered upfront — the first one ships or gets booked the day you join. Cancel anytime and keep access until your year ends.</p>
+  </section>
+
+  <!-- PLANS -->
+  <section style="max-width:1100px; margin:0 auto; padding:0 40px 16px;">
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:22px; align-items:stretch;">
+
+      <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.1); border-radius:22px; padding:32px; display:flex; flex-direction:column;">
+        <div style="font-weight:700; font-size:19px; margin-bottom:6px;">Fusion</div>
+        <div style="font-size:13px; color:#7C887F; margin-bottom:22px;">Your watch &amp; your own bloodwork</div>
+        <div style="font-family:'Instrument Serif',serif; font-size:52px; line-height:1;">€119<span style="font-size:16px; color:#7C887F; font-family:'Hanken Grotesk';">/yr</span></div>
+        <div style="font-size:12.5px; color:#7C887F; margin-top:8px; font-family:'Geist Mono',monospace;">≈ €10/MO · NO TESTS TO SHIP</div>
+        <div style="height:1px; background:rgba(28,38,32,0.1); margin:22px 0;"></div>
+        <div style="font-size:14.5px; color:#4A554D; line-height:2; flex:1;">✓ Syncs Apple Watch &amp; Apple Health<br>✓ Upload or enter any past bloodwork<br>✓ Personal baselines &amp; top-3 insights<br>✓ Experiments &amp; the “did it work?” loop<br>✓ EU-hosted · export or delete anytime</div>
+        <a href="AccountFlows.dc.html#join" style="margin-top:22px; display:block; text-align:center; border:1px solid #1C2620; color:#1C2620; padding:13px; border-radius:100px; font-weight:600; text-decoration:none;">Start Fusion</a>
+        <div style="text-align:center; font-size:11.5px; color:#7C887F; margin-top:10px;">Available everywhere — nothing ships</div>
+      </div>
+
+      <div style="background:#1C2620; color:#F4F1EA; border-radius:22px; padding:32px; position:relative; box-shadow:0 24px 50px -28px rgba(28,38,32,0.6); display:flex; flex-direction:column;">
+        <div style="position:absolute; top:24px; right:24px; font-family:'Geist Mono',monospace; font-size:10px; background:#34A07C; color:#04130D; padding:4px 9px; border-radius:100px; letter-spacing:0.06em;">MOST POPULAR</div>
+        <div style="font-weight:700; font-size:19px; margin-bottom:6px;">Essential</div>
+        <div style="font-size:13px; color:#8FA89A; margin-bottom:22px;">Two blood tests a year, twice-yearly tracking</div>
+        <div style="font-family:'Instrument Serif',serif; font-size:52px; line-height:1;">€329<span style="font-size:16px; color:#8FA89A; font-family:'Hanken Grotesk';">/yr</span></div>
+        <div style="font-size:12.5px; color:#8FA89A; margin-top:8px; font-family:'Geist Mono',monospace;">≈ €27/MO · FIRST KIT SHIPS TODAY</div>
+        <div style="height:1px; background:rgba(255,255,255,0.12); margin:22px 0;"></div>
+        <div style="font-size:14.5px; color:#CFD6CF; line-height:2; flex:1;">✓ Full baseline panel + a lighter recheck<br>✓ Finger-prick kits to your door<br>✓ Every result clinician-reviewed<br>✓ Retest verdicts on what you changed<br>✓ Everything in Fusion</div>
+        <a href="AccountFlows.dc.html#eligibility" style="margin-top:22px; display:block; text-align:center; background:#F4F1EA; color:#1C2620; padding:13px; border-radius:100px; font-weight:600; text-decoration:none;">Start Essential</a>
+        <div style="text-align:center; font-size:11.5px; color:#8FA89A; margin-top:10px;">Dublin service area — quick Eircode check first</div>
+      </div>
+
+      <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.1); border-radius:22px; padding:32px; display:flex; flex-direction:column;">
+        <div style="font-weight:700; font-size:19px; margin-bottom:6px;">Performance</div>
+        <div style="font-size:13px; color:#7C887F; margin-bottom:22px;">The deep venous panel, nurse included</div>
+        <div style="font-family:'Instrument Serif',serif; font-size:52px; line-height:1;">€399<span style="font-size:16px; color:#7C887F; font-family:'Hanken Grotesk';">/yr</span></div>
+        <div style="font-size:12.5px; color:#7C887F; margin-top:8px; font-family:'Geist Mono',monospace;">≈ €33/MO · BOOK YOUR NURSE TODAY</div>
+        <div style="height:1px; background:rgba(28,38,32,0.1); margin:22px 0;"></div>
+        <div style="font-size:14.5px; color:#4A554D; line-height:2; flex:1;">✓ 1 venous panel · 80+ markers<br>✓ Dublin mobile phlebotomy — we come to you<br>✓ Hormones &amp; advanced lipids included<br>✓ Priority clinician review<br>✓ Everything in Essential</div>
+        <a href="AccountFlows.dc.html#eligibility" style="margin-top:22px; display:block; text-align:center; border:1px solid #1C2620; color:#1C2620; padding:13px; border-radius:100px; font-weight:600; text-decoration:none;">Start Performance</a>
+        <div style="text-align:center; font-size:11.5px; color:#7C887F; margin-top:10px;">Dublin service area — quick Eircode check first</div>
+      </div>
+    </div>
+    <p style="text-align:center; font-size:13px; color:#7C887F; margin-top:20px;">Every price includes kits or the nurse visit, postage both ways, lab processing, clinician sign-off and full app access. No hidden phlebotomy fees.</p>
+  </section>
+
+  <!-- CADENCE UPGRADE -->
+  <section style="max-width:1100px; margin:0 auto; padding:48px 40px 8px;">
+    <div style="background:#1C2620; color:#F4F1EA; border-radius:22px; padding:40px;">
+      <div style="display:grid; grid-template-columns:1fr 1.3fr; gap:40px; align-items:center;">
+        <div>
+          <div style="font-family:'Geist Mono',monospace; font-size:11px; letter-spacing:0.14em; color:#7FD3AE; margin-bottom:14px;">TEST CADENCE</div>
+          <h2 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:34px; margin:0 0 12px; letter-spacing:-0.01em;">Twice a year is the rhythm. Quarterly is the upgrade.</h2>
+          <p style="font-size:15px; line-height:1.6; color:#9FB0A6; margin:0;">Essential's two tests match how most markers actually move. Training hard, running a protocol, or just impatient? Step up to quarterly tracking — lighter rechecks between your baselines, priced as a bundle so you never buy kits one by one.</p>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:16px; background:rgba(255,255,255,0.06); border-radius:14px; padding:16px 20px;">
+            <div><div style="font-weight:700; font-size:15px;">Twice-yearly <span style="font-family:'Geist Mono',monospace; font-size:9px; color:#7FD3AE; letter-spacing:0.08em; margin-left:6px;">INCLUDED</span></div><div style="font-size:12.5px; color:#8FA89A;">Full baseline + recheck — in every Essential year</div></div>
+            <div style="font-family:'Geist Mono',monospace; font-size:14px; color:#7FD3AE;">€0</div>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:16px; background:rgba(52,160,124,0.14); border:1px solid rgba(52,160,124,0.35); border-radius:14px; padding:16px 20px;">
+            <div><div style="font-weight:700; font-size:15px;">Track quarterly</div><div style="font-size:12.5px; color:#8FA89A;">4 tests a year — adds two rechecks to Essential</div></div>
+            <div style="font-family:'Geist Mono',monospace; font-size:14px;">+€130<span style="font-size:11px; color:#8FA89A;">/yr</span></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:16px; background:rgba(255,255,255,0.06); border-radius:14px; padding:16px 20px;">
+            <div><div style="font-weight:700; font-size:15px;">Single add-ons</div><div style="font-size:12.5px; color:#8FA89A;">Any plan, any time — no bundle needed</div></div>
+            <div style="font-family:'Geist Mono',monospace; font-size:12.5px; text-align:right; color:#CFD6CF;">€99 full · €69 recheck<br>€199 venous</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMPARISON TABLE -->
+  <section style="max-width:1100px; margin:0 auto; padding:48px 40px;">
+    <h2 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:32px; margin:0 0 28px; letter-spacing:-0.01em; text-align:center;">Compare the plans</h2>
+    <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:20px; overflow:hidden;">
+      <sc-for list="{{ rows }}" as="r" hint-placeholder-count="9">
+        <div style="display:grid; grid-template-columns:1.6fr 1fr 1fr 1fr; gap:12px; padding:16px 24px; border-bottom:1px solid rgba(28,38,32,0.07); align-items:center;">
+          <span style="font-size:14.5px; font-weight:{{ r.weight }}; color:{{ r.color }};">{{ r.feature }}</span>
+          <span style="font-size:13.5px; color:#4A554D; text-align:center;">{{ r.a }}</span>
+          <span style="font-size:13.5px; color:#1E5C45; text-align:center; font-weight:600;">{{ r.b }}</span>
+          <span style="font-size:13.5px; color:#4A554D; text-align:center;">{{ r.c }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <!-- MARKET CONTEXT -->
+  <section style="max-width:1100px; margin:0 auto; padding:8px 40px 48px;">
+    <div style="text-align:center; margin-bottom:24px;">
+      <h2 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:30px; margin:0 0 8px; letter-spacing:-0.01em;">Where €329 sits in the market</h2>
+      <p style="font-size:15px; color:#4A554D; margin:0;">Premium, competitive — and the only EU-native membership that fuses blood with your Apple Watch.</p>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px;">
+      <sc-for list="{{ market }}" as="m" hint-placeholder-count="8">
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:14px; padding:16px 18px;">
+          <div style="display:flex; justify-content:space-between; align-items:baseline; gap:10px;">
+            <span style="font-weight:700; font-size:13.5px;">{{ m.name }}</span>
+            <span style="font-family:'Geist Mono',monospace; font-size:12px; color:#1E5C45;">{{ m.price }}</span>
+          </div>
+          <div style="font-size:12px; color:#7C887F; margin-top:5px; line-height:1.45;">{{ m.note }}</div>
+        </div>
+      </sc-for>
+    </div>
+    <div style="text-align:center; margin-top:20px;"><a href="Compare.dc.html" style="font-size:15px; color:#1E5C45; font-weight:600; text-decoration:none;">Full side-by-side comparisons →</a></div>
+  </section>
+
+  <!-- FAQ -->
+  <section style="max-width:760px; margin:0 auto; padding:24px 40px 80px;">
+    <h2 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:30px; margin:0 0 20px; text-align:center;">Pricing questions</h2>
+    <div style="border-top:1px solid rgba(28,38,32,0.12);">
+      <sc-for list="{{ faqs }}" as="f" hint-placeholder-count="6">
+        <div style="padding:20px 4px; border-bottom:1px solid rgba(28,38,32,0.12);">
+          <div style="font-weight:600; font-size:16px; margin-bottom:8px;">{{ f.q }}</div>
+          <p style="font-size:14.5px; color:#4A554D; line-height:1.6; margin:0;">{{ f.a }}</p>
+        </div>
+      </sc-for>
+    </div>
+    <div style="text-align:center; margin-top:32px;"><a href="Help.dc.html" style="font-size:15px; color:#1E5C45; font-weight:600; text-decoration:none;">More in the Help centre →</a></div>
+  </section>
+
+  <dc-import name="SiteFooter" hint-size="100%,360px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const head = { weight: "700", color: "#1C2620" };
+    const norm = { weight: "500", color: "#1C2620" };
+    return {
+      rows: [
+        Object.assign({ feature: "", a: "Fusion", b: "Essential", c: "Performance" }, head),
+        Object.assign({ feature: "Price per year", a: "€119", b: "€329", c: "€399" }, norm),
+        Object.assign({ feature: "Included tests / year", a: "Bring your own", b: "2 finger-prick", c: "1 venous" }, norm),
+        Object.assign({ feature: "Markers", a: "Any you upload", b: "Full panel + recheck", c: "80+" }, norm),
+        Object.assign({ feature: "Nurse to your home", a: "—", b: "—", c: "✓ Dublin" }, norm),
+        Object.assign({ feature: "Apple Watch fusion & baselines", a: "✓", b: "✓", c: "✓" }, norm),
+        Object.assign({ feature: "\u201cDid it work?\u201d loop", a: "✓", b: "✓", c: "✓" }, norm),
+        Object.assign({ feature: "Clinician-reviewed results", a: "—", b: "✓", c: "✓ Priority" }, norm),
+        Object.assign({ feature: "EU data residency", a: "✓", b: "✓", c: "✓" }, norm),
+      ],
+      market: [
+        { name: "Arcaevo Essential", price: "€329/yr", note: "2 tests, Apple Watch fusion, EU data, iOS + Watch app" },
+        { name: "Function Health", price: "$365/yr", note: "US-only, US data, no wearable fusion" },
+        { name: "Ultrahuman Blood Vision", price: "$499+/yr", note: "Plus $99 entry test — locked to their ring" },
+        { name: "Superpower", price: "$199/yr", note: "US, web-only — no mobile or watch app" },
+        { name: "WHOOP Advanced Labs", price: "$199–599", note: "On top of WHOOP membership; their hardware only" },
+        { name: "Zoe", price: "£150–300", note: "Gut & glucose focus, upfront test fee" },
+        { name: "Neko Health", price: "£299/scan", note: "Clinic body scan, per visit, waitlisted" },
+        { name: "Randox Health", price: "~€480", note: "Clinic panel, PDF results, no interpretation layer" },
+      ],
+      faqs: [
+        { q: "Why annual billing?", a: "Because your tests are real-world cost — kits, labs, nurses. Paying once a year covers them upfront, which is exactly why your first test ships or gets booked the day you join instead of weeks later. It also matches the product: baselines and \u201cdid it work?\u201d verdicts only emerge over months, not weeks." },
+        { q: "Is there a monthly option?", a: "Not at launch. Monthly billing is on the roadmap — but the honest truth is the product works over time: two tests, a baseline, and a retest verdict take most of a year. Annual keeps the price lower and the incentives straight." },
+        { q: "What's the difference between the baseline panel and the recheck?", a: "Your baseline is the full panel — the complete picture across metabolic, cardiovascular, hormonal, inflammation and nutrient markers. The recheck is a lighter panel focused on the markers most worth tracking between baselines: the ones that were out of range, and the ones you're actively working on." },
+        { q: "Can I test more often than twice a year?", a: "Yes — that's the quarterly upgrade. Add €130 to Essential for four tests a year (two full baselines, two rechecks), or buy single add-ons anytime: €99 for a full finger-prick panel, €69 for a recheck, €199 for an extra venous draw with nurse visit." },
+        { q: "Are phlebotomy or postage fees extra?", a: "No. Every price shown includes the kit or nurse visit, postage both ways, lab processing, clinician sign-off and full app access. No surprise line items." },
+        { q: "What's the refund policy?", a: "Full refund any time before your kit ships or your draw is booked. Once a sample has been processed, that test can't be refunded — lab work is real-world cost. You can cancel anytime, keep access until the end of your paid year, and export or delete all your data on the way out." },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

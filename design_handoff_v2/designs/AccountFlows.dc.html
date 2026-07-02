@@ -1,0 +1,1513 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #ECE7DD; }
+  ::selection { background: #1E5C45; color: #F4F1EA; }
+</style>
+</helmet>
+
+<div style="font-family:'Hanken Grotesk',sans-serif; background:#ECE7DD; color:#1C2620; width:100%; overflow-x:hidden; padding-bottom:120px;">
+
+  <!-- ============ COVER ============ -->
+  <section data-screen-label="Cover" style="max-width:1180px; margin:0 auto; padding:110px 48px 72px;">
+    <div style="display:flex; align-items:center; gap:14px; margin-bottom:56px;">
+      <div style="width:26px; height:26px; border-radius:50%; background:radial-gradient(circle at 32% 30%, #5FB592, #1E5C45 70%); box-shadow:0 0 0 6px rgba(30,92,69,0.10);"></div>
+      <span style="font-size:22px; font-weight:600; letter-spacing:-0.01em;">Arcaevo</span>
+      <span style="font-family:'Geist Mono',monospace; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:#7C887F; margin-left:6px; padding-top:3px;">Accounts &amp; access</span>
+    </div>
+    <div style="font-family:'Geist Mono',monospace; font-size:12px; letter-spacing:0.16em; text-transform:uppercase; color:#1E5C45; margin-bottom:26px;">Flow package — auth · eligibility · checkout · account</div>
+    <h1 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:clamp(42px,6.4vw,80px); line-height:1.02; letter-spacing:-0.015em; margin:0 0 30px; max-width:17ch;">Anyone can join. <span style="color:#1E5C45;">Dublin goes first.</span></h1>
+    <p style="font-size:19px; line-height:1.55; color:#4A554D; max-width:60ch; margin:0 0 48px;">Every screen between a stranger and a member: sign-up and sign-in on web and iOS, the GDPR consent gate, the free tier, the Eircode eligibility check, web checkout, kit activation and nurse booking, and the full account surface — plus the transactional emails, Fusion's bloodwork upload, and every state for when things go wrong.</p>
+    <div style="display:flex; gap:12px; flex-wrap:wrap; font-family:'Geist Mono',monospace; font-size:12px; letter-spacing:0.04em; color:#4A554D;">
+      <span style="padding:9px 16px; border:1px solid rgba(28,38,32,0.16); border-radius:100px;">Web account</span>
+      <span style="padding:9px 16px; border:1px solid rgba(28,38,32,0.16); border-radius:100px;">iOS onboarding</span>
+      <span style="padding:9px 16px; border:1px solid rgba(28,38,32,0.16); border-radius:100px;">Eircode gate</span>
+      <span style="padding:9px 16px; border:1px solid rgba(28,38,32,0.16); border-radius:100px;">Stripe checkout</span>
+      <span style="padding:9px 16px; border:1px solid rgba(28,38,32,0.16); border-radius:100px;">Gap audit</span>
+      <a href="Prototype.dc.html" style="padding:9px 16px; border:1px solid #1E5C45; background:#1E5C45; color:#F4F1EA; border-radius:100px; text-decoration:none; font-weight:500;">▶ Clickable prototype</a>
+    </div>
+  </section>
+
+  <!-- ============ 01 DECISIONS ============ -->
+  <section data-screen-label="Decisions" style="max-width:1180px; margin:0 auto; padding:56px 48px;">
+    <div style="display:flex; align-items:baseline; gap:16px; border-top:1px solid rgba(28,38,32,0.14); padding-top:28px; margin-bottom:44px;">
+      <span style="font-family:'Geist Mono',monospace; font-size:12px; color:#1E5C45; letter-spacing:0.14em;">01</span>
+      <h2 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:38px; margin:0; letter-spacing:-0.01em;">Four decisions that shape everything</h2>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:18px;">
+      <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:18px; padding:28px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:11px; color:#1E5C45; letter-spacing:0.12em; margin-bottom:12px;">AUTH · EMAIL FIRST</div>
+        <h3 style="font-size:18px; font-weight:700; margin:0 0 10px;">No hidden addresses</h3>
+        <p style="font-size:14.5px; line-height:1.6; color:#4A554D; margin:0;">Email + password, or a one-tap magic link — no social sign-in at launch. Apple's Sign-in-with-Apple mandate (App Review 4.8) only applies when an app offers a <em>third-party</em> login like Google; email-only auth is exempt. So no early user ever hides behind a relay address, and support can always reach a real inbox.</p>
+      </div>
+      <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:18px; padding:28px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:11px; color:#1E5C45; letter-spacing:0.12em; margin-bottom:12px;">APPLE HEALTH ≠ APPLE LOGIN</div>
+        <h3 style="font-size:18px; font-weight:700; margin:0 0 10px;">Sync is a permission, not an account</h3>
+        <p style="font-size:14.5px; line-height:1.6; color:#4A554D; margin:0;">Reading the Watch needs a HealthKit permission granted on the device — it has nothing to do with how the user signed in. An email-only account syncs Apple Health perfectly. Apple auth can be added later without touching the sync layer.</p>
+      </div>
+      <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:18px; padding:28px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:11px; color:#1E5C45; letter-spacing:0.12em; margin-bottom:12px;">PURCHASE · WEB ONLY</div>
+        <h3 style="font-size:18px; font-weight:700; margin:0 0 10px;">The app never sells</h3>
+        <p style="font-size:14.5px; line-height:1.6; color:#4A554D; margin:0;">All payment happens on arcaevo.com via Stripe. The iOS app is a free companion that links out to web checkout — permitted for EU storefronts — so no 15–30% App Store commission is baked into test pricing, and one billing system serves web and app.</p>
+      </div>
+      <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:18px; padding:28px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:11px; color:#1E5C45; letter-spacing:0.12em; margin-bottom:12px;">ELIGIBILITY · GATE THE KIT</div>
+        <h3 style="font-size:18px; font-weight:700; margin:0 0 10px;">Gate the kit, not the account</h3>
+        <p style="font-size:14.5px; line-height:1.6; color:#4A554D; margin:0;">Anyone, anywhere, can create a free account and buy Fusion — nothing ships. The Eircode check runs only at checkout for Essential and Performance, because those need a courier or a nurse. Outside Dublin, checkout becomes an early-access list, not a dead end.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 02 FLOW MAP ============ -->
+  <section data-screen-label="Flow map" style="max-width:1180px; margin:0 auto; padding:56px 48px;">
+    <div style="display:flex; align-items:baseline; gap:16px; border-top:1px solid rgba(28,38,32,0.14); padding-top:28px; margin-bottom:44px;">
+      <span style="font-family:'Geist Mono',monospace; font-size:12px; color:#1E5C45; letter-spacing:0.14em;">02</span>
+      <h2 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:38px; margin:0; letter-spacing:-0.01em;">The map</h2>
+    </div>
+    <div style="background:#1C2620; color:#F4F1EA; border-radius:22px; padding:40px; display:flex; flex-direction:column; gap:28px;">
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+        <span style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.14em; color:#7FD3AE; width:84px; flex-shrink:0;">JOIN</span>
+        <span style="padding:10px 16px; border:1px solid rgba(255,255,255,0.22); border-radius:100px; font-size:13.5px; font-weight:600;">Visitor</span>
+        <span style="font-family:'Geist Mono',monospace; color:#8FA89A;">→</span>
+        <span style="padding:10px 16px; border:1px solid rgba(255,255,255,0.22); border-radius:100px; font-size:13.5px; font-weight:600;">Create account <span style="color:#8FA89A; font-weight:400;">web or iOS</span></span>
+        <span style="font-family:'Geist Mono',monospace; color:#8FA89A;">→</span>
+        <span style="padding:10px 16px; border:1px solid rgba(255,255,255,0.22); border-radius:100px; font-size:13.5px; font-weight:600;">Verify email</span>
+        <span style="font-family:'Geist Mono',monospace; color:#8FA89A;">→</span>
+        <span style="padding:10px 16px; border:1px solid rgba(255,255,255,0.22); border-radius:100px; font-size:13.5px; font-weight:600;">Health-data consent</span>
+        <span style="font-family:'Geist Mono',monospace; color:#8FA89A;">→</span>
+        <span style="padding:10px 16px; background:rgba(52,160,124,0.18); border:1px solid rgba(52,160,124,0.5); border-radius:100px; font-size:13.5px; font-weight:600; color:#7FD3AE;">Free home</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+        <span style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.14em; color:#7FD3AE; width:84px; flex-shrink:0;">BUY</span>
+        <span style="padding:10px 16px; border:1px solid rgba(255,255,255,0.22); border-radius:100px; font-size:13.5px; font-weight:600;">Choose plan</span>
+        <span style="font-family:'Geist Mono',monospace; color:#8FA89A;">→</span>
+        <span style="padding:10px 16px; border:1px dashed rgba(217,154,78,0.6); border-radius:100px; font-size:13.5px; font-weight:600; color:#E9BC85;">Eircode check <span style="font-weight:400; color:#C79A6B;">Essential · Performance only</span></span>
+        <span style="font-family:'Geist Mono',monospace; color:#8FA89A;">→</span>
+        <span style="padding:10px 16px; border:1px solid rgba(255,255,255,0.22); border-radius:100px; font-size:13.5px; font-weight:600;">Checkout <span style="color:#8FA89A; font-weight:400;">web · Stripe</span></span>
+        <span style="font-family:'Geist Mono',monospace; color:#8FA89A;">→</span>
+        <span style="padding:10px 16px; background:rgba(52,160,124,0.18); border:1px solid rgba(52,160,124,0.5); border-radius:100px; font-size:13.5px; font-weight:600; color:#7FD3AE;">Member</span>
+        <span style="font-family:'Geist Mono',monospace; color:#8FA89A;">⤷</span>
+        <span style="padding:10px 16px; border:1px dashed rgba(255,255,255,0.25); border-radius:100px; font-size:13.5px; color:#9FB0A6;">Outside Dublin → early-access list</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+        <span style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.14em; color:#7FD3AE; width:84px; flex-shrink:0;">ACTIVATE</span>
+        <span style="padding:10px 16px; border:1px solid rgba(255,255,255,0.22); border-radius:100px; font-size:13.5px; font-weight:600;">Kit activation <span style="color:#8FA89A; font-weight:400;">Essential</span></span>
+        <span style="font-family:'Geist Mono',monospace; color:#8FA89A;">/</span>
+        <span style="padding:10px 16px; border:1px solid rgba(255,255,255,0.22); border-radius:100px; font-size:13.5px; font-weight:600;">Nurse booking <span style="color:#8FA89A; font-weight:400;">Performance</span></span>
+        <span style="font-family:'Geist Mono',monospace; color:#8FA89A;">→</span>
+        <span style="padding:10px 16px; border:1px solid rgba(255,255,255,0.22); border-radius:100px; font-size:13.5px; font-weight:600;">Sample at lab</span>
+        <span style="font-family:'Geist Mono',monospace; color:#8FA89A;">→</span>
+        <span style="padding:10px 16px; background:rgba(52,160,124,0.18); border:1px solid rgba(52,160,124,0.5); border-radius:100px; font-size:13.5px; font-weight:600; color:#7FD3AE;">Results in app</span>
+      </div>
+      <p style="font-size:13px; color:#9FB0A6; margin:0; border-top:1px solid rgba(255,255,255,0.1); padding-top:18px;">Fusion skips the Eircode check entirely — nothing ships, so it sells worldwide from day one. Consent is asked once, at the first surface the user touches (web or app), never twice.</p>
+    </div>
+  </section>
+
+  <!-- ============ 03 WEB AUTH ============ -->
+  <section id="join" data-screen-label="Web sign up and log in" style="max-width:1180px; margin:0 auto; padding:56px 48px;">
+    <div style="display:flex; align-items:baseline; gap:16px; border-top:1px solid rgba(28,38,32,0.14); padding-top:28px; margin-bottom:16px;">
+      <span style="font-family:'Geist Mono',monospace; font-size:12px; color:#1E5C45; letter-spacing:0.14em;">03</span>
+      <h2 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:38px; margin:0; letter-spacing:-0.01em;">Web — create account &amp; sign in</h2>
+    </div>
+    <p style="font-size:16px; line-height:1.6; color:#4A554D; max-width:66ch; margin:0 0 40px;">One field to start. The password is optional at sign-up — a magic link covers everyone, and a password can be set later in Account. Every screen states plainly what happens next.</p>
+
+    <div style="display:flex; gap:28px; flex-wrap:wrap; align-items:flex-start;">
+
+      <div style="width:360px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">W1 · CREATE ACCOUNT — arcaevo.com/join</div>
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.12); border-radius:16px; overflow:hidden; box-shadow:0 22px 44px -32px rgba(28,38,32,0.4);">
+          <div style="display:flex; align-items:center; gap:6px; padding:10px 14px; border-bottom:1px solid rgba(28,38,32,0.08); background:#F4F1EA;">
+            <span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span><span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span><span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span>
+            <span style="font-family:'Geist Mono',monospace; font-size:10px; color:#7C887F; background:#FBFAF6; border-radius:6px; padding:3px 10px; margin-left:8px;">arcaevo.com/join</span>
+          </div>
+          <div style="padding:30px 28px 28px;">
+            <div style="width:20px; height:20px; border-radius:50%; background:radial-gradient(circle at 32% 30%, #5FB592, #1E5C45 70%); margin-bottom:18px;"></div>
+            <div style="font-family:'Instrument Serif',serif; font-size:24px; line-height:1.15; margin-bottom:6px;">Create your account</div>
+            <div style="font-size:13px; color:#7C887F; margin-bottom:22px;">Free. No card, no commitment — Dublin or not.</div>
+            <div style="font-size:12px; font-weight:600; margin-bottom:6px;">Email</div>
+            <div style="border:1px solid rgba(28,38,32,0.16); border-radius:10px; padding:11px 14px; font-size:13px; color:#7C887F; background:#fff; margin-bottom:14px;">aoife@example.ie</div>
+            <div style="font-size:12px; font-weight:600; margin-bottom:6px;">Password <span style="color:#7C887F; font-weight:400;">· optional — we can email you a link instead</span></div>
+            <div style="border:1px solid rgba(28,38,32,0.16); border-radius:10px; padding:11px 14px; font-size:13px; color:#7C887F; background:#fff; margin-bottom:16px;">••••••••••</div>
+            <div style="display:flex; gap:9px; align-items:flex-start; margin-bottom:16px;">
+              <span style="width:15px; height:15px; border:1.5px solid #1E5C45; border-radius:4px; background:#1E5C45; flex-shrink:0; margin-top:1px; color:#fff; font-size:10px; text-align:center; line-height:14px;">✓</span>
+              <span style="font-size:12px; line-height:1.5; color:#4A554D;">I'm over 18 and agree to the <span style="text-decoration:underline;">Terms</span> and <span style="text-decoration:underline;">Privacy Policy</span></span>
+            </div>
+            <div style="background:#1E5C45; color:#fff; text-align:center; padding:13px; border-radius:100px; font-weight:600; font-size:14px; margin-bottom:14px;">Create account</div>
+            <div style="font-size:12.5px; color:#7C887F; text-align:center;">Already a member? <span style="color:#1E5C45; font-weight:600;">Sign in</span></div>
+          </div>
+        </div>
+        <p style="font-size:12.5px; line-height:1.55; color:#7C887F; margin:12px 4px 0;">Age gate lives in the terms checkbox — one tick, two obligations. Marketing opt-in is deliberately absent here; it's asked once, softly, in the app.</p>
+      </div>
+
+      <div style="align-self:center; font-family:'Geist Mono',monospace; color:#7C887F; font-size:18px;">→</div>
+
+      <div style="width:360px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">W2 · VERIFY — CHECK YOUR INBOX</div>
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.12); border-radius:16px; overflow:hidden; box-shadow:0 22px 44px -32px rgba(28,38,32,0.4);">
+          <div style="display:flex; align-items:center; gap:6px; padding:10px 14px; border-bottom:1px solid rgba(28,38,32,0.08); background:#F4F1EA;">
+            <span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span><span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span><span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span>
+            <span style="font-family:'Geist Mono',monospace; font-size:10px; color:#7C887F; background:#FBFAF6; border-radius:6px; padding:3px 10px; margin-left:8px;">arcaevo.com/verify</span>
+          </div>
+          <div style="padding:38px 28px; text-align:center;">
+            <div style="width:52px; height:52px; border-radius:50%; background:rgba(52,160,124,0.14); color:#1E5C45; font-size:22px; line-height:52px; margin:0 auto 18px;">✉</div>
+            <div style="font-family:'Instrument Serif',serif; font-size:24px; line-height:1.15; margin-bottom:10px;">Check your inbox</div>
+            <p style="font-size:13.5px; line-height:1.6; color:#4A554D; margin:0 0 22px;">We've sent a confirmation link to<br><strong>aoife@example.ie</strong>. It's valid for 30 minutes.</p>
+            <div style="border:1px solid rgba(28,38,32,0.16); color:#1C2620; text-align:center; padding:12px; border-radius:100px; font-weight:600; font-size:13.5px; margin-bottom:14px;">Resend email</div>
+            <div style="font-size:12px; color:#7C887F;">Wrong address? <span style="color:#1E5C45; font-weight:600;">Edit it</span></div>
+          </div>
+        </div>
+        <p style="font-size:12.5px; line-height:1.55; color:#7C887F; margin:12px 4px 0;">The same screen serves magic-link sign-in and email verification — one pattern, learned once. Resend is throttled to once per 60s.</p>
+      </div>
+
+      <div style="align-self:center; font-family:'Geist Mono',monospace; color:#7C887F; font-size:18px;">→</div>
+
+      <div style="width:360px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">W3 · SIGN IN — arcaevo.com/signin</div>
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.12); border-radius:16px; overflow:hidden; box-shadow:0 22px 44px -32px rgba(28,38,32,0.4);">
+          <div style="display:flex; align-items:center; gap:6px; padding:10px 14px; border-bottom:1px solid rgba(28,38,32,0.08); background:#F4F1EA;">
+            <span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span><span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span><span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span>
+            <span style="font-family:'Geist Mono',monospace; font-size:10px; color:#7C887F; background:#FBFAF6; border-radius:6px; padding:3px 10px; margin-left:8px;">arcaevo.com/signin</span>
+          </div>
+          <div style="padding:30px 28px 28px;">
+            <div style="width:20px; height:20px; border-radius:50%; background:radial-gradient(circle at 32% 30%, #5FB592, #1E5C45 70%); margin-bottom:18px;"></div>
+            <div style="font-family:'Instrument Serif',serif; font-size:24px; line-height:1.15; margin-bottom:22px;">Welcome back</div>
+            <div style="font-size:12px; font-weight:600; margin-bottom:6px;">Email</div>
+            <div style="border:1px solid rgba(28,38,32,0.16); border-radius:10px; padding:11px 14px; font-size:13px; color:#1C2620; background:#fff; margin-bottom:14px;">aoife@example.ie</div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:6px;"><span style="font-size:12px; font-weight:600;">Password</span><span style="font-size:12px; color:#1E5C45; font-weight:600;">Forgot?</span></div>
+            <div style="border:1px solid rgba(28,38,32,0.16); border-radius:10px; padding:11px 14px; font-size:13px; color:#7C887F; background:#fff; margin-bottom:16px;">••••••••••</div>
+            <div style="background:#1E5C45; color:#fff; text-align:center; padding:13px; border-radius:100px; font-weight:600; font-size:14px; margin-bottom:10px;">Sign in</div>
+            <div style="border:1px solid rgba(28,38,32,0.16); color:#1C2620; text-align:center; padding:12px; border-radius:100px; font-weight:600; font-size:13.5px; margin-bottom:14px;">✉&nbsp; Email me a sign-in link instead</div>
+            <div style="font-size:12.5px; color:#7C887F; text-align:center;">New here? <span style="color:#1E5C45; font-weight:600;">Create an account</span></div>
+          </div>
+        </div>
+        <p style="font-size:12.5px; line-height:1.55; color:#7C887F; margin:12px 4px 0;">The magic link is a first-class button, not a footnote — it doubles as passwordless recovery, so "Forgot?" is rarely needed at all.</p>
+      </div>
+    </div>
+
+    <!-- edge states -->
+    <div style="margin-top:36px; background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:18px; padding:26px 28px;">
+      <div style="font-family:'Geist Mono',monospace; font-size:11px; letter-spacing:0.14em; color:#D99A4E; margin-bottom:18px;">EDGE STATES — HANDLED, NOT IMPROVISED</div>
+      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px;">
+        <div style="border:1px solid rgba(217,154,78,0.35); background:rgba(217,154,78,0.06); border-radius:12px; padding:16px;">
+          <div style="font-size:13px; font-weight:700; margin-bottom:6px;">Email already registered</div>
+          <p style="font-size:12.5px; line-height:1.5; color:#4A554D; margin:0;">"You already have an account — we've emailed you a sign-in link." Never reveals this to a third party trying the address; the message is identical either way.</p>
+        </div>
+        <div style="border:1px solid rgba(217,154,78,0.35); background:rgba(217,154,78,0.06); border-radius:12px; padding:16px;">
+          <div style="font-size:13px; font-weight:700; margin-bottom:6px;">Wrong password</div>
+          <p style="font-size:12.5px; line-height:1.5; color:#4A554D; margin:0;">Inline error under the field, magic-link button promoted: "Or skip the password — we'll email you a link." Five failures → 15-minute cool-off.</p>
+        </div>
+        <div style="border:1px solid rgba(217,154,78,0.35); background:rgba(217,154,78,0.06); border-radius:12px; padding:16px;">
+          <div style="font-size:13px; font-weight:700; margin-bottom:6px;">Expired / used link</div>
+          <p style="font-size:12.5px; line-height:1.5; color:#4A554D; margin:0;">"That link has expired — they only live 30 minutes." One button: send a fresh one. Email pre-filled, nothing to retype.</p>
+        </div>
+        <div style="border:1px solid rgba(217,154,78,0.35); background:rgba(217,154,78,0.06); border-radius:12px; padding:16px;">
+          <div style="font-size:13px; font-weight:700; margin-bottom:6px;">Password reset</div>
+          <p style="font-size:12.5px; line-height:1.5; color:#4A554D; margin:0;">Forgot → email → set new password → all other sessions signed out, confirmation email sent. Same inbox screen as W2.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 04 CONSENT ============ -->
+  <section data-screen-label="Health-data consent" style="max-width:1180px; margin:0 auto; padding:56px 48px;">
+    <div style="display:flex; align-items:baseline; gap:16px; border-top:1px solid rgba(28,38,32,0.14); padding-top:28px; margin-bottom:16px;">
+      <span style="font-family:'Geist Mono',monospace; font-size:12px; color:#1E5C45; letter-spacing:0.14em;">04</span>
+      <h2 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:38px; margin:0; letter-spacing:-0.01em;">The consent gate</h2>
+    </div>
+    <p style="font-size:16px; line-height:1.6; color:#4A554D; max-width:66ch; margin:0 0 40px;">Health data is special-category data under GDPR Article 9 — it needs explicit, separate, revocable consent before we process a single heartbeat. This screen appears once, right after email verification, on whichever surface the user touched first. It is never bundled into the terms checkbox.</p>
+
+    <div style="display:flex; gap:40px; flex-wrap:wrap; align-items:flex-start;">
+      <div style="width:420px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">W4 · CONSENT — SHOWN ONCE, REVOCABLE ALWAYS</div>
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.12); border-radius:16px; overflow:hidden; box-shadow:0 22px 44px -32px rgba(28,38,32,0.4);">
+          <div style="display:flex; align-items:center; gap:6px; padding:10px 14px; border-bottom:1px solid rgba(28,38,32,0.08); background:#F4F1EA;">
+            <span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span><span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span><span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span>
+            <span style="font-family:'Geist Mono',monospace; font-size:10px; color:#7C887F; background:#FBFAF6; border-radius:6px; padding:3px 10px; margin-left:8px;">arcaevo.com/consent</span>
+          </div>
+          <div style="padding:30px 28px 28px;">
+            <div style="font-family:'Instrument Serif',serif; font-size:24px; line-height:1.15; margin-bottom:8px;">Your health data, on your terms</div>
+            <div style="font-size:13px; color:#7C887F; line-height:1.55; margin-bottom:20px;">Before Arcaevo can read a blood result or a night's sleep, we need your explicit permission. You can withdraw it — and erase everything — at any time in Account.</div>
+            <div style="display:flex; gap:10px; align-items:flex-start; border:1px solid rgba(28,38,32,0.12); border-radius:12px; padding:14px; margin-bottom:10px; background:#fff;">
+              <span style="width:16px; height:16px; border:1.5px solid #1E5C45; border-radius:4px; background:#1E5C45; flex-shrink:0; margin-top:1px; color:#fff; font-size:10px; text-align:center; line-height:15px;">✓</span>
+              <div><div style="font-size:13px; font-weight:700;">Process my health data <span style="font-family:'Geist Mono',monospace; font-size:9px; color:#1E5C45; letter-spacing:0.08em; margin-left:4px;">REQUIRED</span></div><div style="font-size:12px; color:#7C887F; line-height:1.5; margin-top:3px;">Blood results, wearable metrics and the health profile I provide — to generate my baselines, insights and verdicts. Stored in the EU, never sold.</div></div>
+            </div>
+            <div style="display:flex; gap:10px; align-items:flex-start; border:1px solid rgba(28,38,32,0.12); border-radius:12px; padding:14px; margin-bottom:10px; background:#fff;">
+              <span style="width:16px; height:16px; border:1.5px solid #1E5C45; border-radius:4px; background:#1E5C45; flex-shrink:0; margin-top:1px; color:#fff; font-size:10px; text-align:center; line-height:15px;">✓</span>
+              <div><div style="font-size:13px; font-weight:700;">Clinician review <span style="font-family:'Geist Mono',monospace; font-size:9px; color:#1E5C45; letter-spacing:0.08em; margin-left:4px;">REQUIRED FOR TESTS</span></div><div style="font-size:12px; color:#7C887F; line-height:1.5; margin-top:3px;">A registered clinician sees my results to sign them off — and contacts me directly if a value is critical.</div></div>
+            </div>
+            <div style="display:flex; gap:10px; align-items:flex-start; border:1px solid rgba(28,38,32,0.12); border-radius:12px; padding:14px; margin-bottom:20px; background:#fff;">
+              <span style="width:16px; height:16px; border:1.5px solid rgba(28,38,32,0.3); border-radius:4px; background:#fff; flex-shrink:0; margin-top:1px;"></span>
+              <div><div style="font-size:13px; font-weight:700;">Anonymised research <span style="font-family:'Geist Mono',monospace; font-size:9px; color:#7C887F; letter-spacing:0.08em; margin-left:4px;">OPTIONAL</span></div><div style="font-size:12px; color:#7C887F; line-height:1.5; margin-top:3px;">De-identified data may improve Arcaevo's rules and ranges. Off by default.</div></div>
+            </div>
+            <div style="background:#1E5C45; color:#fff; text-align:center; padding:13px; border-radius:100px; font-weight:600; font-size:14px;">Agree &amp; continue</div>
+            <div style="font-size:11.5px; color:#7C887F; text-align:center; margin-top:12px;">Full details in our <span style="text-decoration:underline;">Health Data Notice</span> · GDPR Art. 9(2)(a)</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="flex:1; min-width:300px; max-width:480px; display:flex; flex-direction:column; gap:14px; padding-top:26px;">
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:14px; padding:20px;">
+          <div style="font-size:14px; font-weight:700; margin-bottom:6px;">Granular, not a wall of text</div>
+          <p style="font-size:13.5px; line-height:1.6; color:#4A554D; margin:0;">Three named purposes, each in one sentence. Required items are pre-explained, the optional one is off by default — the pattern the DPC expects.</p>
+        </div>
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:14px; padding:20px;">
+          <div style="font-size:14px; font-weight:700; margin-bottom:6px;">Versioned &amp; auditable</div>
+          <p style="font-size:13.5px; line-height:1.6; color:#4A554D; margin:0;">Each consent is stored with timestamp, wording version and surface. If the notice materially changes, users re-consent on next sign-in — a ready-made re-consent screen, not an email nobody reads.</p>
+        </div>
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:14px; padding:20px;">
+          <div style="font-size:14px; font-weight:700; margin-bottom:6px;">Withdrawal is a first-class flow</div>
+          <p style="font-size:13.5px; line-height:1.6; color:#4A554D; margin:0;">Account → Data &amp; privacy shows these same three switches. Turning off the required one triggers the account-closure flow (10) — honestly, with a full export offered first.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 05 FREE TIER ============ -->
+  <section data-screen-label="Free tier" style="max-width:1180px; margin:0 auto; padding:56px 48px;">
+    <div style="display:flex; align-items:baseline; gap:16px; border-top:1px solid rgba(28,38,32,0.14); padding-top:28px; margin-bottom:16px;">
+      <span style="font-family:'Geist Mono',monospace; font-size:12px; color:#1E5C45; letter-spacing:0.14em;">05</span>
+      <h2 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:38px; margin:0; letter-spacing:-0.01em;">The free account — two candidates</h2>
+    </div>
+    <p style="font-size:16px; line-height:1.6; color:#4A554D; max-width:66ch; margin:0 0 40px;">A free account always manages profile, consent and purchase. The question is what the home screen does before money changes hands.</p>
+
+    <div style="display:flex; gap:48px; flex-wrap:wrap; align-items:flex-start;">
+
+      <div style="flex:1; min-width:420px; display:flex; gap:28px;">
+        <div style="width:236px; flex-shrink:0; background:#1C2620; border-radius:38px; padding:8px; box-shadow:0 26px 52px -30px rgba(28,38,32,0.55);">
+          <div style="width:100%; height:484px; background:#1C2620; border-radius:31px; overflow:hidden; padding:24px 18px 0; color:#F4F1EA;">
+            <div style="font-family:'Geist Mono',monospace; font-size:10px; color:#8FA89A; letter-spacing:0.1em; margin-bottom:14px;">SAMPLE MEMBER · DEMO</div>
+            <div style="display:flex; align-items:center; gap:14px; margin-bottom:16px; filter:blur(0px);">
+              <svg viewBox="0 0 120 120" style="width:78px; height:78px; opacity:0.45;"><circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="10"></circle><circle cx="60" cy="60" r="50" fill="none" stroke="#34A07C" stroke-width="10" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="90" transform="rotate(-90 60 60)"></circle></svg>
+              <div style="margin-left:-66px; text-align:center; width:78px; opacity:0.45;"><div style="font-family:'Geist Mono',monospace; font-size:23px; font-weight:500; line-height:1;">74</div><div style="font-size:8px; color:#8FA89A;">HEALTH SCORE</div></div>
+            </div>
+            <div style="background:rgba(255,255,255,0.06); border-radius:14px; padding:12px; margin-bottom:10px; opacity:0.45;"><div style="font-family:'Geist Mono',monospace; font-size:9px; color:#8FA89A; letter-spacing:0.1em; margin-bottom:6px;">FOCUS THIS WEEK</div><div style="font-size:13px; font-weight:600; line-height:1.3;">Swap the late espresso for a walk</div></div>
+            <div style="background:rgba(255,255,255,0.06); border-radius:14px; padding:12px; margin-bottom:16px; opacity:0.45;"><div style="font-family:'Geist Mono',monospace; font-size:9px; color:#8FA89A; letter-spacing:0.1em; margin-bottom:6px;">APOB · TRENDING DOWN</div><div style="height:34px; border-radius:8px; background:repeating-linear-gradient(-45deg, rgba(255,255,255,0.05), rgba(255,255,255,0.05) 6px, transparent 6px, transparent 12px);"></div></div>
+            <div style="background:#F4F1EA; color:#1C2620; border-radius:16px; padding:16px;">
+              <div style="font-size:13.5px; font-weight:700; line-height:1.35; margin-bottom:4px;">This is a preview of a member's morning.</div>
+              <div style="font-size:11.5px; color:#4A554D; line-height:1.5; margin-bottom:12px;">Your own starts with a plan — tests included.</div>
+              <div style="background:#1E5C45; color:#fff; text-align:center; padding:10px; border-radius:100px; font-weight:600; font-size:12.5px;">See plans</div>
+            </div>
+          </div>
+        </div>
+        <div style="padding-top:8px;">
+          <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">VARIANT A · LOCKED PREVIEW</div>
+          <div style="font-size:16px; font-weight:700; margin-bottom:8px;">A window, not a room</div>
+          <p style="font-size:13.5px; line-height:1.6; color:#4A554D; margin:0 0 14px; max-width:34ch;">Clearly-labelled demo data at reduced opacity, one honest card, one CTA. Simple to build; nothing to maintain.</p>
+          <p style="font-size:13px; line-height:1.6; color:#7C887F; margin:0; max-width:34ch;">Risk: nothing pulls the user back tomorrow. The account exists only to hold a credit card it doesn't yet have.</p>
+        </div>
+      </div>
+
+      <div style="flex:1; min-width:420px; display:flex; gap:28px;">
+        <div style="width:236px; flex-shrink:0; background:#1C2620; border-radius:38px; padding:8px; box-shadow:0 26px 52px -30px rgba(28,38,32,0.55);">
+          <div style="width:100%; height:484px; background:#1C2620; border-radius:31px; overflow:hidden; padding:24px 18px 0; color:#F4F1EA;">
+            <div style="font-family:'Geist Mono',monospace; font-size:10px; color:#8FA89A; letter-spacing:0.1em; margin-bottom:14px;">GOOD MORNING, AOIFE</div>
+            <div style="background:rgba(52,160,124,0.12); border:1px solid rgba(52,160,124,0.3); border-radius:14px; padding:12px; margin-bottom:10px;"><div style="font-family:'Geist Mono',monospace; font-size:9px; color:#7FD3AE; letter-spacing:0.1em; margin-bottom:6px;">APPLE HEALTH · CONNECTED</div><div style="font-size:13px; font-weight:600; line-height:1.4;">Resting HR 54 · Sleep 7h 12m · 8,940 steps</div></div>
+            <div style="background:rgba(255,255,255,0.06); border-radius:14px; padding:12px; margin-bottom:10px;"><div style="font-family:'Geist Mono',monospace; font-size:9px; color:#8FA89A; letter-spacing:0.1em; margin-bottom:8px;">RESTING HR · 90 DAYS</div><svg viewBox="0 0 200 44" style="width:100%; height:38px;"><polyline points="4,12 34,16 64,14 94,22 124,26 154,30 196,32" fill="none" stroke="#34A07C" stroke-width="2.5" stroke-linecap="round"></polyline></svg><div style="font-size:11px; color:#8FA89A; margin-top:4px;">Down 4 bpm since April — a good sign.</div></div>
+            <div style="background:rgba(255,255,255,0.06); border-radius:14px; padding:12px; margin-bottom:16px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;"><span style="font-family:'Geist Mono',monospace; font-size:9px; color:#8FA89A; letter-spacing:0.1em;">WHAT'S DRIVING IT?</span><span style="font-family:'Geist Mono',monospace; font-size:9px; color:#D99A4E;">🔒 MEMBERS</span></div>
+              <div style="font-size:12px; color:#8FA89A; line-height:1.5;">Bloods would tell us whether this is fitness — or something to check.</div>
+            </div>
+            <div style="background:#F4F1EA; color:#1C2620; border-radius:16px; padding:16px;">
+              <div style="font-size:13.5px; font-weight:700; line-height:1.35; margin-bottom:4px;">Your watch is talking. Add bloods to hear the whole story.</div>
+              <div style="background:#1E5C45; color:#fff; text-align:center; padding:10px; border-radius:100px; font-weight:600; font-size:12.5px; margin-top:10px;">See plans — from €119/yr</div>
+            </div>
+          </div>
+        </div>
+        <div style="padding-top:8px;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;"><span style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F;">VARIANT B · FUSION-LITE</span><span style="font-family:'Geist Mono',monospace; font-size:9px; letter-spacing:0.08em; background:#1E5C45; color:#fff; padding:3px 8px; border-radius:100px;">RECOMMENDED</span></div>
+          <div style="font-size:16px; font-weight:700; margin-bottom:8px;">Real data, honest ceiling</div>
+          <p style="font-size:13.5px; line-height:1.6; color:#4A554D; margin:0 0 14px; max-width:34ch;">Connect Apple Health, see genuine wearable trends in Arcaevo's chart language — and one locked card that names exactly what bloods would add.</p>
+          <p style="font-size:13px; line-height:1.6; color:#7C887F; margin:0; max-width:34ch;">The user returns daily before paying, the upsell quotes <em>their</em> numbers, and outside-Dublin sign-ups get real value while they wait for early access.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 06 ELIGIBILITY ============ -->
+  <section id="eligibility" data-screen-label="Eircode eligibility" style="max-width:1180px; margin:0 auto; padding:56px 48px;">
+    <div style="display:flex; align-items:baseline; gap:16px; border-top:1px solid rgba(28,38,32,0.14); padding-top:28px; margin-bottom:16px;">
+      <span style="font-family:'Geist Mono',monospace; font-size:12px; color:#1E5C45; letter-spacing:0.14em;">06</span>
+      <h2 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:38px; margin:0; letter-spacing:-0.01em;">The Eircode gate &amp; early access</h2>
+    </div>
+    <p style="font-size:16px; line-height:1.6; color:#4A554D; max-width:66ch; margin:0 0 40px;">Choosing Essential or Performance on the pricing page opens checkout with one question first. The first three characters of an Eircode — the routing key — are enough; no full address until payment.</p>
+
+    <div style="display:flex; gap:28px; flex-wrap:wrap; align-items:flex-start;">
+
+      <div style="width:360px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">W5 · ELIGIBILITY CHECK — PASS</div>
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.12); border-radius:16px; overflow:hidden; box-shadow:0 22px 44px -32px rgba(28,38,32,0.4);">
+          <div style="display:flex; align-items:center; gap:6px; padding:10px 14px; border-bottom:1px solid rgba(28,38,32,0.08); background:#F4F1EA;">
+            <span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span><span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span><span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span>
+            <span style="font-family:'Geist Mono',monospace; font-size:10px; color:#7C887F; background:#FBFAF6; border-radius:6px; padding:3px 10px; margin-left:8px;">arcaevo.com/checkout</span>
+          </div>
+          <div style="padding:30px 28px 28px;">
+            <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#1E5C45; margin-bottom:14px;">STEP 1 OF 3 · ESSENTIAL — €329/YR</div>
+            <div style="font-family:'Instrument Serif',serif; font-size:24px; line-height:1.15; margin-bottom:8px;">First — can we reach you?</div>
+            <div style="font-size:13px; color:#7C887F; line-height:1.55; margin-bottom:20px;">Essential ships kits by courier and Performance sends a nurse, so we're starting where we can do both well: Dublin.</div>
+            <div style="font-size:12px; font-weight:600; margin-bottom:6px;">Your Eircode</div>
+            <div style="display:flex; gap:10px; align-items:center; border:1.5px solid #34A07C; border-radius:10px; padding:11px 14px; background:#fff; margin-bottom:10px;"><span style="font-family:'Geist Mono',monospace; font-size:15px; letter-spacing:0.08em;">D08 XY24</span><span style="margin-left:auto; color:#1E5C45; font-weight:700; font-size:13px;">✓</span></div>
+            <div style="display:flex; gap:8px; align-items:center; font-size:13px; color:#1E5C45; font-weight:600; margin-bottom:20px;"><span style="width:18px; height:18px; border-radius:50%; background:rgba(52,160,124,0.16); font-size:11px; text-align:center; line-height:18px;">✓</span>You're in the Dublin service area</div>
+            <div style="background:#1E5C45; color:#fff; text-align:center; padding:13px; border-radius:100px; font-weight:600; font-size:14px; margin-bottom:12px;">Continue to your details</div>
+            <div style="font-size:11.5px; color:#7C887F; text-align:center;">Only the routing key is checked — we don't store it until you order.</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="align-self:center; font-family:'Geist Mono',monospace; color:#7C887F; font-size:18px;">⤳</div>
+
+      <div style="width:360px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#D99A4E; margin-bottom:10px;">W6 · OUTSIDE DUBLIN — EARLY ACCESS</div>
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.12); border-radius:16px; overflow:hidden; box-shadow:0 22px 44px -32px rgba(28,38,32,0.4);">
+          <div style="display:flex; align-items:center; gap:6px; padding:10px 14px; border-bottom:1px solid rgba(28,38,32,0.08); background:#F4F1EA;">
+            <span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span><span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span><span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span>
+            <span style="font-family:'Geist Mono',monospace; font-size:10px; color:#7C887F; background:#FBFAF6; border-radius:6px; padding:3px 10px; margin-left:8px;">arcaevo.com/early-access</span>
+          </div>
+          <div style="padding:30px 28px 28px;">
+            <div style="display:flex; gap:10px; align-items:center; border:1px solid rgba(28,38,32,0.16); border-radius:10px; padding:11px 14px; background:#fff; margin-bottom:16px;"><span style="font-family:'Geist Mono',monospace; font-size:15px; letter-spacing:0.08em;">T12 AB90</span><span style="margin-left:auto; color:#D99A4E; font-size:12px; font-weight:600;">Cork</span></div>
+            <div style="font-family:'Instrument Serif',serif; font-size:24px; line-height:1.15; margin-bottom:8px;">Not in Cork yet — but you're next.</div>
+            <div style="font-size:13px; color:#4A554D; line-height:1.6; margin-bottom:18px;">We're starting in Dublin so every kit, courier and nurse visit is flawless before we widen the map. Join the early-access list and we'll open your area in order of demand — you'll get first booking and founding-member pricing.</div>
+            <div style="background:#1E5C45; color:#fff; text-align:center; padding:13px; border-radius:100px; font-weight:600; font-size:14px; margin-bottom:10px;">Join the early-access list</div>
+            <div style="border:1px solid rgba(28,38,32,0.16); color:#1C2620; text-align:center; padding:12px; border-radius:100px; font-weight:600; font-size:13.5px; margin-bottom:12px;">Start with Fusion instead — €119/yr, no shipping</div>
+            <div style="font-size:11.5px; color:#7C887F; text-align:center;">Fusion works anywhere: your watch + any past bloodwork.</div>
+          </div>
+        </div>
+        <p style="font-size:12.5px; line-height:1.55; color:#7C887F; margin:12px 4px 0;">The refusal sells: a reason, a promise, and a real alternative. Fusion turns a bounced checkout into revenue today and a warm upgrade when the courier map grows.</p>
+      </div>
+
+      <div style="flex:1; min-width:300px; max-width:380px; display:flex; flex-direction:column; gap:14px;">
+        <div style="background:#1C2620; color:#F4F1EA; border-radius:16px; padding:24px;">
+          <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.14em; color:#7FD3AE; margin-bottom:14px;">ELIGIBLE ROUTING KEYS · LAUNCH</div>
+          <div style="font-family:'Geist Mono',monospace; font-size:13px; line-height:2; color:#CFD6CF;">D01–D18 · D20 · D22 · D24 · D6W<br>A94 · A96 <span style="color:#8FA89A;">Blackrock · Dún Laoghaire</span><br>K32 · K34 · K36 <span style="color:#8FA89A;">Balbriggan · Skerries · Malahide</span><br>K45 · K56 · K67 · K78 <span style="color:#8FA89A;">Lusk · Rush · Swords · Lucan</span></div>
+          <div style="height:1px; background:rgba(255,255,255,0.12); margin:16px 0;"></div>
+          <p style="font-size:12.5px; line-height:1.6; color:#9FB0A6; margin:0;">The list is config, not code — widening to Cork or Galway is a data change. Every rejected routing key is logged (key only, no address) so expansion follows real demand.</p>
+        </div>
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:14px; padding:20px;">
+          <div style="font-size:14px; font-weight:700; margin-bottom:6px;">After joining the list</div>
+          <p style="font-size:13.5px; line-height:1.6; color:#4A554D; margin:0;">Confirmation email immediately; a note when their county goes live, with a 30-day founding-member window. The waitlist position is visible in Account — a promise with a receipt.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 07 CHECKOUT ============ -->
+  <section data-screen-label="Checkout" style="max-width:1180px; margin:0 auto; padding:56px 48px;">
+    <div style="display:flex; align-items:baseline; gap:16px; border-top:1px solid rgba(28,38,32,0.14); padding-top:28px; margin-bottom:16px;">
+      <span style="font-family:'Geist Mono',monospace; font-size:12px; color:#1E5C45; letter-spacing:0.14em;">07</span>
+      <h2 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:38px; margin:0; letter-spacing:-0.01em;">Checkout — three steps, one page each</h2>
+    </div>
+    <p style="font-size:16px; line-height:1.6; color:#4A554D; max-width:66ch; margin:0 0 40px;">Eligibility → details → payment. Signed-in users land on step 2 with everything pre-filled; guests create the account inline at step 2 — checkout is never blocked by a separate sign-up trip.</p>
+
+    <div style="display:flex; gap:28px; flex-wrap:wrap; align-items:flex-start;">
+
+      <div style="width:360px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">W7 · STEP 2 — DETAILS &amp; DELIVERY</div>
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.12); border-radius:16px; overflow:hidden; box-shadow:0 22px 44px -32px rgba(28,38,32,0.4);">
+          <div style="display:flex; align-items:center; gap:6px; padding:10px 14px; border-bottom:1px solid rgba(28,38,32,0.08); background:#F4F1EA;">
+            <span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span><span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span><span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span>
+            <span style="font-family:'Geist Mono',monospace; font-size:10px; color:#7C887F; background:#FBFAF6; border-radius:6px; padding:3px 10px; margin-left:8px;">arcaevo.com/checkout</span>
+          </div>
+          <div style="padding:30px 28px 28px;">
+            <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#1E5C45; margin-bottom:14px;">STEP 2 OF 3 · ESSENTIAL — €329/YR</div>
+            <div style="font-family:'Instrument Serif',serif; font-size:24px; line-height:1.15; margin-bottom:20px;">Where do we send the kit?</div>
+            <div style="font-size:12px; font-weight:600; margin-bottom:6px;">Name</div>
+            <div style="border:1px solid rgba(28,38,32,0.16); border-radius:10px; padding:11px 14px; font-size:13px; background:#fff; margin-bottom:12px;">Aoife Byrne</div>
+            <div style="font-size:12px; font-weight:600; margin-bottom:6px;">Delivery address</div>
+            <div style="border:1px solid rgba(28,38,32,0.16); border-radius:10px; padding:11px 14px; font-size:13px; background:#fff; margin-bottom:12px; line-height:1.5;">14 Emmet Road, Inchicore<br>Dublin 8 · D08 XY24</div>
+            <div style="font-size:12px; font-weight:600; margin-bottom:6px;">Date of birth <span style="color:#7C887F; font-weight:400;">· required by the lab</span></div>
+            <div style="border:1px solid rgba(28,38,32,0.16); border-radius:10px; padding:11px 14px; font-size:13px; background:#fff; margin-bottom:18px;">14 / 03 / 1991</div>
+            <div style="background:#1E5C45; color:#fff; text-align:center; padding:13px; border-radius:100px; font-weight:600; font-size:14px;">Continue to payment</div>
+          </div>
+        </div>
+        <p style="font-size:12.5px; line-height:1.55; color:#7C887F; margin:12px 4px 0;">For Performance this step asks for a visit address instead — "Where should the nurse come?" — same layout, one changed question.</p>
+      </div>
+
+      <div style="align-self:center; font-family:'Geist Mono',monospace; color:#7C887F; font-size:18px;">→</div>
+
+      <div style="width:360px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">W8 · STEP 3 — PAYMENT (STRIPE)</div>
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.12); border-radius:16px; overflow:hidden; box-shadow:0 22px 44px -32px rgba(28,38,32,0.4);">
+          <div style="display:flex; align-items:center; gap:6px; padding:10px 14px; border-bottom:1px solid rgba(28,38,32,0.08); background:#F4F1EA;">
+            <span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span><span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span><span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span>
+            <span style="font-family:'Geist Mono',monospace; font-size:10px; color:#7C887F; background:#FBFAF6; border-radius:6px; padding:3px 10px; margin-left:8px;">arcaevo.com/checkout</span>
+          </div>
+          <div style="padding:30px 28px 28px;">
+            <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#1E5C45; margin-bottom:14px;">STEP 3 OF 3 · PAYMENT</div>
+            <div style="background:#fff; border:1px solid rgba(28,38,32,0.12); border-radius:12px; padding:16px; margin-bottom:16px;">
+              <div style="display:flex; justify-content:space-between; font-size:13.5px; margin-bottom:6px;"><span>Essential membership · 1 year</span><span style="font-family:'Geist Mono',monospace;">€329.00</span></div>
+              <div style="display:flex; justify-content:space-between; font-size:12.5px; color:#7C887F; margin-bottom:6px;"><span>Kits, postage, lab &amp; clinician review</span><span style="font-family:'Geist Mono',monospace;">Included</span></div>
+              <div style="height:1px; background:rgba(28,38,32,0.1); margin:10px 0;"></div>
+              <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:700;"><span>Due today</span><span style="font-family:'Geist Mono',monospace;">€329.00</span></div>
+              <div style="font-size:11.5px; color:#7C887F; margin-top:6px;">Renews 2 July 2027 · reminder 30 days before</div>
+            </div>
+            <div style="border:1px solid rgba(28,38,32,0.16); border-radius:10px; padding:11px 14px; font-size:13px; background:#fff; margin-bottom:10px; display:flex; justify-content:space-between;"><span style="font-family:'Geist Mono',monospace;">4242 4242 4242 4242</span><span style="color:#7C887F; font-size:11px;">VISA</span></div>
+            <div style="display:flex; gap:10px; margin-bottom:16px;">
+              <div style="flex:1; border:1px solid rgba(28,38,32,0.16); border-radius:10px; padding:11px 14px; font-size:13px; background:#fff; font-family:'Geist Mono',monospace;">08 / 28</div>
+              <div style="flex:1; border:1px solid rgba(28,38,32,0.16); border-radius:10px; padding:11px 14px; font-size:13px; background:#fff; font-family:'Geist Mono',monospace;">CVC ···</div>
+            </div>
+            <div style="background:#1C2620; color:#fff; text-align:center; padding:13px; border-radius:100px; font-weight:600; font-size:14px; margin-bottom:10px;"> Pay — Apple Pay</div>
+            <div style="background:#1E5C45; color:#fff; text-align:center; padding:13px; border-radius:100px; font-weight:600; font-size:14px; margin-bottom:12px;">Pay €329.00</div>
+            <div style="font-size:11.5px; color:#7C887F; text-align:center;">Full refund until your kit ships or your draw is booked.</div>
+          </div>
+        </div>
+        <p style="font-size:12.5px; line-height:1.55; color:#7C887F; margin:12px 4px 0;">Apple Pay on the web is free of App Store commission — the fast path for iPhone users who arrived from the app's link-out.</p>
+      </div>
+
+      <div style="align-self:center; font-family:'Geist Mono',monospace; color:#7C887F; font-size:18px;">→</div>
+
+      <div style="width:360px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">W9 · SUCCESS — WHAT HAPPENS NEXT</div>
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.12); border-radius:16px; overflow:hidden; box-shadow:0 22px 44px -32px rgba(28,38,32,0.4);">
+          <div style="display:flex; align-items:center; gap:6px; padding:10px 14px; border-bottom:1px solid rgba(28,38,32,0.08); background:#F4F1EA;">
+            <span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span><span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span><span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span>
+            <span style="font-family:'Geist Mono',monospace; font-size:10px; color:#7C887F; background:#FBFAF6; border-radius:6px; padding:3px 10px; margin-left:8px;">arcaevo.com/welcome</span>
+          </div>
+          <div style="padding:30px 28px 28px;">
+            <div style="width:52px; height:52px; border-radius:50%; background:rgba(52,160,124,0.14); color:#1E5C45; font-size:24px; line-height:52px; text-align:center; margin-bottom:16px;">✓</div>
+            <div style="font-family:'Instrument Serif',serif; font-size:24px; line-height:1.15; margin-bottom:8px;">You're a member, Aoife.</div>
+            <div style="font-size:13px; color:#7C887F; line-height:1.55; margin-bottom:20px;">Receipt sent to aoife@example.ie</div>
+            <div style="display:flex; gap:12px; margin-bottom:12px;"><span style="font-family:'Geist Mono',monospace; font-size:11px; color:#1E5C45; width:20px;">01</span><div style="font-size:13px; line-height:1.5;"><strong>Your kit ships today.</strong> Track it from Account or the app — typically 1–2 working days.</div></div>
+            <div style="display:flex; gap:12px; margin-bottom:12px;"><span style="font-family:'Geist Mono',monospace; font-size:11px; color:#1E5C45; width:20px;">02</span><div style="font-size:13px; line-height:1.5;"><strong>Get the app</strong> so your Watch data is already flowing when results land.</div></div>
+            <div style="display:flex; gap:12px; margin-bottom:20px;"><span style="font-family:'Geist Mono',monospace; font-size:11px; color:#1E5C45; width:20px;">03</span><div style="font-size:13px; line-height:1.5;"><strong>Test on a Tuesday–Thursday morning</strong>, fasted, and post the same day.</div></div>
+            <div style="background:#1E5C45; color:#fff; text-align:center; padding:13px; border-radius:100px; font-weight:600; font-size:14px;">Download for iPhone</div>
+          </div>
+        </div>
+        <p style="font-size:12.5px; line-height:1.55; color:#7C887F; margin:12px 4px 0;">Performance's version replaces 01 with "Book your nurse visit" — straight into the scheduler (08).</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 08 ACTIVATION ============ -->
+  <section data-screen-label="Kit activation and nurse booking" style="max-width:1180px; margin:0 auto; padding:56px 48px;">
+    <div style="display:flex; align-items:baseline; gap:16px; border-top:1px solid rgba(28,38,32,0.14); padding-top:28px; margin-bottom:16px;">
+      <span style="font-family:'Geist Mono',monospace; font-size:12px; color:#1E5C45; letter-spacing:0.14em;">08</span>
+      <h2 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:38px; margin:0; letter-spacing:-0.01em;">After payment — activation</h2>
+    </div>
+    <p style="font-size:16px; line-height:1.6; color:#4A554D; max-width:66ch; margin:0 0 40px;">The gap between paying and seeing results is where trust is won or lost. Every sample has a visible journey; nothing goes silent for more than 48 hours.</p>
+
+    <div style="display:flex; gap:36px; flex-wrap:wrap; align-items:flex-start;">
+
+      <div style="width:252px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">A1 · ACTIVATE KIT — iOS</div>
+        <div style="background:#1C2620; border-radius:38px; padding:8px; box-shadow:0 26px 52px -30px rgba(28,38,32,0.55);">
+          <div style="width:100%; height:460px; background:#F4F1EA; border-radius:31px; overflow:hidden; padding:26px 20px 0; color:#1C2620;">
+            <div style="font-family:'Geist Mono',monospace; font-size:10px; color:#1E5C45; letter-spacing:0.1em; margin-bottom:12px;">YOUR KIT HAS ARRIVED</div>
+            <div style="font-family:'Instrument Serif',serif; font-size:23px; line-height:1.12; margin-bottom:14px;">Link this kit to you before you begin</div>
+            <div style="background:#fff; border:1.5px dashed rgba(28,38,32,0.25); border-radius:16px; height:130px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; margin-bottom:12px;">
+              <div style="width:44px; height:44px; border-radius:10px; background:repeating-linear-gradient(0deg,#1C2620,#1C2620 3px,transparent 3px,transparent 6px), repeating-linear-gradient(90deg,#1C2620,#1C2620 3px,transparent 3px,transparent 6px); opacity:0.75;"></div>
+              <div style="font-size:12px; font-weight:600;">Scan the QR on the tube</div>
+            </div>
+            <div style="text-align:center; font-size:11.5px; color:#7C887F; margin-bottom:12px;">or enter the code by hand</div>
+            <div style="border:1px solid rgba(28,38,32,0.16); border-radius:10px; padding:11px; font-family:'Geist Mono',monospace; font-size:14px; letter-spacing:0.14em; text-align:center; background:#fff; margin-bottom:14px;">ARC-7F2K-D8</div>
+            <div style="background:#1E5C45; color:#fff; text-align:center; padding:12px; border-radius:100px; font-weight:600; font-size:13px;">It's mine — show me how to test</div>
+          </div>
+        </div>
+        <p style="font-size:12.5px; line-height:1.55; color:#7C887F; margin:12px 4px 0;">Activation binds tube ID to account and DOB — the lab's chain of custody. Then a 5-step illustrated finger-prick guide with a "best before 10am" nudge.</p>
+      </div>
+
+      <div style="width:360px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">A2 · BOOK YOUR NURSE — PERFORMANCE</div>
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.12); border-radius:16px; overflow:hidden; box-shadow:0 22px 44px -32px rgba(28,38,32,0.4);">
+          <div style="display:flex; align-items:center; gap:6px; padding:10px 14px; border-bottom:1px solid rgba(28,38,32,0.08); background:#F4F1EA;">
+            <span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span><span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span><span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span>
+            <span style="font-family:'Geist Mono',monospace; font-size:10px; color:#7C887F; background:#FBFAF6; border-radius:6px; padding:3px 10px; margin-left:8px;">arcaevo.com/book</span>
+          </div>
+          <div style="padding:28px;">
+            <div style="font-family:'Instrument Serif',serif; font-size:23px; line-height:1.15; margin-bottom:6px;">When should we come?</div>
+            <div style="font-size:12.5px; color:#7C887F; margin-bottom:18px;">Morning slots, fasted. 20 minutes at your home or desk — 14 Emmet Road, D08.</div>
+            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:10px;">
+              <div style="border:1px solid rgba(28,38,32,0.14); border-radius:10px; padding:10px 6px; text-align:center; font-size:12px;"><div style="font-weight:700;">Tue 7</div><div style="color:#7C887F; font-size:11px;">July</div></div>
+              <div style="border:1.5px solid #1E5C45; background:rgba(52,160,124,0.08); border-radius:10px; padding:10px 6px; text-align:center; font-size:12px;"><div style="font-weight:700;">Wed 8</div><div style="color:#1E5C45; font-size:11px; font-weight:600;">July</div></div>
+              <div style="border:1px solid rgba(28,38,32,0.14); border-radius:10px; padding:10px 6px; text-align:center; font-size:12px;"><div style="font-weight:700;">Thu 9</div><div style="color:#7C887F; font-size:11px;">July</div></div>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px;">
+              <span style="border:1px solid rgba(28,38,32,0.14); border-radius:100px; padding:8px 14px; font-family:'Geist Mono',monospace; font-size:12px;">07:30</span>
+              <span style="border:1.5px solid #1E5C45; background:rgba(52,160,124,0.08); color:#1E5C45; border-radius:100px; padding:8px 14px; font-family:'Geist Mono',monospace; font-size:12px; font-weight:500;">08:15</span>
+              <span style="border:1px solid rgba(28,38,32,0.14); border-radius:100px; padding:8px 14px; font-family:'Geist Mono',monospace; font-size:12px;">09:00</span>
+              <span style="border:1px solid rgba(28,38,32,0.14); border-radius:100px; padding:8px 14px; font-family:'Geist Mono',monospace; font-size:12px;">09:45</span>
+            </div>
+            <div style="background:#1E5C45; color:#fff; text-align:center; padding:13px; border-radius:100px; font-weight:600; font-size:14px; margin-bottom:10px;">Confirm — Wed 8 July, 08:15</div>
+            <div style="font-size:11.5px; color:#7C887F; text-align:center;">Free reschedule up to 24h before · fasting reminder the night prior</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="flex:1; min-width:320px; max-width:420px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">A3 · THE SAMPLE JOURNEY — VISIBLE IN APP &amp; ACCOUNT</div>
+        <div style="background:#1C2620; color:#F4F1EA; border-radius:16px; padding:26px;">
+          <div style="display:flex; gap:14px; margin-bottom:14px;"><span style="width:22px; height:22px; border-radius:50%; background:#34A07C; color:#04130D; font-size:12px; text-align:center; line-height:22px; flex-shrink:0;">✓</span><div><div style="font-size:13.5px; font-weight:700;">Kit activated</div><div style="font-size:11.5px; color:#8FA89A;">Mon 6 July, 08:12</div></div></div>
+          <div style="display:flex; gap:14px; margin-bottom:14px;"><span style="width:22px; height:22px; border-radius:50%; background:#34A07C; color:#04130D; font-size:12px; text-align:center; line-height:22px; flex-shrink:0;">✓</span><div><div style="font-size:13.5px; font-weight:700;">Sample posted</div><div style="font-size:11.5px; color:#8FA89A;">Mon 6 July, 11:40 · An Post tracked</div></div></div>
+          <div style="display:flex; gap:14px; margin-bottom:14px;"><span style="width:22px; height:22px; border-radius:50%; border:2px solid #34A07C; color:#7FD3AE; font-size:10px; text-align:center; line-height:18px; flex-shrink:0;">●</span><div><div style="font-size:13.5px; font-weight:700;">At the lab</div><div style="font-size:11.5px; color:#8FA89A;">Received Tue 7 July · processing 24–48h</div></div></div>
+          <div style="display:flex; gap:14px; margin-bottom:14px; opacity:0.5;"><span style="width:22px; height:22px; border-radius:50%; border:2px solid rgba(255,255,255,0.3); flex-shrink:0;"></span><div><div style="font-size:13.5px; font-weight:700;">Clinician review</div><div style="font-size:11.5px; color:#8FA89A;">Every panel signed off by a doctor</div></div></div>
+          <div style="display:flex; gap:14px; opacity:0.5;"><span style="width:22px; height:22px; border-radius:50%; border:2px solid rgba(255,255,255,0.3); flex-shrink:0;"></span><div><div style="font-size:13.5px; font-weight:700;">Results ready</div><div style="font-size:11.5px; color:#8FA89A;">Push + email — never results in the email itself</div></div></div>
+        </div>
+        <p style="font-size:12.5px; line-height:1.55; color:#7C887F; margin:12px 4px 0;">If a sample haemolyses or goes missing, this timeline is where it's said first — with a replacement kit already on its way, free.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 09 iOS ONBOARDING ============ -->
+  <section data-screen-label="iOS onboarding" style="max-width:1180px; margin:0 auto; padding:56px 48px;">
+    <div style="display:flex; align-items:baseline; gap:16px; border-top:1px solid rgba(28,38,32,0.14); padding-top:28px; margin-bottom:16px;">
+      <span style="font-family:'Geist Mono',monospace; font-size:12px; color:#1E5C45; letter-spacing:0.14em;">09</span>
+      <h2 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:38px; margin:0; letter-spacing:-0.01em;">iOS — first open to first insight</h2>
+    </div>
+    <p style="font-size:16px; line-height:1.6; color:#4A554D; max-width:66ch; margin:0 0 40px;">Six screens, each asking exactly one thing. Permissions are always preceded by a plain-English primer — the iOS system sheet should never be a surprise. Anyone who already consented on the web skips P3.</p>
+
+    <div style="display:flex; gap:26px; flex-wrap:wrap; align-items:flex-start;">
+
+      <div style="width:224px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">P1 · WELCOME</div>
+        <div style="background:#1C2620; border-radius:34px; padding:7px; box-shadow:0 22px 44px -28px rgba(28,38,32,0.55);">
+          <div style="width:100%; height:432px; background:#ECE7DD; border-radius:28px; overflow:hidden; padding:26px 18px 18px; color:#1C2620; display:flex; flex-direction:column;">
+            <div style="width:24px; height:24px; border-radius:50%; background:radial-gradient(circle at 32% 30%, #5FB592, #1E5C45 70%); margin-bottom:auto;"></div>
+            <div style="font-family:'Instrument Serif',serif; font-size:25px; line-height:1.1; margin-bottom:10px;">Know what's actually happening inside your body.</div>
+            <div style="font-size:12px; color:#4A554D; line-height:1.55; margin-bottom:20px;">Bloods and your Watch, read together — with the one or two changes worth making.</div>
+            <div style="background:#1E5C45; color:#fff; text-align:center; padding:12px; border-radius:100px; font-weight:600; font-size:13px; margin-bottom:9px;">Create account</div>
+            <div style="border:1px solid rgba(28,38,32,0.2); text-align:center; padding:11px; border-radius:100px; font-weight:600; font-size:13px;">Sign in</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="width:224px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">P2 · SIGN IN</div>
+        <div style="background:#1C2620; border-radius:34px; padding:7px; box-shadow:0 22px 44px -28px rgba(28,38,32,0.55);">
+          <div style="width:100%; height:432px; background:#ECE7DD; border-radius:28px; overflow:hidden; padding:26px 18px 18px; color:#1C2620;">
+            <div style="font-size:12px; color:#7C887F; margin-bottom:22px;">‹ Back</div>
+            <div style="font-family:'Instrument Serif',serif; font-size:23px; line-height:1.12; margin-bottom:18px;">Welcome back</div>
+            <div style="font-size:11px; font-weight:600; margin-bottom:5px;">Email</div>
+            <div style="border:1px solid rgba(28,38,32,0.16); border-radius:10px; padding:10px 12px; font-size:12px; background:#fff; margin-bottom:11px;">aoife@example.ie</div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:5px;"><span style="font-size:11px; font-weight:600;">Password</span><span style="font-size:11px; color:#1E5C45; font-weight:600;">Forgot?</span></div>
+            <div style="border:1px solid rgba(28,38,32,0.16); border-radius:10px; padding:10px 12px; font-size:12px; color:#7C887F; background:#fff; margin-bottom:14px;">••••••••</div>
+            <div style="background:#1E5C45; color:#fff; text-align:center; padding:12px; border-radius:100px; font-weight:600; font-size:13px; margin-bottom:9px;">Sign in</div>
+            <div style="border:1px solid rgba(28,38,32,0.2); text-align:center; padding:11px; border-radius:100px; font-weight:600; font-size:12.5px; margin-bottom:16px;">✉&nbsp; Email me a sign-in link</div>
+            <div style="font-size:10.5px; color:#7C887F; text-align:center; line-height:1.5;">The link opens straight back into the app.</div>
+          </div>
+        </div>
+        <p style="font-size:12.5px; line-height:1.55; color:#7C887F; margin:12px 4px 0;">Magic links use universal links — tap in Mail, land signed-in here. No code retyping.</p>
+      </div>
+
+      <div style="width:224px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">P3 · CONSENT (IF NOT YET GIVEN)</div>
+        <div style="background:#1C2620; border-radius:34px; padding:7px; box-shadow:0 22px 44px -28px rgba(28,38,32,0.55);">
+          <div style="width:100%; height:432px; background:#ECE7DD; border-radius:28px; overflow:hidden; padding:26px 18px 18px; color:#1C2620;">
+            <div style="font-family:'Instrument Serif',serif; font-size:21px; line-height:1.15; margin-bottom:8px;">Your health data, on your terms</div>
+            <div style="font-size:11px; color:#7C887F; line-height:1.5; margin-bottom:14px;">Explicit permission first. Withdraw — and erase — any time.</div>
+            <div style="background:#fff; border:1px solid rgba(28,38,32,0.12); border-radius:11px; padding:10px 12px; margin-bottom:8px; display:flex; gap:8px;"><span style="width:13px; height:13px; border-radius:3px; background:#1E5C45; color:#fff; font-size:9px; text-align:center; line-height:13px; flex-shrink:0; margin-top:1px;">✓</span><div style="font-size:11px; line-height:1.45;"><strong>Process my health data</strong> — baselines, insights, verdicts. EU-hosted.</div></div>
+            <div style="background:#fff; border:1px solid rgba(28,38,32,0.12); border-radius:11px; padding:10px 12px; margin-bottom:8px; display:flex; gap:8px;"><span style="width:13px; height:13px; border-radius:3px; background:#1E5C45; color:#fff; font-size:9px; text-align:center; line-height:13px; flex-shrink:0; margin-top:1px;">✓</span><div style="font-size:11px; line-height:1.45;"><strong>Clinician review</strong> — a doctor signs off results, contacts me if critical.</div></div>
+            <div style="background:#fff; border:1px solid rgba(28,38,32,0.12); border-radius:11px; padding:10px 12px; margin-bottom:14px; display:flex; gap:8px;"><span style="width:13px; height:13px; border-radius:3px; border:1.5px solid rgba(28,38,32,0.3); background:#fff; flex-shrink:0; margin-top:1px;"></span><div style="font-size:11px; line-height:1.45;"><strong>Anonymised research</strong> — optional, off by default.</div></div>
+            <div style="background:#1E5C45; color:#fff; text-align:center; padding:12px; border-radius:100px; font-weight:600; font-size:13px;">Agree &amp; continue</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="width:224px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">P4 · HEALTHKIT PRIMER + SHEET</div>
+        <div style="background:#1C2620; border-radius:34px; padding:7px; box-shadow:0 22px 44px -28px rgba(28,38,32,0.55);">
+          <div style="width:100%; height:432px; background:#ECE7DD; border-radius:28px; overflow:hidden; padding:26px 18px 0; color:#1C2620; position:relative;">
+            <div style="font-family:'Instrument Serif',serif; font-size:21px; line-height:1.15; margin-bottom:8px;">Let your Watch do the talking</div>
+            <div style="font-size:11px; color:#4A554D; line-height:1.55; margin-bottom:12px;">We read sleep, heart rate, HRV, VO₂max and workouts from Apple Health — read-only, on your device's terms. No Apple account sign-in needed.</div>
+            <div style="border:1px solid rgba(28,38,32,0.2); text-align:center; padding:10px; border-radius:100px; font-weight:600; font-size:12px; color:#7C887F; margin-bottom:8px;">Not now — I'll add it later</div>
+            <div style="position:absolute; left:8px; right:8px; bottom:0; background:#fff; border-radius:16px 16px 0 0; box-shadow:0 -10px 30px rgba(28,38,32,0.18); padding:16px 14px 18px;">
+              <div style="font-size:12px; font-weight:700; text-align:center; margin-bottom:4px;">"Arcaevo" would like to access your Health data</div>
+              <div style="font-size:10px; color:#7C887F; text-align:center; margin-bottom:12px;">Sleep · Heart Rate · HRV · VO₂max · Workouts</div>
+              <div style="display:flex; justify-content:space-between; font-size:11px; padding:8px 4px; border-top:1px solid rgba(28,38,32,0.08);"><span>Turn On All</span><span style="width:30px; height:17px; border-radius:100px; background:#34A07C; position:relative;"><span style="position:absolute; right:2px; top:2px; width:13px; height:13px; border-radius:50%; background:#fff;"></span></span></div>
+              <div style="background:#1E5C45; color:#fff; text-align:center; padding:10px; border-radius:100px; font-weight:600; font-size:12px; margin-top:10px;">Allow</div>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:12.5px; line-height:1.55; color:#7C887F; margin:12px 4px 0;">Primer first, sheet second — decline is respected with a quiet re-ask card on Home, never a nag loop.</p>
+      </div>
+
+      <div style="width:224px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">P5 · ABOUT YOU</div>
+        <div style="background:#1C2620; border-radius:34px; padding:7px; box-shadow:0 22px 44px -28px rgba(28,38,32,0.55);">
+          <div style="width:100%; height:432px; background:#ECE7DD; border-radius:28px; overflow:hidden; padding:26px 18px 18px; color:#1C2620;">
+            <div style="font-family:'Instrument Serif',serif; font-size:21px; line-height:1.15; margin-bottom:8px;">A little about you</div>
+            <div style="font-size:11px; color:#7C887F; line-height:1.5; margin-bottom:14px;">Ranges and baselines depend on these three answers.</div>
+            <div style="font-size:11px; font-weight:600; margin-bottom:5px;">Date of birth</div>
+            <div style="border:1px solid rgba(28,38,32,0.16); border-radius:10px; padding:10px 12px; font-size:12px; background:#fff; margin-bottom:11px;">14 / 03 / 1991</div>
+            <div style="font-size:11px; font-weight:600; margin-bottom:5px;">Sex at birth <span style="color:#7C887F; font-weight:400;">· sets lab ranges</span></div>
+            <div style="display:flex; gap:7px; margin-bottom:11px;"><span style="flex:1; border:1.5px solid #1E5C45; background:rgba(52,160,124,0.08); color:#1E5C45; border-radius:100px; padding:9px; text-align:center; font-size:12px; font-weight:600;">Female</span><span style="flex:1; border:1px solid rgba(28,38,32,0.16); border-radius:100px; padding:9px; text-align:center; font-size:12px;">Male</span></div>
+            <div style="font-size:11px; font-weight:600; margin-bottom:5px;">What matters most right now?</div>
+            <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px;">
+              <span style="border:1.5px solid #1E5C45; background:rgba(52,160,124,0.08); color:#1E5C45; border-radius:100px; padding:7px 11px; font-size:11px; font-weight:600;">Heart health</span>
+              <span style="border:1px solid rgba(28,38,32,0.16); border-radius:100px; padding:7px 11px; font-size:11px;">Energy</span>
+              <span style="border:1px solid rgba(28,38,32,0.16); border-radius:100px; padding:7px 11px; font-size:11px;">Performance</span>
+              <span style="border:1px solid rgba(28,38,32,0.16); border-radius:100px; padding:7px 11px; font-size:11px;">Longevity</span>
+            </div>
+            <div style="background:#1E5C45; color:#fff; text-align:center; padding:12px; border-radius:100px; font-weight:600; font-size:13px;">Continue</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="width:224px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">P6 · NOTIFICATIONS + APP LOCK</div>
+        <div style="background:#1C2620; border-radius:34px; padding:7px; box-shadow:0 22px 44px -28px rgba(28,38,32,0.55);">
+          <div style="width:100%; height:432px; background:#ECE7DD; border-radius:28px; overflow:hidden; padding:26px 18px 18px; color:#1C2620;">
+            <div style="font-family:'Instrument Serif',serif; font-size:21px; line-height:1.15; margin-bottom:8px;">Only the ones worth a buzz</div>
+            <div style="font-size:11px; color:#7C887F; line-height:1.5; margin-bottom:14px;">We send results, kit reminders and weekly focus — never streak guilt.</div>
+            <div style="background:#fff; border:1px solid rgba(28,38,32,0.12); border-radius:11px; padding:10px 12px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;"><span style="font-size:11.5px; font-weight:600;">Results &amp; clinician notes</span><span style="width:30px; height:17px; border-radius:100px; background:#34A07C; position:relative;"><span style="position:absolute; right:2px; top:2px; width:13px; height:13px; border-radius:50%; background:#fff;"></span></span></div>
+            <div style="background:#fff; border:1px solid rgba(28,38,32,0.12); border-radius:11px; padding:10px 12px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;"><span style="font-size:11.5px; font-weight:600;">Test &amp; fasting reminders</span><span style="width:30px; height:17px; border-radius:100px; background:#34A07C; position:relative;"><span style="position:absolute; right:2px; top:2px; width:13px; height:13px; border-radius:50%; background:#fff;"></span></span></div>
+            <div style="background:#fff; border:1px solid rgba(28,38,32,0.12); border-radius:11px; padding:10px 12px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;"><span style="font-size:11.5px; font-weight:600;">Weekly focus</span><span style="width:30px; height:17px; border-radius:100px; background:rgba(28,38,32,0.18); position:relative;"><span style="position:absolute; left:2px; top:2px; width:13px; height:13px; border-radius:50%; background:#fff;"></span></span></div>
+            <div style="background:#fff; border:1px solid rgba(28,38,32,0.12); border-radius:11px; padding:10px 12px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center;"><span style="font-size:11.5px; font-weight:600;">Lock app with Face ID</span><span style="width:30px; height:17px; border-radius:100px; background:#34A07C; position:relative;"><span style="position:absolute; right:2px; top:2px; width:13px; height:13px; border-radius:50%; background:#fff;"></span></span></div>
+            <div style="background:#1E5C45; color:#fff; text-align:center; padding:12px; border-radius:100px; font-weight:600; font-size:13px;">Take me to my data</div>
+          </div>
+        </div>
+        <p style="font-size:12.5px; line-height:1.55; color:#7C887F; margin:12px 4px 0;">Free accounts land on the free home (05); members land on the full Home. Face ID lock is on by default — it's health data.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 10 ACCOUNT ============ -->
+  <section data-screen-label="Account settings" style="max-width:1180px; margin:0 auto; padding:56px 48px;">
+    <div style="display:flex; align-items:baseline; gap:16px; border-top:1px solid rgba(28,38,32,0.14); padding-top:28px; margin-bottom:16px;">
+      <span style="font-family:'Geist Mono',monospace; font-size:12px; color:#1E5C45; letter-spacing:0.14em;">10</span>
+      <h2 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:38px; margin:0; letter-spacing:-0.01em;">Account — one surface, web and app</h2>
+    </div>
+    <p style="font-size:16px; line-height:1.6; color:#4A554D; max-width:66ch; margin:0 0 40px;">The app's Settings tab mirrors this page section-for-section, with billing actions linking out to the web. Nothing about money or data deletion is app-exclusive or web-exclusive.</p>
+
+    <div style="display:flex; gap:36px; flex-wrap:wrap; align-items:flex-start;">
+
+      <div style="width:620px; max-width:100%;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">W10 · ACCOUNT — arcaevo.com/account</div>
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.12); border-radius:16px; overflow:hidden; box-shadow:0 22px 44px -32px rgba(28,38,32,0.4);">
+          <div style="display:flex; align-items:center; gap:6px; padding:10px 14px; border-bottom:1px solid rgba(28,38,32,0.08); background:#F4F1EA;">
+            <span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span><span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span><span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span>
+            <span style="font-family:'Geist Mono',monospace; font-size:10px; color:#7C887F; background:#FBFAF6; border-radius:6px; padding:3px 10px; margin-left:8px;">arcaevo.com/account</span>
+          </div>
+          <div style="display:grid; grid-template-columns:150px 1fr;">
+            <div style="border-right:1px solid rgba(28,38,32,0.08); padding:22px 0;">
+              <div style="font-size:12.5px; font-weight:700; padding:9px 18px; background:rgba(52,160,124,0.1); border-right:2px solid #1E5C45; color:#1E5C45;">Membership</div>
+              <div style="font-size:12.5px; padding:9px 18px; color:#4A554D;">Personal details</div>
+              <div style="font-size:12.5px; padding:9px 18px; color:#4A554D;">Sign-in &amp; security</div>
+              <div style="font-size:12.5px; padding:9px 18px; color:#4A554D;">Data &amp; privacy</div>
+              <div style="font-size:12.5px; padding:9px 18px; color:#4A554D;">Devices &amp; sessions</div>
+              <div style="font-size:12.5px; padding:9px 18px; color:#4A554D;">Notifications</div>
+            </div>
+            <div style="padding:24px 26px;">
+              <div style="background:#1C2620; color:#F4F1EA; border-radius:14px; padding:18px 20px; margin-bottom:14px;">
+                <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;"><span style="font-size:15px; font-weight:700;">Essential · €329/yr</span><span style="font-family:'Geist Mono',monospace; font-size:10px; color:#7FD3AE; letter-spacing:0.08em;">ACTIVE</span></div>
+                <div style="font-size:12px; color:#9FB0A6; margin-bottom:12px;">Renews 2 July 2027 · Visa ···· 4242 · 1 of 2 tests used</div>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                  <span style="border:1px solid rgba(255,255,255,0.25); border-radius:100px; padding:7px 13px; font-size:11.5px; font-weight:600;">Upgrade plan</span>
+                  <span style="border:1px solid rgba(255,255,255,0.25); border-radius:100px; padding:7px 13px; font-size:11.5px; font-weight:600;">Update card</span>
+                  <span style="border:1px solid rgba(255,255,255,0.25); border-radius:100px; padding:7px 13px; font-size:11.5px; font-weight:600;">Invoices</span>
+                  <span style="border:1px solid rgba(255,255,255,0.18); border-radius:100px; padding:7px 13px; font-size:11.5px; color:#9FB0A6;">Cancel renewal</span>
+                </div>
+              </div>
+              <div style="border:1px solid rgba(28,38,32,0.1); border-radius:14px; padding:16px 18px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                <div><div style="font-size:13px; font-weight:700;">Add quarterly tracking</div><div style="font-size:11.5px; color:#7C887F;">Two extra rechecks between baselines</div></div>
+                <span style="border:1px solid #1C2620; border-radius:100px; padding:7px 14px; font-size:11.5px; font-weight:600;">+ €140/yr</span>
+              </div>
+              <div style="border:1px solid rgba(28,38,32,0.1); border-radius:14px; padding:16px 18px; display:flex; justify-content:space-between; align-items:center;">
+                <div><div style="font-size:13px; font-weight:700;">Export my data</div><div style="font-size:11.5px; color:#7C887F;">Everything as CSV + clinician PDF, emailed within the hour</div></div>
+                <span style="border:1px solid #1C2620; border-radius:100px; padding:7px 14px; font-size:11.5px; font-weight:600;">Request export</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:12.5px; line-height:1.55; color:#7C887F; margin:12px 4px 0;">"Cancel renewal" is honest and undramatic: access runs to year-end, unused tests stay usable, one confirmation, no retention maze. Sign-in &amp; security holds password set/change and sign-out-everywhere; Devices lists active sessions.</p>
+      </div>
+
+      <div style="flex:1; min-width:320px; max-width:420px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#D99A4E; margin-bottom:10px;">W11 · DELETE ACCOUNT — THE HONEST EXIT</div>
+        <div style="background:#FBFAF6; border:1px solid rgba(217,154,78,0.4); border-radius:16px; padding:26px;">
+          <div style="font-family:'Instrument Serif',serif; font-size:22px; line-height:1.15; margin-bottom:8px;">Delete your account and data</div>
+          <p style="font-size:13px; line-height:1.6; color:#4A554D; margin:0 0 16px;">This erases your results, baselines, history and profile permanently — from our systems and our lab partners' — within 30 days. It cannot be undone.</p>
+          <div style="display:flex; gap:10px; align-items:flex-start; margin-bottom:14px;"><span style="font-family:'Geist Mono',monospace; font-size:11px; color:#1E5C45;">01</span><span style="font-size:12.5px; line-height:1.5;">We offer a full export first — most people want the PDF for their GP.</span></div>
+          <div style="display:flex; gap:10px; align-items:flex-start; margin-bottom:14px;"><span style="font-family:'Geist Mono',monospace; font-size:11px; color:#1E5C45;">02</span><span style="font-size:12.5px; line-height:1.5;">Type <strong>DELETE</strong> to confirm — no password quiz, no phone call.</span></div>
+          <div style="display:flex; gap:10px; align-items:flex-start; margin-bottom:18px;"><span style="font-family:'Geist Mono',monospace; font-size:11px; color:#1E5C45;">03</span><span style="font-size:12.5px; line-height:1.5;">Confirmation email with the erasure date. Remaining membership value refunded pro-rata for unused tests.</span></div>
+          <div style="border:1px solid #B3543A; color:#B3543A; text-align:center; padding:12px; border-radius:100px; font-weight:600; font-size:13.5px;">Delete everything</div>
+        </div>
+        <p style="font-size:12.5px; line-height:1.55; color:#7C887F; margin:12px 4px 0;">Also reachable in-app (App Review 5.1.1(v) requires in-app deletion). GDPR erasure and consent withdrawal converge here — one flow to build and test, not three.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 11 GAP AUDIT ============ -->
+  <section data-screen-label="Gap audit" style="max-width:1180px; margin:0 auto; padding:56px 48px 20px;">
+    <div style="display:flex; align-items:baseline; gap:16px; border-top:1px solid rgba(28,38,32,0.14); padding-top:28px; margin-bottom:16px;">
+      <span style="font-family:'Geist Mono',monospace; font-size:12px; color:#1E5C45; letter-spacing:0.14em;">11</span>
+      <h2 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:38px; margin:0; letter-spacing:-0.01em;">What's still missing — the audit</h2>
+    </div>
+    <p style="font-size:16px; line-height:1.6; color:#4A554D; max-width:66ch; margin:0 0 40px;">Everything a fully-fledged product needs that no page yet covered. Ranked: build-before-launch, build-soon, and later. <strong>The must-builds are now designed below — <a href="#emails" style="color:#1E5C45;">12 Emails</a>, <a href="#upload" style="color:#1E5C45;">13 Bloodwork upload</a>, <a href="#edges" style="color:#1E5C45;">14 When things go wrong</a>.</strong></p>
+
+    <div style="font-family:'Geist Mono',monospace; font-size:11px; letter-spacing:0.14em; color:#B3543A; margin-bottom:16px;">BEFORE LAUNCH — THE PRODUCT DOESN'T WORK WITHOUT THESE</div>
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:40px;">
+      <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:16px; padding:22px;">
+        <div style="font-size:15px; font-weight:700; margin-bottom:7px;">Transactional email suite</div>
+        <p style="font-size:13px; line-height:1.55; color:#4A554D; margin:0;">Nine templates in the brand voice: verify, magic link, password reset, receipt, kit shipped, sample received, results ready (never results <em>in</em> the email), renewal reminder at 30 days, failed-payment notice.</p>
+      </div>
+      <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:16px; padding:22px;">
+        <div style="font-size:15px; font-weight:700; margin-bottom:7px;">Critical-value escalation</div>
+        <p style="font-size:13px; line-height:1.55; color:#4A554D; margin:0;">When a result needs a doctor today: clinician phones first, app shows a calm "your clinician needs a word" state — never a red number as a push notification. Needs an SOP, a script and an unreachable-after-3-attempts letter.</p>
+      </div>
+      <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:16px; padding:22px;">
+        <div style="font-size:15px; font-weight:700; margin-bottom:7px;">Renewal &amp; dunning</div>
+        <p style="font-size:13px; line-height:1.55; color:#4A554D; margin:0;">Card expiring / charge failed: 3 retries over 14 days, grace period with full access, then a read-only "your data is safe, membership paused" state — never deletion by lapse.</p>
+      </div>
+      <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:16px; padding:22px;">
+        <div style="font-size:15px; font-weight:700; margin-bottom:7px;">Failed-sample recovery</div>
+        <p style="font-size:13px; line-height:1.55; color:#4A554D; margin:0;">Haemolysed, insufficient, or lost in post: proactive notice within 24h of the lab flag, replacement kit auto-dispatched free, and it doesn't count against the plan's test allowance.</p>
+      </div>
+      <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:16px; padding:22px;">
+        <div style="font-size:15px; font-weight:700; margin-bottom:7px;">Bloodwork upload (Fusion's engine)</div>
+        <p style="font-size:13px; line-height:1.55; color:#4A554D; margin:0;">Fusion is sold on "upload any past bloodwork" but the flow doesn't exist: PDF/photo upload → AI extraction → user confirms values &amp; units → merged into the timeline flagged "self-reported".</p>
+      </div>
+      <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:16px; padding:22px;">
+        <div style="font-size:15px; font-weight:700; margin-bottom:7px;">Support hand-off</div>
+        <p style="font-size:13px; line-height:1.55; color:#4A554D; margin:0;">Help exists as a page; the flows need it in context — "Something wrong?" links on the sample journey, checkout and dunning states that open a pre-filled message, not a generic contact form.</p>
+      </div>
+    </div>
+
+    <div style="font-family:'Geist Mono',monospace; font-size:11px; letter-spacing:0.14em; color:#D99A4E; margin-bottom:16px;">SOON AFTER — TRUST &amp; GROWTH</div>
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:40px;">
+      <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:16px; padding:22px;">
+        <div style="font-size:15px; font-weight:700; margin-bottom:7px;">Waitlist nurture</div>
+        <p style="font-size:13px; line-height:1.55; color:#4A554D; margin:0;">Early-access joiners get a monthly "where we're opening next" note, live position in Account, and a founding-member window when their county opens. A silent waitlist is a churned waitlist.</p>
+      </div>
+      <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:16px; padding:22px;">
+        <div style="font-size:15px; font-weight:700; margin-bottom:7px;">GP share flow</div>
+        <p style="font-size:13px; line-height:1.55; color:#4A554D; margin:0;">"Share with your GP" as a first-class action: a clean clinician PDF with a revocable link — the single feature most likely to earn word-of-mouth from Irish doctors.</p>
+      </div>
+      <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:16px; padding:22px;">
+        <div style="font-size:15px; font-weight:700; margin-bottom:7px;">Referrals &amp; gifting</div>
+        <p style="font-size:13px; line-height:1.55; color:#4A554D; margin:0;">Give a month / get a month, and a giftable Essential year with a printed card — health memberships are bought as gifts in December, reliably.</p>
+      </div>
+      <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:16px; padding:22px;">
+        <div style="font-size:15px; font-weight:700; margin-bottom:7px;">Passkeys &amp; 2FA</div>
+        <p style="font-size:13px; line-height:1.55; color:#4A554D; margin:0;">Passkeys as the natural upgrade from magic links (same email-first model, no passwords to steal); optional TOTP for the security-conscious. Slots into Sign-in &amp; security.</p>
+      </div>
+      <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:16px; padding:22px;">
+        <div style="font-size:15px; font-weight:700; margin-bottom:7px;">Sign in with Apple</div>
+        <p style="font-size:13px; line-height:1.55; color:#4A554D; margin:0;">Add later as a convenience, with relay addresses accepted by then — once the early-user cohort (real emails, reachable) is established. The auth model doesn't change.</p>
+      </div>
+      <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:16px; padding:22px;">
+        <div style="font-size:15px; font-weight:700; margin-bottom:7px;">Admin: eligibility &amp; waitlist ops</div>
+        <p style="font-size:13px; line-height:1.55; color:#4A554D; margin:0;">The Admin console needs three new views: routing-key config, waitlist demand by county, and a consent-audit log. Expansion decisions should come from that dashboard.</p>
+      </div>
+    </div>
+
+    <div style="font-family:'Geist Mono',monospace; font-size:11px; letter-spacing:0.14em; color:#7C887F; margin-bottom:16px;">LATER — WORTH A PLACEHOLDER, NOT A SPRINT</div>
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px;">
+      <div style="background:#FBFAF6; border:1px dashed rgba(28,38,32,0.18); border-radius:16px; padding:22px;">
+        <div style="font-size:15px; font-weight:700; margin-bottom:7px;">Household plans</div>
+        <p style="font-size:13px; line-height:1.55; color:#4A554D; margin:0;">Two adults, one bill, strictly separate health data. Couples ask for this within months.</p>
+      </div>
+      <div style="background:#FBFAF6; border:1px dashed rgba(28,38,32,0.18); border-radius:16px; padding:22px;">
+        <div style="font-size:15px; font-weight:700; margin-bottom:7px;">Corporate / employer</div>
+        <p style="font-size:13px; line-height:1.55; color:#4A554D; margin:0;">Codes bought by a company, redeemed privately — employer never sees results, only uptake.</p>
+      </div>
+      <div style="background:#FBFAF6; border:1px dashed rgba(28,38,32,0.18); border-radius:16px; padding:22px;">
+        <div style="font-size:15px; font-weight:700; margin-bottom:7px;">Android &amp; other wearables</div>
+        <p style="font-size:13px; line-height:1.55; color:#4A554D; margin:0;">WHOOP, Oura and Garmin connect via APIs (no HealthKit) — the "soon" chips on the site become an OAuth connection screen in Settings.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 12 EMAILS ============ -->
+  <section id="emails" data-screen-label="Transactional emails" style="max-width:1180px; margin:0 auto; padding:56px 48px;">
+    <div style="display:flex; align-items:baseline; gap:16px; border-top:1px solid rgba(28,38,32,0.14); padding-top:28px; margin-bottom:16px;">
+      <span style="font-family:'Geist Mono',monospace; font-size:12px; color:#1E5C45; letter-spacing:0.14em;">12</span>
+      <h2 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:38px; margin:0; letter-spacing:-0.01em;">The transactional email suite</h2>
+    </div>
+    <p style="font-size:16px; line-height:1.6; color:#4A554D; max-width:66ch; margin:0 0 40px;">Nine emails, one template: logo, one serif headline, short body, one button, plain-text footer. Every email answers "what happens next" — and health values never travel by email, only the invitation to open the app.</p>
+
+    <div style="display:flex; gap:28px; flex-wrap:wrap; align-items:flex-start; margin-bottom:36px;">
+
+      <div style="width:350px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">E2 · MAGIC LINK</div>
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.12); border-radius:16px; overflow:hidden; box-shadow:0 22px 44px -32px rgba(28,38,32,0.4);">
+          <div style="padding:14px 20px; border-bottom:1px solid rgba(28,38,32,0.08); background:#F4F1EA;">
+            <div style="font-size:12px;"><strong>Arcaevo</strong> <span style="color:#7C887F;">&lt;hello@arcaevo.com&gt;</span></div>
+            <div style="font-size:13px; font-weight:700; margin-top:3px;">Your sign-in link</div>
+          </div>
+          <div style="padding:28px 26px;">
+            <div style="width:20px; height:20px; border-radius:50%; background:radial-gradient(circle at 32% 30%, #5FB592, #1E5C45 70%); margin-bottom:16px;"></div>
+            <div style="font-family:'Instrument Serif',serif; font-size:21px; line-height:1.2; margin-bottom:10px;">Tap once, you're in.</div>
+            <p style="font-size:13px; line-height:1.6; color:#4A554D; margin:0 0 18px;">This link signs you in on this device and expires in 30 minutes. If you didn't request it, ignore this email — nothing happens without the tap.</p>
+            <div style="background:#1E5C45; color:#fff; text-align:center; padding:12px; border-radius:100px; font-weight:600; font-size:13px; margin-bottom:16px;">Sign in to Arcaevo</div>
+            <div style="font-size:11px; color:#7C887F; line-height:1.6; border-top:1px solid rgba(28,38,32,0.08); padding-top:12px;">Arcaevo Ltd · Dublin, Ireland<br>You're receiving this because a sign-in was requested for this address.</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="width:350px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">E7 · RESULTS READY — NO VALUES IN EMAIL</div>
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.12); border-radius:16px; overflow:hidden; box-shadow:0 22px 44px -32px rgba(28,38,32,0.4);">
+          <div style="padding:14px 20px; border-bottom:1px solid rgba(28,38,32,0.08); background:#F4F1EA;">
+            <div style="font-size:12px;"><strong>Arcaevo</strong> <span style="color:#7C887F;">&lt;hello@arcaevo.com&gt;</span></div>
+            <div style="font-size:13px; font-weight:700; margin-top:3px;">Your results are ready, Aoife</div>
+          </div>
+          <div style="padding:28px 26px;">
+            <div style="width:20px; height:20px; border-radius:50%; background:radial-gradient(circle at 32% 30%, #5FB592, #1E5C45 70%); margin-bottom:16px;"></div>
+            <div style="font-family:'Instrument Serif',serif; font-size:21px; line-height:1.2; margin-bottom:10px;">Reviewed, signed off, and waiting for you.</div>
+            <p style="font-size:13px; line-height:1.6; color:#4A554D; margin:0 0 18px;">Your July panel has been checked by Dr. Nolan and is ready in the app — with what changed since January and the one thing most worth doing about it.</p>
+            <div style="background:#1E5C45; color:#fff; text-align:center; padding:12px; border-radius:100px; font-weight:600; font-size:13px; margin-bottom:16px;">Open my results</div>
+            <div style="font-size:11px; color:#7C887F; line-height:1.6; border-top:1px solid rgba(28,38,32,0.08); padding-top:12px;">We never include health values in email — your results live behind Face ID, not in an inbox.</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="width:350px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#D99A4E; margin-bottom:10px;">E9 · PAYMENT FAILED — CALM, NOT ALARMING</div>
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.12); border-radius:16px; overflow:hidden; box-shadow:0 22px 44px -32px rgba(28,38,32,0.4);">
+          <div style="padding:14px 20px; border-bottom:1px solid rgba(28,38,32,0.08); background:#F4F1EA;">
+            <div style="font-size:12px;"><strong>Arcaevo</strong> <span style="color:#7C887F;">&lt;hello@arcaevo.com&gt;</span></div>
+            <div style="font-size:13px; font-weight:700; margin-top:3px;">A small hiccup with your renewal</div>
+          </div>
+          <div style="padding:28px 26px;">
+            <div style="width:20px; height:20px; border-radius:50%; background:radial-gradient(circle at 32% 30%, #5FB592, #1E5C45 70%); margin-bottom:16px;"></div>
+            <div style="font-family:'Instrument Serif',serif; font-size:21px; line-height:1.2; margin-bottom:10px;">Your card said no. Your data isn't going anywhere.</div>
+            <p style="font-size:13px; line-height:1.6; color:#4A554D; margin:0 0 18px;">The renewal charge to Visa ···· 4242 didn't go through — usually an expired card. We'll retry twice over the next two weeks; your membership and data stay fully active meanwhile.</p>
+            <div style="background:#1E5C45; color:#fff; text-align:center; padding:12px; border-radius:100px; font-weight:600; font-size:13px; margin-bottom:16px;">Update my card</div>
+            <div style="font-size:11px; color:#7C887F; line-height:1.6; border-top:1px solid rgba(28,38,32,0.08); padding-top:12px;">If nothing changes, your membership pauses on 16 July — read-only, nothing deleted, resume anytime.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:18px; padding:26px 28px;">
+      <div style="font-family:'Geist Mono',monospace; font-size:11px; letter-spacing:0.14em; color:#1E5C45; margin-bottom:18px;">ALL NINE — SUBJECT LINES SET THE VOICE</div>
+      <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:14px 24px;">
+        <div style="display:flex; gap:10px;"><span style="font-family:'Geist Mono',monospace; font-size:11px; color:#1E5C45; width:24px; flex-shrink:0;">E1</span><div style="font-size:13px; line-height:1.5;"><strong>Verify</strong> — "Confirm it's you"</div></div>
+        <div style="display:flex; gap:10px;"><span style="font-family:'Geist Mono',monospace; font-size:11px; color:#1E5C45; width:24px; flex-shrink:0;">E2</span><div style="font-size:13px; line-height:1.5;"><strong>Magic link</strong> — "Your sign-in link"</div></div>
+        <div style="display:flex; gap:10px;"><span style="font-family:'Geist Mono',monospace; font-size:11px; color:#1E5C45; width:24px; flex-shrink:0;">E3</span><div style="font-size:13px; line-height:1.5;"><strong>Password reset</strong> — "Set a new password"</div></div>
+        <div style="display:flex; gap:10px;"><span style="font-family:'Geist Mono',monospace; font-size:11px; color:#1E5C45; width:24px; flex-shrink:0;">E4</span><div style="font-size:13px; line-height:1.5;"><strong>Receipt</strong> — "You're a member — here's everything"</div></div>
+        <div style="display:flex; gap:10px;"><span style="font-family:'Geist Mono',monospace; font-size:11px; color:#1E5C45; width:24px; flex-shrink:0;">E5</span><div style="font-size:13px; line-height:1.5;"><strong>Kit shipped</strong> — "Your kit is on its way" + An Post tracking</div></div>
+        <div style="display:flex; gap:10px;"><span style="font-family:'Geist Mono',monospace; font-size:11px; color:#1E5C45; width:24px; flex-shrink:0;">E6</span><div style="font-size:13px; line-height:1.5;"><strong>Sample received</strong> — "It's at the lab — results in 24–48h"</div></div>
+        <div style="display:flex; gap:10px;"><span style="font-family:'Geist Mono',monospace; font-size:11px; color:#1E5C45; width:24px; flex-shrink:0;">E7</span><div style="font-size:13px; line-height:1.5;"><strong>Results ready</strong> — "Your results are ready" · never values</div></div>
+        <div style="display:flex; gap:10px;"><span style="font-family:'Geist Mono',monospace; font-size:11px; color:#1E5C45; width:24px; flex-shrink:0;">E8</span><div style="font-size:13px; line-height:1.5;"><strong>Renewal reminder</strong> — 30 days out, price shown, cancel link equal-weight</div></div>
+        <div style="display:flex; gap:10px;"><span style="font-family:'Geist Mono',monospace; font-size:11px; color:#1E5C45; width:24px; flex-shrink:0;">E9</span><div style="font-size:13px; line-height:1.5;"><strong>Payment failed</strong> — "A small hiccup with your renewal"</div></div>
+      </div>
+      <p style="font-size:12.5px; color:#7C887F; margin:18px 0 0; border-top:1px solid rgba(28,38,32,0.08); padding-top:14px;">Plus two for the waitlist: joining confirmation and the "your county is open" invite with the 30-day founding-member window (<a href="#edges" style="color:#1E5C45;">14</a>). All from hello@arcaevo.com — one sender, always a real reply-to.</p>
+    </div>
+
+    <!-- remaining email designs -->
+    <div style="display:flex; gap:28px; flex-wrap:wrap; align-items:flex-start; margin-top:36px;">
+
+      <div style="width:350px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">E1 · VERIFY</div>
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.12); border-radius:16px; overflow:hidden; box-shadow:0 22px 44px -32px rgba(28,38,32,0.4);">
+          <div style="padding:14px 20px; border-bottom:1px solid rgba(28,38,32,0.08); background:#F4F1EA;">
+            <div style="font-size:12px;"><strong>Arcaevo</strong> <span style="color:#7C887F;">&lt;hello@arcaevo.com&gt;</span></div>
+            <div style="font-size:13px; font-weight:700; margin-top:3px;">Confirm it's you</div>
+          </div>
+          <div style="padding:28px 26px;">
+            <div style="width:20px; height:20px; border-radius:50%; background:radial-gradient(circle at 32% 30%, #5FB592, #1E5C45 70%); margin-bottom:16px;"></div>
+            <div style="font-family:'Instrument Serif',serif; font-size:21px; line-height:1.2; margin-bottom:10px;">One tap and your account is real.</div>
+            <p style="font-size:13px; line-height:1.6; color:#4A554D; margin:0 0 18px;">Confirm this address and you're in — your account, your data controls, and plans whenever you're ready. The link lives for 30 minutes.</p>
+            <div style="background:#1E5C45; color:#fff; text-align:center; padding:12px; border-radius:100px; font-weight:600; font-size:13px; margin-bottom:16px;">Confirm my email</div>
+            <div style="font-size:11px; color:#7C887F; line-height:1.6; border-top:1px solid rgba(28,38,32,0.08); padding-top:12px;">Didn't create an Arcaevo account? Ignore this and nothing happens.</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="width:350px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">E3 · PASSWORD RESET</div>
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.12); border-radius:16px; overflow:hidden; box-shadow:0 22px 44px -32px rgba(28,38,32,0.4);">
+          <div style="padding:14px 20px; border-bottom:1px solid rgba(28,38,32,0.08); background:#F4F1EA;">
+            <div style="font-size:12px;"><strong>Arcaevo</strong> <span style="color:#7C887F;">&lt;hello@arcaevo.com&gt;</span></div>
+            <div style="font-size:13px; font-weight:700; margin-top:3px;">Set a new password</div>
+          </div>
+          <div style="padding:28px 26px;">
+            <div style="width:20px; height:20px; border-radius:50%; background:radial-gradient(circle at 32% 30%, #5FB592, #1E5C45 70%); margin-bottom:16px;"></div>
+            <div style="font-family:'Instrument Serif',serif; font-size:21px; line-height:1.2; margin-bottom:10px;">Let's get you a fresh one.</div>
+            <p style="font-size:13px; line-height:1.6; color:#4A554D; margin:0 0 18px;">Tap below to choose a new password. Once it's set, every other session is signed out and we'll confirm by email — so you always know when it changes.</p>
+            <div style="background:#1E5C45; color:#fff; text-align:center; padding:12px; border-radius:100px; font-weight:600; font-size:13px; margin-bottom:16px;">Choose a new password</div>
+            <div style="font-size:11px; color:#7C887F; line-height:1.6; border-top:1px solid rgba(28,38,32,0.08); padding-top:12px;">Wasn't you? Reset anyway, or reply to this email — a person reads it.</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="width:350px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">E4 · RECEIPT / WELCOME</div>
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.12); border-radius:16px; overflow:hidden; box-shadow:0 22px 44px -32px rgba(28,38,32,0.4);">
+          <div style="padding:14px 20px; border-bottom:1px solid rgba(28,38,32,0.08); background:#F4F1EA;">
+            <div style="font-size:12px;"><strong>Arcaevo</strong> <span style="color:#7C887F;">&lt;hello@arcaevo.com&gt;</span></div>
+            <div style="font-size:13px; font-weight:700; margin-top:3px;">You're a member — here's everything</div>
+          </div>
+          <div style="padding:28px 26px;">
+            <div style="width:20px; height:20px; border-radius:50%; background:radial-gradient(circle at 32% 30%, #5FB592, #1E5C45 70%); margin-bottom:16px;"></div>
+            <div style="font-family:'Instrument Serif',serif; font-size:21px; line-height:1.2; margin-bottom:10px;">Welcome, Aoife. Your kit ships today.</div>
+            <div style="background:#fff; border:1px solid rgba(28,38,32,0.1); border-radius:12px; padding:14px 16px; margin-bottom:14px;">
+              <div style="display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:5px;"><span>Essential · 1 year</span><span style="font-family:'Geist Mono',monospace;">€329.00</span></div>
+              <div style="display:flex; justify-content:space-between; font-size:11.5px; color:#7C887F;"><span>Visa ···· 4242 · 2 July 2026</span><span>Invoice №&nbsp;2026-0847</span></div>
+            </div>
+            <p style="font-size:13px; line-height:1.6; color:#4A554D; margin:0 0 16px;">Next: watch for the shipping email, get the iPhone app so your Watch data is flowing, and test on a fasted weekday morning.</p>
+            <div style="background:#1E5C45; color:#fff; text-align:center; padding:12px; border-radius:100px; font-weight:600; font-size:13px; margin-bottom:16px;">Download the app</div>
+            <div style="font-size:11px; color:#7C887F; line-height:1.6; border-top:1px solid rgba(28,38,32,0.08); padding-top:12px;">Full refund until your kit ships. Invoice PDF attached.</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="width:350px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">E5 · KIT SHIPPED</div>
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.12); border-radius:16px; overflow:hidden; box-shadow:0 22px 44px -32px rgba(28,38,32,0.4);">
+          <div style="padding:14px 20px; border-bottom:1px solid rgba(28,38,32,0.08); background:#F4F1EA;">
+            <div style="font-size:12px;"><strong>Arcaevo</strong> <span style="color:#7C887F;">&lt;hello@arcaevo.com&gt;</span></div>
+            <div style="font-size:13px; font-weight:700; margin-top:3px;">Your kit is on its way</div>
+          </div>
+          <div style="padding:28px 26px;">
+            <div style="width:20px; height:20px; border-radius:50%; background:radial-gradient(circle at 32% 30%, #5FB592, #1E5C45 70%); margin-bottom:16px;"></div>
+            <div style="font-family:'Instrument Serif',serif; font-size:21px; line-height:1.2; margin-bottom:10px;">In the post — expect it Thursday.</div>
+            <div style="background:#fff; border:1px solid rgba(28,38,32,0.1); border-radius:12px; padding:14px 16px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
+              <div><div style="font-size:12.5px; font-weight:700;">An Post tracked</div><div style="font-size:11px; color:#7C887F; font-family:'Geist Mono',monospace;">CE 4471 8820 3 IE</div></div>
+              <span style="border:1px solid #1C2620; border-radius:100px; padding:7px 13px; font-size:11.5px; font-weight:600;">Track</span>
+            </div>
+            <p style="font-size:13px; line-height:1.6; color:#4A554D; margin:0 0 16px;">While you wait: don't change anything about how you eat or train — we want your real baseline, not your best behaviour.</p>
+            <div style="font-size:11px; color:#7C887F; line-height:1.6; border-top:1px solid rgba(28,38,32,0.08); padding-top:12px;">Delivery details wrong? Fix them in Account before Thursday.</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="width:350px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">E6 · SAMPLE RECEIVED</div>
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.12); border-radius:16px; overflow:hidden; box-shadow:0 22px 44px -32px rgba(28,38,32,0.4);">
+          <div style="padding:14px 20px; border-bottom:1px solid rgba(28,38,32,0.08); background:#F4F1EA;">
+            <div style="font-size:12px;"><strong>Arcaevo</strong> <span style="color:#7C887F;">&lt;hello@arcaevo.com&gt;</span></div>
+            <div style="font-size:13px; font-weight:700; margin-top:3px;">It's at the lab — results in 24–48h</div>
+          </div>
+          <div style="padding:28px 26px;">
+            <div style="width:20px; height:20px; border-radius:50%; background:radial-gradient(circle at 32% 30%, #5FB592, #1E5C45 70%); margin-bottom:16px;"></div>
+            <div style="font-family:'Instrument Serif',serif; font-size:21px; line-height:1.2; margin-bottom:10px;">Your sample made it, in good condition.</div>
+            <p style="font-size:13px; line-height:1.6; color:#4A554D; margin:0 0 18px;">The lab received it this morning and processing has begun. Dr. Nolan reviews every value before you see it — expect the "results ready" email within two working days.</p>
+            <div style="background:#1E5C45; color:#fff; text-align:center; padding:12px; border-radius:100px; font-weight:600; font-size:13px; margin-bottom:16px;">Follow the journey</div>
+            <div style="font-size:11px; color:#7C887F; line-height:1.6; border-top:1px solid rgba(28,38,32,0.08); padding-top:12px;">Nothing to do now — we'll come to you the moment it's ready.</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="width:350px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">E8 · RENEWAL REMINDER — 30 DAYS OUT</div>
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.12); border-radius:16px; overflow:hidden; box-shadow:0 22px 44px -32px rgba(28,38,32,0.4);">
+          <div style="padding:14px 20px; border-bottom:1px solid rgba(28,38,32,0.08); background:#F4F1EA;">
+            <div style="font-size:12px;"><strong>Arcaevo</strong> <span style="color:#7C887F;">&lt;hello@arcaevo.com&gt;</span></div>
+            <div style="font-size:13px; font-weight:700; margin-top:3px;">Your year, and what's next</div>
+          </div>
+          <div style="padding:28px 26px;">
+            <div style="width:20px; height:20px; border-radius:50%; background:radial-gradient(circle at 32% 30%, #5FB592, #1E5C45 70%); margin-bottom:16px;"></div>
+            <div style="font-family:'Instrument Serif',serif; font-size:21px; line-height:1.2; margin-bottom:10px;">Twelve months, two panels, one habit that stuck.</div>
+            <p style="font-size:13px; line-height:1.6; color:#4A554D; margin:0 0 14px;">Your Essential membership renews on <strong>2 August at €329</strong> to Visa ···· 4242 — your next baseline kit ships the same day.</p>
+            <div style="display:flex; gap:10px; margin-bottom:16px;">
+              <div style="flex:1; background:#1E5C45; color:#fff; text-align:center; padding:12px; border-radius:100px; font-weight:600; font-size:12.5px;">Keep my membership</div>
+              <div style="flex:1; border:1px solid rgba(28,38,32,0.2); color:#1C2620; text-align:center; padding:12px; border-radius:100px; font-weight:600; font-size:12.5px;">Cancel renewal</div>
+            </div>
+            <div style="font-size:11px; color:#7C887F; line-height:1.6; border-top:1px solid rgba(28,38,32,0.08); padding-top:12px;">Cancelling keeps full access until 2 August, and your data stays yours either way.</div>
+          </div>
+        </div>
+        <p style="font-size:12.5px; line-height:1.55; color:#7C887F; margin:12px 4px 0;">Cancel gets equal visual weight — required under EU consumer rules, and the cheapest trust we'll ever buy.</p>
+      </div>
+
+      <div style="width:350px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">E10 · WAITLIST JOINED</div>
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.12); border-radius:16px; overflow:hidden; box-shadow:0 22px 44px -32px rgba(28,38,32,0.4);">
+          <div style="padding:14px 20px; border-bottom:1px solid rgba(28,38,32,0.08); background:#F4F1EA;">
+            <div style="font-size:12px;"><strong>Arcaevo</strong> <span style="color:#7C887F;">&lt;hello@arcaevo.com&gt;</span></div>
+            <div style="font-size:13px; font-weight:700; margin-top:3px;">You're on the list for Cork</div>
+          </div>
+          <div style="padding:28px 26px;">
+            <div style="width:20px; height:20px; border-radius:50%; background:radial-gradient(circle at 32% 30%, #5FB592, #1E5C45 70%); margin-bottom:16px;"></div>
+            <div style="font-family:'Instrument Serif',serif; font-size:21px; line-height:1.2; margin-bottom:10px;">№ 214 in Cork. We open by demand.</div>
+            <p style="font-size:13px; line-height:1.6; color:#4A554D; margin:0 0 18px;">You'll hear from us once a month on where the map opens next — and the day Cork goes live, you get 30 days of founding-member pricing before anyone else.</p>
+            <div style="background:#1E5C45; color:#fff; text-align:center; padding:12px; border-radius:100px; font-weight:600; font-size:13px; margin-bottom:16px;">Start with Fusion meanwhile — €119/yr</div>
+            <div style="font-size:11px; color:#7C887F; line-height:1.6; border-top:1px solid rgba(28,38,32,0.08); padding-top:12px;">Fusion works anywhere today: your Watch plus any past bloodwork. Leave the list anytime with one click.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 13 BLOODWORK UPLOAD ============ -->
+  <section id="upload" data-screen-label="Bloodwork upload" style="max-width:1180px; margin:0 auto; padding:56px 48px;">
+    <div style="display:flex; align-items:baseline; gap:16px; border-top:1px solid rgba(28,38,32,0.14); padding-top:28px; margin-bottom:16px;">
+      <span style="font-family:'Geist Mono',monospace; font-size:12px; color:#1E5C45; letter-spacing:0.14em;">13</span>
+      <h2 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:38px; margin:0; letter-spacing:-0.01em;">Bloodwork upload — Fusion's engine</h2>
+    </div>
+    <p style="font-size:16px; line-height:1.6; color:#4A554D; max-width:66ch; margin:0 0 40px;">Fusion is sold on "bring your own bloodwork" — this is that flow. AI reads the document; the user confirms every value before it becomes data. Nothing enters the timeline unreviewed.</p>
+
+    <div style="display:flex; gap:26px; flex-wrap:wrap; align-items:flex-start;">
+
+      <div style="width:236px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">U1 · ADD BLOODWORK</div>
+        <div style="background:#1C2620; border-radius:36px; padding:7px; box-shadow:0 22px 44px -28px rgba(28,38,32,0.55);">
+          <div style="width:100%; height:450px; background:#ECE7DD; border-radius:29px; overflow:hidden; padding:26px 18px 18px; color:#1C2620;">
+            <div style="font-family:'Geist Mono',monospace; font-size:10px; color:#1E5C45; letter-spacing:0.1em; margin-bottom:12px;">ADD BLOODWORK</div>
+            <div style="font-family:'Instrument Serif',serif; font-size:22px; line-height:1.12; margin-bottom:8px;">Got old results? They still count.</div>
+            <div style="font-size:11.5px; color:#4A554D; line-height:1.55; margin-bottom:16px;">A GP letter, a hospital printout, a PDF from another service — AI reads them all, and you approve every number.</div>
+            <div style="background:#fff; border:1px solid rgba(28,38,32,0.12); border-radius:13px; padding:13px 14px; margin-bottom:9px; display:flex; gap:11px; align-items:center;"><span style="font-size:17px;">⌗</span><div><div style="font-size:12.5px; font-weight:700;">Photograph a printout</div><div style="font-size:10.5px; color:#7C887F;">Best in daylight, flat on a table</div></div></div>
+            <div style="background:#fff; border:1px solid rgba(28,38,32,0.12); border-radius:13px; padding:13px 14px; margin-bottom:9px; display:flex; gap:11px; align-items:center;"><span style="font-size:17px;">▤</span><div><div style="font-size:12.5px; font-weight:700;">Upload a PDF</div><div style="font-size:10.5px; color:#7C887F;">From Files, Mail or another app</div></div></div>
+            <div style="background:#fff; border:1px solid rgba(28,38,32,0.12); border-radius:13px; padding:13px 14px; margin-bottom:14px; display:flex; gap:11px; align-items:center;"><span style="font-size:17px;">✎</span><div><div style="font-size:12.5px; font-weight:700;">Type values by hand</div><div style="font-size:10.5px; color:#7C887F;">Just a few markers? Faster to type</div></div></div>
+            <div style="font-size:10.5px; color:#7C887F; text-align:center; line-height:1.5;">Processed in the EU · the original file is yours to delete anytime</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="align-self:center; font-family:'Geist Mono',monospace; color:#7C887F; font-size:18px;">→</div>
+
+      <div style="width:236px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">U2 · CONFIRM WHAT AI READ</div>
+        <div style="background:#1C2620; border-radius:36px; padding:7px; box-shadow:0 22px 44px -28px rgba(28,38,32,0.55);">
+          <div style="width:100%; height:450px; background:#ECE7DD; border-radius:29px; overflow:hidden; padding:26px 18px 18px; color:#1C2620;">
+            <div style="font-family:'Geist Mono',monospace; font-size:10px; color:#1E5C45; letter-spacing:0.1em; margin-bottom:12px;">CHECK THE READING · 12 MARKERS FOUND</div>
+            <div style="font-family:'Instrument Serif',serif; font-size:20px; line-height:1.15; margin-bottom:12px;">St. Vincent's · 14 Feb 2026 — look right?</div>
+            <div style="background:#fff; border:1px solid rgba(28,38,32,0.12); border-radius:12px; padding:11px 13px; margin-bottom:7px; display:flex; justify-content:space-between; align-items:center;"><div><div style="font-size:12px; font-weight:700;">Total cholesterol</div><div style="font-size:10px; color:#7C887F;">mmol/L</div></div><span style="font-family:'Geist Mono',monospace; font-size:14px;">5.1</span></div>
+            <div style="background:#fff; border:1px solid rgba(28,38,32,0.12); border-radius:12px; padding:11px 13px; margin-bottom:7px; display:flex; justify-content:space-between; align-items:center;"><div><div style="font-size:12px; font-weight:700;">HDL</div><div style="font-size:10px; color:#7C887F;">mmol/L</div></div><span style="font-family:'Geist Mono',monospace; font-size:14px;">1.4</span></div>
+            <div style="background:rgba(217,154,78,0.08); border:1.5px solid rgba(217,154,78,0.5); border-radius:12px; padding:11px 13px; margin-bottom:12px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;"><div><div style="font-size:12px; font-weight:700;">Ferritin</div><div style="font-size:10px; color:#B3543A;">Low confidence — was this 41 or 47?</div></div><span style="font-family:'Geist Mono',monospace; font-size:14px; border-bottom:2px solid #D99A4E;">4_</span></div>
+            </div>
+            <div style="background:#1E5C45; color:#fff; text-align:center; padding:12px; border-radius:100px; font-weight:600; font-size:12.5px; margin-bottom:8px;">Looks right — add all 12</div>
+            <div style="text-align:center; font-size:11px; color:#7C887F;">View the original side-by-side</div>
+          </div>
+        </div>
+        <p style="font-size:12.5px; line-height:1.55; color:#7C887F; margin:12px 4px 0;">Uncertain reads are flagged, never guessed. Units are converted (mg/dL ↔ mmol/L) with the original preserved.</p>
+      </div>
+
+      <div style="align-self:center; font-family:'Geist Mono',monospace; color:#7C887F; font-size:18px;">→</div>
+
+      <div style="width:236px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">U3 · IN THE TIMELINE</div>
+        <div style="background:#1C2620; border-radius:36px; padding:7px; box-shadow:0 22px 44px -28px rgba(28,38,32,0.55);">
+          <div style="width:100%; height:450px; background:#1C2620; border-radius:29px; overflow:hidden; padding:26px 18px 18px; color:#F4F1EA;">
+            <div style="font-family:'Geist Mono',monospace; font-size:10px; color:#8FA89A; letter-spacing:0.1em; margin-bottom:12px;">TOTAL CHOLESTEROL · 2 YEARS</div>
+            <div style="background:rgba(255,255,255,0.06); border-radius:14px; padding:14px; margin-bottom:12px;">
+              <svg viewBox="0 0 200 70" style="width:100%; height:64px;">
+                <polyline points="14,26 88,34" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="2" stroke-dasharray="4 4"></polyline>
+                <polyline points="88,34 168,44" fill="none" stroke="#34A07C" stroke-width="2.5" stroke-linecap="round"></polyline>
+                <circle cx="14" cy="26" r="4" fill="none" stroke="#D9C9A4" stroke-width="2"></circle>
+                <circle cx="88" cy="34" r="4" fill="none" stroke="#D9C9A4" stroke-width="2"></circle>
+                <circle cx="168" cy="44" r="4.5" fill="#34A07C"></circle>
+              </svg>
+              <div style="display:flex; justify-content:space-between; font-family:'Geist Mono',monospace; font-size:9px; color:#8FA89A;"><span>FEB 25</span><span>FEB 26</span><span>JUL 26</span></div>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center; margin-bottom:12px;">
+              <span style="width:10px; height:10px; border-radius:50%; border:2px solid #D9C9A4;"></span><span style="font-size:11px; color:#CFD6CF;">Self-reported · St. Vincent's</span>
+              <span style="width:10px; height:10px; border-radius:50%; background:#34A07C; margin-left:8px;"></span><span style="font-size:11px; color:#CFD6CF;">Arcaevo lab</span>
+            </div>
+            <div style="background:rgba(255,255,255,0.06); border-radius:14px; padding:13px;">
+              <div style="font-family:'Geist Mono',monospace; font-size:9px; color:#7FD3AE; letter-spacing:0.1em; margin-bottom:6px;">WHAT THIS UNLOCKS</div>
+              <div style="font-size:12px; line-height:1.55; color:#CFD6CF;">Two years of history means your baseline starts today, not in six months. Trend verdicts now reach back to Feb 2025.</div>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:12.5px; line-height:1.55; color:#7C887F; margin:12px 4px 0;">Self-reported points are visually distinct forever — hollow markers — and excluded from clinician-reviewed claims.</p>
+      </div>
+
+      <div style="flex:1; min-width:280px; max-width:360px; display:flex; flex-direction:column; gap:14px;">
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:14px; padding:20px;">
+          <div style="font-size:14px; font-weight:700; margin-bottom:6px;">Also the Essential upsell</div>
+          <p style="font-size:13.5px; line-height:1.6; color:#4A554D; margin:0;">Once old bloodwork is in, the gap sells itself: "Your last panel is 17 months old — a fresh baseline would tell us what's changed." The upgrade prompt quotes their own data age.</p>
+        </div>
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:14px; padding:20px;">
+          <div style="font-size:14px; font-weight:700; margin-bottom:6px;">Works on web too</div>
+          <p style="font-size:13.5px; line-height:1.6; color:#4A554D; margin:0;">Same three steps at arcaevo.com/account — drag a PDF in. People keep lab results on laptops, not phones.</p>
+        </div>
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:14px; padding:20px;">
+          <div style="font-size:14px; font-weight:700; margin-bottom:6px;">Failure is honest</div>
+          <p style="font-size:13.5px; line-height:1.6; color:#4A554D; margin:0;">Unreadable photo → "We couldn't read this one — try daylight, or type the values." Never a silent partial import.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 14 WHEN THINGS GO WRONG ============ -->
+  <section id="edges" data-screen-label="When things go wrong" style="max-width:1180px; margin:0 auto; padding:56px 48px;">
+    <div style="display:flex; align-items:baseline; gap:16px; border-top:1px solid rgba(28,38,32,0.14); padding-top:28px; margin-bottom:16px;">
+      <span style="font-family:'Geist Mono',monospace; font-size:12px; color:#1E5C45; letter-spacing:0.14em;">14</span>
+      <h2 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:38px; margin:0; letter-spacing:-0.01em;">When things go wrong</h2>
+    </div>
+    <p style="font-size:16px; line-height:1.6; color:#4A554D; max-width:66ch; margin:0 0 40px;">A health product is judged on its worst day, not its best. Four states, designed before they're needed — plus the waitlist promise kept.</p>
+
+    <div style="display:flex; gap:26px; flex-wrap:wrap; align-items:flex-start; margin-bottom:36px;">
+
+      <div style="width:236px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#B3543A; margin-bottom:10px;">X1 · CRITICAL VALUE — CLINICIAN FIRST</div>
+        <div style="background:#1C2620; border-radius:36px; padding:7px; box-shadow:0 22px 44px -28px rgba(28,38,32,0.55);">
+          <div style="width:100%; height:450px; background:#ECE7DD; border-radius:29px; overflow:hidden; padding:26px 18px 18px; color:#1C2620;">
+            <div style="font-family:'Geist Mono',monospace; font-size:10px; color:#1E5C45; letter-spacing:0.1em; margin-bottom:12px;">YOUR RESULTS</div>
+            <div style="font-family:'Instrument Serif',serif; font-size:22px; line-height:1.15; margin-bottom:10px;">Dr. Nolan would like a word first.</div>
+            <div style="font-size:12px; color:#4A554D; line-height:1.6; margin-bottom:16px;">One value on your panel needs a conversation before you read it alone. This is precaution, not panic — it's often a lab artefact or a fasting issue.</div>
+            <div style="background:#fff; border:1px solid rgba(28,38,32,0.12); border-radius:13px; padding:14px; margin-bottom:9px;">
+              <div style="font-size:12.5px; font-weight:700; margin-bottom:3px;">She'll call today</div>
+              <div style="font-size:11px; color:#7C887F; line-height:1.5;">Between 14:00–17:00 on 087 ··· ··21. From a Dublin number.</div>
+            </div>
+            <div style="border:1px solid rgba(28,38,32,0.2); text-align:center; padding:11px; border-radius:100px; font-weight:600; font-size:12px; margin-bottom:8px;">Choose a better time</div>
+            <div style="text-align:center; font-size:11px; color:#7C887F;">The rest of your panel is ready to read now</div>
+          </div>
+        </div>
+        <p style="font-size:12.5px; line-height:1.55; color:#7C887F; margin:12px 4px 0;">Phone first, app state second, never a red number in a push. Unreachable after 3 attempts in 48h → registered letter + GP notice, per the escalation SOP.</p>
+      </div>
+
+      <div style="width:320px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#D99A4E; margin-bottom:10px;">X2 · DUNNING — THE PAUSED STATE</div>
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.12); border-radius:16px; padding:24px;">
+          <div style="display:flex; gap:12px; margin-bottom:14px;"><span style="font-family:'Geist Mono',monospace; font-size:11px; color:#1E5C45; width:36px; flex-shrink:0;">D0</span><div style="font-size:13px; line-height:1.5;"><strong>Charge fails.</strong> Email E9 goes out; app shows a quiet banner: "Card issue — 14 days to sort it, everything still works."</div></div>
+          <div style="display:flex; gap:12px; margin-bottom:14px;"><span style="font-family:'Geist Mono',monospace; font-size:11px; color:#1E5C45; width:36px; flex-shrink:0;">D3·D10</span><div style="font-size:13px; line-height:1.5;"><strong>Retries.</strong> Two automatic retries. Banner persists; no push notifications, no red.</div></div>
+          <div style="display:flex; gap:12px; margin-bottom:14px;"><span style="font-family:'Geist Mono',monospace; font-size:11px; color:#1E5C45; width:36px; flex-shrink:0;">D14</span><div style="font-size:13px; line-height:1.5;"><strong>Pause, not punishment.</strong> Membership goes read-only: all history visible, no new tests or insights. "Your data is safe. Resume anytime."</div></div>
+          <div style="display:flex; gap:12px;"><span style="font-family:'Geist Mono',monospace; font-size:11px; color:#1E5C45; width:36px; flex-shrink:0;">ANY</span><div style="font-size:13px; line-height:1.5;"><strong>Update card → instant resume.</strong> Unused tests carry over. Deletion only ever happens by explicit request (<a href="#join" style="color:#1E5C45;">10</a>'s flow).</div></div>
+        </div>
+
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#D99A4E; margin:22px 0 10px;">X3 · FAILED SAMPLE — WE MOVE FIRST</div>
+        <div style="background:#1C2620; color:#F4F1EA; border-radius:16px; padding:22px;">
+          <div style="font-size:14px; font-weight:700; margin-bottom:6px;">"Your sample didn't survive the post — a new kit is already on its way."</div>
+          <p style="font-size:12.5px; line-height:1.6; color:#9FB0A6; margin:0 0 12px;">Sent within 24h of the lab flag, before the user wonders. Replacement is free, doesn't count against the plan, and the sample journey (<a href="#eligibility" style="color:#7FD3AE;">08</a>) shows the new leg — the timeline never just stops.</p>
+          <div style="font-family:'Geist Mono',monospace; font-size:10.5px; color:#8FA89A;">HAEMOLYSED · INSUFFICIENT · LOST IN TRANSIT — SAME PATTERN</div>
+        </div>
+      </div>
+
+      <div style="width:320px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">X4 · SUPPORT IN CONTEXT</div>
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.12); border-radius:16px; padding:24px; margin-bottom:22px;">
+          <p style="font-size:13.5px; line-height:1.6; color:#4A554D; margin:0 0 14px;">Every anxious moment carries a <strong>"Something wrong?"</strong> link — on the sample journey, checkout, dunning banner and results screens. It opens a message <em>pre-filled with context</em>:</p>
+          <div style="background:#fff; border:1px solid rgba(28,38,32,0.12); border-radius:12px; padding:14px; font-size:12.5px; line-height:1.6; color:#4A554D;">
+            <span style="font-family:'Geist Mono',monospace; font-size:10px; color:#1E5C45; letter-spacing:0.08em;">RE: KIT ARC-7F2K-D8 · AT THE LAB SINCE TUE</span><br>
+            "Hi Aoife — you're writing about your July sample. What's up?"
+          </div>
+          <p style="font-size:12.5px; line-height:1.55; color:#7C887F; margin:12px 0 0;">Replies within one working day from a person; the Help centre answers the rest. No chatbot theatre.</p>
+        </div>
+
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">X5 · THE WAITLIST PROMISE, KEPT</div>
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.12); border-radius:16px; overflow:hidden;">
+          <div style="padding:12px 18px; border-bottom:1px solid rgba(28,38,32,0.08); background:#F4F1EA;">
+            <div style="font-size:12px;"><strong>Arcaevo</strong> <span style="color:#7C887F;">&lt;hello@arcaevo.com&gt;</span></div>
+            <div style="font-size:13px; font-weight:700; margin-top:3px;">Cork, you're up.</div>
+          </div>
+          <div style="padding:20px 18px;">
+            <div style="font-family:'Instrument Serif',serif; font-size:18px; line-height:1.2; margin-bottom:8px;">We said you'd be next. You're next.</div>
+            <p style="font-size:12.5px; line-height:1.6; color:#4A554D; margin:0 0 14px;">Essential and Performance now serve T12 and all Cork routing keys. As one of the first 400 on the list, your founding-member price — €279 for year one — holds for 30 days.</p>
+            <div style="background:#1E5C45; color:#fff; text-align:center; padding:11px; border-radius:100px; font-weight:600; font-size:12.5px;">Claim founding-member pricing</div>
+          </div>
+        </div>
+        <p style="font-size:12.5px; line-height:1.55; color:#7C887F; margin:12px 4px 0;">Between joining and this email: a monthly one-liner on where the map is opening next, and live position in Account. A silent waitlist is a churned waitlist.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 15 GP SHARE ============ -->
+  <section id="gp-share" data-screen-label="GP share" style="max-width:1180px; margin:0 auto; padding:56px 48px;">
+    <div style="display:flex; align-items:baseline; gap:16px; border-top:1px solid rgba(28,38,32,0.14); padding-top:28px; margin-bottom:16px;">
+      <span style="font-family:'Geist Mono',monospace; font-size:12px; color:#1E5C45; letter-spacing:0.14em;">15</span>
+      <h2 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:38px; margin:0; letter-spacing:-0.01em;">Share with your GP</h2>
+    </div>
+    <p style="font-size:16px; line-height:1.6; color:#4A554D; max-width:66ch; margin:0 0 40px;">The feature most likely to earn word-of-mouth from Irish doctors: a clean clinician summary, shared by revocable link — not a screenshot of an app.</p>
+
+    <div style="display:flex; gap:26px; flex-wrap:wrap; align-items:flex-start;">
+      <div style="width:236px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">G1 · SHARE SHEET — iOS</div>
+        <div style="background:#1C2620; border-radius:36px; padding:7px; box-shadow:0 22px 44px -28px rgba(28,38,32,0.55);">
+          <div style="width:100%; height:450px; background:#ECE7DD; border-radius:29px; overflow:hidden; padding:26px 18px 18px; color:#1C2620;">
+            <div style="font-family:'Geist Mono',monospace; font-size:10px; color:#1E5C45; letter-spacing:0.1em; margin-bottom:12px;">SHARE WITH YOUR GP</div>
+            <div style="font-family:'Instrument Serif',serif; font-size:22px; line-height:1.12; margin-bottom:8px;">Bring your GP the whole picture.</div>
+            <div style="font-size:11.5px; color:#4A554D; line-height:1.55; margin-bottom:16px;">A two-page clinician summary: all results with dates and ranges, trend arrows, and your current experiments. No app required on their end.</div>
+            <div style="background:#fff; border:1px solid rgba(28,38,32,0.12); border-radius:13px; padding:13px 14px; margin-bottom:9px;">
+              <div style="font-size:12.5px; font-weight:700; margin-bottom:3px;">What's included</div>
+              <div style="font-size:11px; color:#7C887F; line-height:1.6;">✓ All lab results · 2 years<br>✓ Wearable trends summary<br>✗ Your notes &amp; experiments — off by default</div>
+            </div>
+            <div style="background:#fff; border:1px solid rgba(28,38,32,0.12); border-radius:13px; padding:13px 14px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
+              <div><div style="font-size:12.5px; font-weight:700;">Link expires</div><div style="font-size:10.5px; color:#7C887F;">After 30 days, or when you revoke it</div></div>
+              <span style="font-family:'Geist Mono',monospace; font-size:11px; color:#1E5C45;">30 DAYS</span>
+            </div>
+            <div style="background:#1E5C45; color:#fff; text-align:center; padding:12px; border-radius:100px; font-weight:600; font-size:12.5px;">Create secure link</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="align-self:center; font-family:'Geist Mono',monospace; color:#7C887F; font-size:18px;">→</div>
+
+      <div style="width:400px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">G2 · WHAT THE GP SEES — arcaevo.com/s/k7f2…</div>
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.12); border-radius:16px; overflow:hidden; box-shadow:0 22px 44px -32px rgba(28,38,32,0.4);">
+          <div style="display:flex; align-items:center; gap:6px; padding:10px 14px; border-bottom:1px solid rgba(28,38,32,0.08); background:#F4F1EA;">
+            <span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span><span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span><span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span>
+            <span style="font-family:'Geist Mono',monospace; font-size:10px; color:#7C887F; background:#FBFAF6; border-radius:6px; padding:3px 10px; margin-left:8px;">arcaevo.com/s/k7f2…</span>
+          </div>
+          <div style="padding:26px 28px;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;">
+              <div style="font-size:16px; font-weight:700;">Aoife Byrne · b. 1991</div>
+              <span style="font-family:'Geist Mono',monospace; font-size:10px; color:#7C887F;">SHARED 2 JUL · EXPIRES 1 AUG</span>
+            </div>
+            <div style="font-size:12px; color:#7C887F; margin-bottom:18px;">Clinician summary · lab values from VHI-accredited partner lab · reviewed by Dr. S. Nolan, IMC 412887</div>
+            <div style="display:grid; grid-template-columns:1.4fr 1fr 1fr 0.8fr; gap:8px; font-size:12px; padding:8px 12px; background:#F4F1EA; border-radius:8px; font-weight:700; margin-bottom:6px;"><span>Marker</span><span>Feb 2026</span><span>Jul 2026</span><span>Range</span></div>
+            <div style="display:grid; grid-template-columns:1.4fr 1fr 1fr 0.8fr; gap:8px; font-size:12.5px; padding:8px 12px; border-bottom:1px solid rgba(28,38,32,0.06);"><span style="font-weight:600;">ApoB</span><span style="font-family:'Geist Mono',monospace;">1.12 g/L</span><span style="font-family:'Geist Mono',monospace; color:#1E5C45;">0.94 ↓</span><span style="color:#7C887F; font-family:'Geist Mono',monospace;">&lt;1.00</span></div>
+            <div style="display:grid; grid-template-columns:1.4fr 1fr 1fr 0.8fr; gap:8px; font-size:12.5px; padding:8px 12px; border-bottom:1px solid rgba(28,38,32,0.06);"><span style="font-weight:600;">HbA1c</span><span style="font-family:'Geist Mono',monospace;">38 mmol/mol</span><span style="font-family:'Geist Mono',monospace;">37 →</span><span style="color:#7C887F; font-family:'Geist Mono',monospace;">&lt;42</span></div>
+            <div style="display:grid; grid-template-columns:1.4fr 1fr 1fr 0.8fr; gap:8px; font-size:12.5px; padding:8px 12px; border-bottom:1px solid rgba(28,38,32,0.06); margin-bottom:14px;"><span style="font-weight:600;">Ferritin</span><span style="font-family:'Geist Mono',monospace;">41 µg/L</span><span style="font-family:'Geist Mono',monospace; color:#B3543A;">29 ↓</span><span style="color:#7C887F; font-family:'Geist Mono',monospace;">30–200</span></div>
+            <div style="display:flex; gap:10px;">
+              <span style="border:1px solid #1C2620; border-radius:100px; padding:8px 16px; font-size:12px; font-weight:600;">Download PDF</span>
+              <span style="border:1px solid rgba(28,38,32,0.2); color:#7C887F; border-radius:100px; padding:8px 16px; font-size:12px;">Print</span>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:12.5px; line-height:1.55; color:#7C887F; margin:12px 4px 0;">Read-only, no account needed, IMC number visible — everything a GP needs to trust it in a 10-minute consult. Active links are listed and revocable in Account → Data &amp; privacy.</p>
+      </div>
+
+      <div style="flex:1; min-width:280px; max-width:360px; display:flex; flex-direction:column; gap:14px;">
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:14px; padding:20px;">
+          <div style="font-size:14px; font-weight:700; margin-bottom:6px;">Why a link, not a PDF attachment</div>
+          <p style="font-size:13.5px; line-height:1.6; color:#4A554D; margin:0;">Links can be revoked, expire on their own, and always show current data. The PDF is still one tap away — for the GP's paper file, generated fresh from the live page.</p>
+        </div>
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:14px; padding:20px;">
+          <div style="font-size:14px; font-weight:700; margin-bottom:6px;">Access is logged</div>
+          <p style="font-size:13.5px; line-height:1.6; color:#4A554D; margin:0;">"Opened twice — Dublin, 3 July" appears under the link in Account. The user always knows if — and when — it was actually read.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 16 REFERRALS & GIFTING ============ -->
+  <section id="referrals" data-screen-label="Referrals and gifting" style="max-width:1180px; margin:0 auto; padding:56px 48px;">
+    <div style="display:flex; align-items:baseline; gap:16px; border-top:1px solid rgba(28,38,32,0.14); padding-top:28px; margin-bottom:16px;">
+      <span style="font-family:'Geist Mono',monospace; font-size:12px; color:#1E5C45; letter-spacing:0.14em;">16</span>
+      <h2 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:38px; margin:0; letter-spacing:-0.01em;">Referrals &amp; gifting</h2>
+    </div>
+    <p style="font-size:16px; line-height:1.6; color:#4A554D; max-width:66ch; margin:0 0 40px;">Health memberships travel by recommendation and land as gifts. Both flows reward without gamifying — no leaderboards, no streaks, no spam mechanics.</p>
+
+    <div style="display:flex; gap:26px; flex-wrap:wrap; align-items:flex-start;">
+      <div style="width:236px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">R1 · GIVE A MONTH, GET A MONTH</div>
+        <div style="background:#1C2620; border-radius:36px; padding:7px; box-shadow:0 22px 44px -28px rgba(28,38,32,0.55);">
+          <div style="width:100%; height:450px; background:#ECE7DD; border-radius:29px; overflow:hidden; padding:26px 18px 18px; color:#1C2620;">
+            <div style="font-family:'Geist Mono',monospace; font-size:10px; color:#1E5C45; letter-spacing:0.1em; margin-bottom:12px;">INVITE SOMEONE</div>
+            <div style="font-family:'Instrument Serif',serif; font-size:22px; line-height:1.12; margin-bottom:8px;">Know someone who'd want this?</div>
+            <div style="font-size:11.5px; color:#4A554D; line-height:1.55; margin-bottom:16px;">They get a month free on any plan. When they join, a free month lands on your renewal. That's the whole scheme.</div>
+            <div style="background:#fff; border:1.5px dashed rgba(28,38,32,0.25); border-radius:13px; padding:16px; text-align:center; margin-bottom:9px;">
+              <div style="font-family:'Geist Mono',monospace; font-size:16px; letter-spacing:0.12em; margin-bottom:3px;">AOIFE-K4</div>
+              <div style="font-size:10.5px; color:#7C887F;">Your code — tap to copy</div>
+            </div>
+            <div style="background:#1E5C45; color:#fff; text-align:center; padding:12px; border-radius:100px; font-weight:600; font-size:12.5px; margin-bottom:9px;">Share invite link</div>
+            <div style="background:#fff; border:1px solid rgba(28,38,32,0.12); border-radius:13px; padding:12px 14px;">
+              <div style="font-size:11px; color:#7C887F; line-height:1.6;">2 joined so far → 2 free months applied<br><span style="color:#1E5C45; font-weight:600;">Renewal now 2 Oct 2027</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="width:400px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">R2 · GIFT ESSENTIAL — arcaevo.com/gift</div>
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.12); border-radius:16px; overflow:hidden; box-shadow:0 22px 44px -32px rgba(28,38,32,0.4);">
+          <div style="display:flex; align-items:center; gap:6px; padding:10px 14px; border-bottom:1px solid rgba(28,38,32,0.08); background:#F4F1EA;">
+            <span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span><span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span><span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span>
+            <span style="font-family:'Geist Mono',monospace; font-size:10px; color:#7C887F; background:#FBFAF6; border-radius:6px; padding:3px 10px; margin-left:8px;">arcaevo.com/gift</span>
+          </div>
+          <div style="padding:28px;">
+            <div style="font-family:'Instrument Serif',serif; font-size:23px; line-height:1.15; margin-bottom:8px;">Give someone a year of knowing.</div>
+            <div style="font-size:13px; color:#7C887F; line-height:1.55; margin-bottom:18px;">A full Essential year — two tests, the app, everything. You pay today; their year starts when they activate, not when you buy.</div>
+            <div style="display:flex; gap:10px; margin-bottom:14px;">
+              <div style="flex:1; border:1.5px solid #1E5C45; background:rgba(52,160,124,0.06); border-radius:12px; padding:14px; text-align:center;"><div style="font-size:13px; font-weight:700;">By email</div><div style="font-size:11px; color:#7C887F;">On the morning you choose</div></div>
+              <div style="flex:1; border:1px solid rgba(28,38,32,0.14); border-radius:12px; padding:14px; text-align:center;"><div style="font-size:13px; font-weight:700;">Printed card</div><div style="font-size:11px; color:#7C887F;">Posted to you, to hand over</div></div>
+            </div>
+            <div style="font-size:12px; font-weight:600; margin-bottom:6px;">A note from you <span style="color:#7C887F; font-weight:400;">· optional</span></div>
+            <div style="border:1px solid rgba(28,38,32,0.16); border-radius:10px; padding:11px 14px; font-size:13px; color:#4A554D; background:#fff; margin-bottom:16px; font-style:italic;">"Happy 40th, Dara. Now you can stop guessing."</div>
+            <div style="background:#1E5C45; color:#fff; text-align:center; padding:13px; border-radius:100px; font-weight:600; font-size:14px;">Gift Essential — €329</div>
+            <div style="font-size:11.5px; color:#7C887F; text-align:center; margin-top:10px;">Recipient outside Dublin? The gift converts to Fusion + waitlist priority, or a full refund — their choice.</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="flex:1; min-width:280px; max-width:360px; display:flex; flex-direction:column; gap:14px;">
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:14px; padding:20px;">
+          <div style="font-size:14px; font-weight:700; margin-bottom:6px;">Redemption is the sign-up flow</div>
+          <p style="font-size:13.5px; line-height:1.6; color:#4A554D; margin:0;">A gift code slots into <a href="#join" style="color:#1E5C45;">03</a> as a pre-paid plan — same account creation, same consent gate, same Eircode check with the same honest fallback. No parallel system.</p>
+        </div>
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:14px; padding:20px;">
+          <div style="font-size:14px; font-weight:700; margin-bottom:6px;">Gifts never see the data</div>
+          <p style="font-size:13.5px; line-height:1.6; color:#4A554D; margin:0;">The buyer gets one email — "Dara activated your gift" — and nothing else, ever. Health data starts and ends with the recipient.</p>
+        </div>
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:14px; padding:20px;">
+          <div style="font-size:14px; font-weight:700; margin-bottom:6px;">December is the reason</div>
+          <p style="font-size:13.5px; line-height:1.6; color:#4A554D; margin:0;">The printed card exists for one season. It should feel like a hardback: cream stock, the orb debossed, the code under a scratch panel.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 17 SECURITY ============ -->
+  <section id="security" data-screen-label="Sign-in security" style="max-width:1180px; margin:0 auto; padding:56px 48px;">
+    <div style="display:flex; align-items:baseline; gap:16px; border-top:1px solid rgba(28,38,32,0.14); padding-top:28px; margin-bottom:16px;">
+      <span style="font-family:'Geist Mono',monospace; font-size:12px; color:#1E5C45; letter-spacing:0.14em;">17</span>
+      <h2 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:38px; margin:0; letter-spacing:-0.01em;">Sign-in &amp; security — the full surface</h2>
+    </div>
+    <p style="font-size:16px; line-height:1.6; color:#4A554D; max-width:66ch; margin:0 0 40px;">The Account tab from <a href="#join" style="color:#1E5C45;">10</a>, designed out: passkeys as the natural upgrade from magic links, optional 2FA, sessions you can end, and the Apple question answered on a timeline.</p>
+
+    <div style="display:flex; gap:28px; flex-wrap:wrap; align-items:flex-start;">
+      <div style="width:520px; max-width:100%;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">W12 · ACCOUNT → SIGN-IN &amp; SECURITY</div>
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.12); border-radius:16px; overflow:hidden; box-shadow:0 22px 44px -32px rgba(28,38,32,0.4);">
+          <div style="display:flex; align-items:center; gap:6px; padding:10px 14px; border-bottom:1px solid rgba(28,38,32,0.08); background:#F4F1EA;">
+            <span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span><span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span><span style="width:8px; height:8px; border-radius:50%; background:rgba(28,38,32,0.15);"></span>
+            <span style="font-family:'Geist Mono',monospace; font-size:10px; color:#7C887F; background:#FBFAF6; border-radius:6px; padding:3px 10px; margin-left:8px;">arcaevo.com/account/security</span>
+          </div>
+          <div style="padding:26px 28px;">
+            <div style="background:rgba(52,160,124,0.08); border:1px solid rgba(52,160,124,0.3); border-radius:14px; padding:16px 18px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; gap:14px;">
+              <div><div style="font-size:13.5px; font-weight:700; margin-bottom:2px;">Add a passkey — skip passwords entirely</div><div style="font-size:12px; color:#4A554D; line-height:1.5;">Face ID or Touch ID becomes your sign-in. Nothing to remember, nothing to steal.</div></div>
+              <span style="border:1px solid #1E5C45; color:#1E5C45; border-radius:100px; padding:8px 16px; font-size:12px; font-weight:600; flex-shrink:0;">Add passkey</span>
+            </div>
+            <div style="border:1px solid rgba(28,38,32,0.1); border-radius:14px; padding:16px 18px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; gap:14px;">
+              <div><div style="font-size:13.5px; font-weight:700; margin-bottom:2px;">Password</div><div style="font-size:12px; color:#7C887F;">Set · last changed March 2026</div></div>
+              <span style="border:1px solid rgba(28,38,32,0.2); border-radius:100px; padding:8px 16px; font-size:12px; font-weight:600; flex-shrink:0;">Change</span>
+            </div>
+            <div style="border:1px solid rgba(28,38,32,0.1); border-radius:14px; padding:16px 18px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; gap:14px;">
+              <div><div style="font-size:13.5px; font-weight:700; margin-bottom:2px;">Two-factor authentication</div><div style="font-size:12px; color:#7C887F;">Authenticator app (TOTP) · optional, recommended</div></div>
+              <span style="width:34px; height:20px; border-radius:100px; background:rgba(28,38,32,0.18); position:relative; flex-shrink:0;"><span style="position:absolute; left:2px; top:2px; width:16px; height:16px; border-radius:50%; background:#fff;"></span></span>
+            </div>
+            <div style="border:1px solid rgba(28,38,32,0.1); border-radius:14px; padding:16px 18px;">
+              <div style="font-size:13.5px; font-weight:700; margin-bottom:10px;">Where you're signed in</div>
+              <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(28,38,32,0.06);"><div style="font-size:12.5px;"><strong>iPhone 16 · Arcaevo app</strong><span style="color:#7C887F;"> — this device, Dublin</span></div><span style="font-family:'Geist Mono',monospace; font-size:10px; color:#1E5C45;">NOW</span></div>
+              <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(28,38,32,0.06);"><div style="font-size:12.5px;"><strong>Safari · MacBook</strong><span style="color:#7C887F;"> — Dublin, 2 days ago</span></div><span style="font-size:11.5px; color:#B3543A; font-weight:600;">End session</span></div>
+              <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0 0;"><span style="font-size:12.5px; color:#7C887F;">Sign out of everything else</span><span style="font-size:11.5px; color:#B3543A; font-weight:600;">Sign out all</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="flex:1; min-width:320px; max-width:480px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">AUTH ROADMAP — ONE MODEL, THREE PHASES</div>
+        <div style="background:#1C2620; color:#F4F1EA; border-radius:16px; padding:26px;">
+          <div style="display:flex; gap:14px; margin-bottom:16px;"><span style="font-family:'Geist Mono',monospace; font-size:11px; color:#7FD3AE; width:60px; flex-shrink:0;">LAUNCH</span><div><div style="font-size:13.5px; font-weight:700;">Email + password · magic links</div><div style="font-size:12px; color:#9FB0A6; line-height:1.55;">Every account has a real, reachable address. No relay emails in the early cohort.</div></div></div>
+          <div style="display:flex; gap:14px; margin-bottom:16px;"><span style="font-family:'Geist Mono',monospace; font-size:11px; color:#7FD3AE; width:60px; flex-shrink:0;">+3 MO</span><div><div style="font-size:13.5px; font-weight:700;">Passkeys + optional TOTP</div><div style="font-size:12px; color:#9FB0A6; line-height:1.55;">Same email-first identity — the passkey just replaces the typing. Prompted after third sign-in, never during onboarding.</div></div></div>
+          <div style="display:flex; gap:14px; margin-bottom:18px;"><span style="font-family:'Geist Mono',monospace; font-size:11px; color:#7FD3AE; width:60px; flex-shrink:0;">LATER</span><div><div style="font-size:13.5px; font-weight:700;">Sign in with Apple</div><div style="font-size:12px; color:#9FB0A6; line-height:1.55;">Added as a convenience once the founding cohort is established; relay addresses accepted then. Links to the existing account by verified email.</div></div></div>
+          <div style="border-top:1px solid rgba(255,255,255,0.1); padding-top:14px; font-size:12px; color:#9FB0A6; line-height:1.6;">HealthKit sync never depends on any of this — it's a device permission (<a href="#join" style="color:#7FD3AE;">09 · P4</a>), not an identity. The Apple question is a convenience question, and convenience can wait.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 18 ADMIN OPS ============ -->
+  <section id="admin-ops" data-screen-label="Admin operations" style="max-width:1180px; margin:0 auto; padding:56px 48px;">
+    <div style="display:flex; align-items:baseline; gap:16px; border-top:1px solid rgba(28,38,32,0.14); padding-top:28px; margin-bottom:16px;">
+      <span style="font-family:'Geist Mono',monospace; font-size:12px; color:#1E5C45; letter-spacing:0.14em;">18</span>
+      <h2 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:38px; margin:0; letter-spacing:-0.01em;">Admin — the three ops views</h2>
+    </div>
+    <p style="font-size:16px; line-height:1.6; color:#4A554D; max-width:66ch; margin:0 0 40px;">Additions to the existing Admin console: where to open next, whether the gate is behaving, and proof the consent system holds. Expansion decisions come from here, not from gut feel.</p>
+
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:18px;">
+      <div style="background:#1C2620; color:#F4F1EA; border-radius:18px; padding:24px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7FD3AE; margin-bottom:14px;">ADM-1 · WAITLIST DEMAND</div>
+        <div style="font-size:15px; font-weight:700; margin-bottom:14px;">Where do we open next?</div>
+        <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:14px;">
+          <div><div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;"><span style="font-weight:600;">Cork</span><span style="font-family:'Geist Mono',monospace; color:#7FD3AE;">1,214</span></div><div style="height:6px; border-radius:100px; background:rgba(255,255,255,0.08);"><div style="width:86%; height:100%; border-radius:100px; background:#34A07C;"></div></div></div>
+          <div><div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;"><span style="font-weight:600;">Galway</span><span style="font-family:'Geist Mono',monospace; color:#7FD3AE;">689</span></div><div style="height:6px; border-radius:100px; background:rgba(255,255,255,0.08);"><div style="width:49%; height:100%; border-radius:100px; background:#34A07C;"></div></div></div>
+          <div><div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;"><span style="font-weight:600;">Limerick</span><span style="font-family:'Geist Mono',monospace; color:#7FD3AE;">412</span></div><div style="height:6px; border-radius:100px; background:rgba(255,255,255,0.08);"><div style="width:29%; height:100%; border-radius:100px; background:#34A07C;"></div></div></div>
+          <div><div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;"><span style="font-weight:600;">Kildare / Meath commuter belt</span><span style="font-family:'Geist Mono',monospace; color:#7FD3AE;">387</span></div><div style="height:6px; border-radius:100px; background:rgba(255,255,255,0.08);"><div style="width:27%; height:100%; border-radius:100px; background:#34A07C;"></div></div></div>
+        </div>
+        <div style="font-size:11.5px; color:#9FB0A6; line-height:1.55; border-top:1px solid rgba(255,255,255,0.1); padding-top:12px;">Cork crosses the 1,000-signup line → triggers the courier-partner checklist and the "Cork, you're up" send (<a href="#edges" style="color:#7FD3AE;">14 · X5</a>).</div>
+      </div>
+
+      <div style="background:#1C2620; color:#F4F1EA; border-radius:18px; padding:24px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7FD3AE; margin-bottom:14px;">ADM-2 · ELIGIBILITY CONFIG</div>
+        <div style="font-size:15px; font-weight:700; margin-bottom:14px;">The gate is data, not a deploy</div>
+        <div style="background:rgba(255,255,255,0.06); border-radius:12px; padding:14px; margin-bottom:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;"><span style="font-size:12.5px; font-weight:700;">Dublin</span><span style="font-family:'Geist Mono',monospace; font-size:9px; color:#04130D; background:#34A07C; padding:3px 8px; border-radius:100px;">LIVE</span></div>
+          <div style="font-family:'Geist Mono',monospace; font-size:11px; color:#9FB0A6; line-height:1.7;">D01–D18 D20 D22 D24 D6W A94 A96<br>K32 K34 K36 K45 K56 K67 K78</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.06); border-radius:12px; padding:14px; margin-bottom:14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;"><span style="font-size:12.5px; font-weight:700;">Cork</span><span style="font-family:'Geist Mono',monospace; font-size:9px; color:#E9BC85; border:1px solid rgba(217,154,78,0.5); padding:3px 8px; border-radius:100px;">STAGED · OPENS 1 SEP</span></div>
+        </div>
+        <div style="font-size:11.5px; color:#9FB0A6; line-height:1.55; border-top:1px solid rgba(255,255,255,0.1); padding-top:12px;">Checks last 7 days: 1,842 · <span style="color:#7FD3AE;">71% pass</span> · top rejected key T12 (Cork). Staged regions flip on schedule, with the founding-member window armed automatically.</div>
+      </div>
+
+      <div style="background:#1C2620; color:#F4F1EA; border-radius:18px; padding:24px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7FD3AE; margin-bottom:14px;">ADM-3 · CONSENT AUDIT</div>
+        <div style="font-size:15px; font-weight:700; margin-bottom:14px;">Prove it, per person, per purpose</div>
+        <div style="font-family:'Geist Mono',monospace; font-size:10.5px; line-height:2; color:#CFD6CF; background:rgba(255,255,255,0.05); border-radius:12px; padding:14px; margin-bottom:14px;">
+          <div style="display:flex; justify-content:space-between;"><span>a.byrne@… · health-processing</span><span style="color:#7FD3AE;">v2 · GRANTED</span></div>
+          <div style="display:flex; justify-content:space-between;"><span>a.byrne@… · clinician-review</span><span style="color:#7FD3AE;">v2 · GRANTED</span></div>
+          <div style="display:flex; justify-content:space-between;"><span>a.byrne@… · research</span><span style="color:#8FA89A;">v2 · DECLINED</span></div>
+          <div style="display:flex; justify-content:space-between;"><span>d.walsh@… · health-processing</span><span style="color:#E9BC85;">v1 · RE-CONSENT DUE</span></div>
+        </div>
+        <div style="font-size:11.5px; color:#9FB0A6; line-height:1.55; border-top:1px solid rgba(255,255,255,0.1); padding-top:12px;">Every grant stores wording version, timestamp and surface. When the notice ships v3, this view shows exactly who needs the re-consent screen — and erasure requests show a 30-day countdown to completion.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 19 LATER TIERS ============ -->
+  <section id="later" data-screen-label="Household corporate wearables" style="max-width:1180px; margin:0 auto; padding:56px 48px 20px;">
+    <div style="display:flex; align-items:baseline; gap:16px; border-top:1px solid rgba(28,38,32,0.14); padding-top:28px; margin-bottom:16px;">
+      <span style="font-family:'Geist Mono',monospace; font-size:12px; color:#1E5C45; letter-spacing:0.14em;">19</span>
+      <h2 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:38px; margin:0; letter-spacing:-0.01em;">The later tiers — designed enough to build</h2>
+    </div>
+    <p style="font-size:16px; line-height:1.6; color:#4A554D; max-width:66ch; margin:0 0 40px;">Household, corporate and non-Apple wearables, each resolved to its key screen so the roadmap has a picture, not a bullet point.</p>
+
+    <div style="display:flex; gap:26px; flex-wrap:wrap; align-items:flex-start;">
+
+      <div style="width:350px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">L1 · HOUSEHOLD — ONE BILL, SEALED DATA</div>
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.12); border-radius:16px; padding:24px;">
+          <div style="font-family:'Instrument Serif',serif; font-size:20px; line-height:1.2; margin-bottom:14px;">Household — Essential ×2, €595/yr</div>
+          <div style="border:1px solid rgba(28,38,32,0.1); border-radius:12px; padding:13px 15px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+            <div><div style="font-size:13px; font-weight:700;">Aoife <span style="font-family:'Geist Mono',monospace; font-size:9px; color:#1E5C45; letter-spacing:0.08em; margin-left:4px;">OWNER · PAYS</div><div style="font-size:11.5px; color:#7C887F;">Sees: billing, her own data. Nothing of Dara's.</div></div>
+          </div>
+          <div style="border:1px solid rgba(28,38,32,0.1); border-radius:12px; padding:13px 15px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
+            <div><div style="font-size:13px; font-weight:700;">Dara <span style="font-family:'Geist Mono',monospace; font-size:9px; color:#7C887F; letter-spacing:0.08em; margin-left:4px;">MEMBER</span></div><div style="font-size:11.5px; color:#7C887F;">Own account, own consent, own results — invited by email, can leave and keep everything.</div></div>
+          </div>
+          <p style="font-size:12.5px; line-height:1.6; color:#4A554D; margin:0;">Data sharing between partners exists only as each person's explicit, revocable choice — a "share my dashboard" toggle, off by default, never a couple's view by design.</p>
+        </div>
+      </div>
+
+      <div style="width:350px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">L2 · CORPORATE — CODES, NOT DASHBOARDS</div>
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.12); border-radius:16px; padding:24px;">
+          <div style="font-family:'Instrument Serif',serif; font-size:20px; line-height:1.2; margin-bottom:14px;">Your employer buys codes. That's all they get.</div>
+          <div style="background:#fff; border:1.5px dashed rgba(28,38,32,0.25); border-radius:12px; padding:14px; text-align:center; margin-bottom:14px;">
+            <div style="font-family:'Geist Mono',monospace; font-size:14px; letter-spacing:0.12em; margin-bottom:2px;">TENDER-2026-E</div>
+            <div style="font-size:10.5px; color:#7C887F;">Redeems one Essential year · anonymous to your employer</div>
+          </div>
+          <div style="font-size:12.5px; line-height:1.7; color:#4A554D;">
+            ✓ Employee redeems privately at arcaevo.com/redeem<br>
+            ✓ Employer report: <em>codes bought, codes used.</em> Full stop.<br>
+            ✗ No names, no results, no aggregate "wellness scores"
+          </div>
+          <p style="font-size:12.5px; line-height:1.6; color:#7C887F; margin:14px 0 0; border-top:1px solid rgba(28,38,32,0.08); padding-top:12px;">The privacy stance <em>is</em> the sales pitch to Irish employers — benefits teams can offer it without touching health data or GDPR exposure.</p>
+        </div>
+      </div>
+
+      <div style="width:350px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#7C887F; margin-bottom:10px;">L3 · OTHER WEARABLES — SETTINGS → CONNECTIONS</div>
+        <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.12); border-radius:16px; padding:24px;">
+          <div style="font-family:'Instrument Serif',serif; font-size:20px; line-height:1.2; margin-bottom:14px;">Connected sources</div>
+          <div style="border:1px solid rgba(52,160,124,0.35); background:rgba(52,160,124,0.05); border-radius:12px; padding:13px 15px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+            <div><div style="font-size:13px; font-weight:700;">Apple Health</div><div style="font-size:11px; color:#7C887F;">Watch · syncing since July 2026</div></div>
+            <span style="font-family:'Geist Mono',monospace; font-size:9px; color:#1E5C45; letter-spacing:0.08em;">CONNECTED</span>
+          </div>
+          <div style="border:1px solid rgba(28,38,32,0.1); border-radius:12px; padding:13px 15px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+            <div><div style="font-size:13px; font-weight:700;">Oura</div><div style="font-size:11px; color:#7C887F;">Sleep &amp; readiness via Oura API</div></div>
+            <span style="border:1px solid #1C2620; border-radius:100px; padding:6px 13px; font-size:11px; font-weight:600;">Connect</span>
+          </div>
+          <div style="border:1px solid rgba(28,38,32,0.1); border-radius:12px; padding:13px 15px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+            <div><div style="font-size:13px; font-weight:700;">WHOOP</div><div style="font-size:11px; color:#7C887F;">Strain &amp; recovery via WHOOP API</div></div>
+            <span style="border:1px solid #1C2620; border-radius:100px; padding:6px 13px; font-size:11px; font-weight:600;">Connect</span>
+          </div>
+          <div style="border:1px solid rgba(28,38,32,0.1); border-radius:12px; padding:13px 15px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
+            <div><div style="font-size:13px; font-weight:700;">Garmin</div><div style="font-size:11px; color:#7C887F;">Training load via Garmin Connect</div></div>
+            <span style="border:1px solid #1C2620; border-radius:100px; padding:6px 13px; font-size:11px; font-weight:600;">Connect</span>
+          </div>
+          <p style="font-size:12.5px; line-height:1.6; color:#4A554D; margin:0;">OAuth per source, one primary source per metric to avoid double-counting, disconnect keeps history. This screen also unlocks Android — the same connections, no HealthKit required.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <section style="max-width:1180px; margin:0 auto; padding:56px 48px 0;">
+    <div style="border-top:1px solid rgba(28,38,32,0.14); padding-top:24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+      <div style="display:flex; align-items:center; gap:10px;"><div style="width:18px; height:18px; border-radius:50%; background:radial-gradient(circle at 32% 30%, #5FB592, #1E5C45 70%);"></div><span style="font-size:14px; font-weight:600;">Arcaevo</span><span style="font-family:'Geist Mono',monospace; font-size:11px; color:#7C887F; margin-left:4px;">Accounts &amp; access · v2</span></div>
+      <div style="font-family:'Geist Mono',monospace; font-size:11px; color:#7C887F;">July 2026 · Dublin, Ireland</div>
+    </div>
+  </section>
+
+  <!-- @END -->
+</div>
+</x-dc>
+</body>
+</html>

@@ -47,6 +47,10 @@ cd infra/cdk && npm install && npx cdk synth
 
 Copy `apps/web/.env.example` to `apps/web/.env.local`. Key vars: `MONGODB_URI`, `ADMIN_PASSWORD`, `NEXT_PUBLIC_SITE_URL`.
 
+## CI & deploy
+
+GitHub Actions (`.github/workflows/ci.yml`) runs web typecheck/unit/build/e2e (with a Mongo service), `cdk synth`, `xcodebuild` for both Apple targets on a macOS runner, and the Docker image build. Web deploys to Vercel (region `dub1`, `apps/web` as project root — `apps/web/vercel.json`).
+
 ## Integrations status
 
 **Everything third-party is mocked** (LetsGetChecked, Stripe, email, auth IdP, clinician review). See [docs/MOCKED_APIS.md](docs/MOCKED_APIS.md) before wiring anything real.

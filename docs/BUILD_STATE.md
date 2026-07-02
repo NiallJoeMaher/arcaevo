@@ -61,7 +61,7 @@ Every loop iteration: read this file first, do the next unchecked work, update t
 - [x] Admin auth (env password session)
 
 ### Phase 6 — Admin dashboard
-- [ ] /admin auth-gated skeleton per Admin.dc.html (dashboard, members, results, support tabs)
+- [x] /admin auth-gated skeleton per Admin.dc.html (dashboard, members, results, support tabs) — login + HMAC-cookie gate, (panel) route group with admin chrome/sidebar, 4 tab pages, review sign-off action via POST /api/v1/admin/results/[id]/review (verified live: queue 30 → 29), graceful Mongo-down/empty-DB notices with `npm run seed` hint. Agent stalled during a final edge-case check; core flows verified, build green with all /admin routes.
 
 ### Phase 7 — iOS + watchOS (apps/ios)
 - [x] XcodeGen project.yml (iOS app + watchOS app targets)

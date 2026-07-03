@@ -142,7 +142,7 @@ Non-negotiables: email + magic-link auth only (universal links open the app); pa
 ### Phase 18 — native verification
 - [x] xcodebuild local: -runFirstLaunch succeeded (no sudo needed), BUILD SUCCEEDED for Arcaevo scheme incl. embedded watch app (iPhone 15 Pro sim, iOS 17.2 runtime)
 - [x] App running in simulator: installed + launched co.arcaevo.app on booted iPhone 15 Pro
-- [ ] Push to GitHub after green
+- [x] Push to GitHub after green — pushed 2026-07-03
 
 ## Wanted deps (agents append here instead of installing)
 

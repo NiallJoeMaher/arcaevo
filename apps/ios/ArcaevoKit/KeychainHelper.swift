@@ -3,7 +3,9 @@ import Security
 
 /// Minimal generic-password keychain wrapper — just enough to hold the
 /// member session token securely on iOS and watchOS. No sync, no access
-/// groups; `kSecAttrAccessibleAfterFirstUnlock` so background refreshes work.
+/// groups. Items use `kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`:
+/// available after first unlock (so background refreshes work) but never
+/// migrated to another device and never written to iCloud/iTunes backups.
 enum KeychainHelper {
     private static let service = "co.arcaevo.app"
 
@@ -19,7 +21,7 @@ enum KeychainHelper {
         SecItemDelete(query as CFDictionary)
         var attributes = query
         attributes[kSecValueData as String] = data
-        attributes[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
+        attributes[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
         return SecItemAdd(attributes as CFDictionary, nil) == errSecSuccess
     }
 

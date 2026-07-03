@@ -1,7 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Arcaevo iOS — RELEASE Info.plist.
+  Selected per build configuration via INFOPLIST_FILE (see project.yml).
+  KEEP IN SYNC with Info-Debug.plist — the ONLY intended difference is ATS:
+  this Release plist has NO NSAppTransportSecurity exceptions, so full App
+  Transport Security is enforced (HTTPS only). The production base URL comes
+  from the per-config ARCAEVO_API_BASE_URL build setting (https://arcaevo.com).
+-->
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>ARCAEVO_API_BASE_URL</key>
+	<string>$(ARCAEVO_API_BASE_URL)</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
@@ -17,7 +27,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
+	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -30,14 +40,9 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>1</string>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsLocalNetworking</key>
-		<true/>
-	</dict>
 	<key>NSHealthShareUsageDescription</key>
 	<string>Arcaevo reads your heart rate variability, resting heart rate, sleep and VO2 max from Apple Health to build your personal baseline and plain-language insights. Wellness only — not a medical device, not a diagnosis.</string>
 	<key>UIAppFonts</key>

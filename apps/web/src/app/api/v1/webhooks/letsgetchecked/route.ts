@@ -12,6 +12,8 @@
  */
 import { z } from "zod";
 import { collections } from "@/lib/db";
+import { verifyWebhookSecret } from "@/lib/env";
+import { newId } from "@/lib/ids";
 import {
   ORDER_STATUS_SEQUENCE,
   TestOrderStatus,
@@ -28,15 +30,23 @@ const WebhookPayload = z.object({
   bookingStatus: VenousBookingStatus.optional(),
 });
 
-// MOCK: signature verification is a documented no-op stub. Productionise with
-// the real LGC webhook signing scheme before going live.
-function verifySignature(_req: Request): boolean {
-  return true; // MOCK: always accepted
-}
-
+// MOCK: no real signature verification yet (docs/MOCKED_APIS.md §1). Until the
+// real LGC signing scheme lands, we gate on a shared secret: OPEN in dev/e2e,
+// but in production LETSGETCHECKED_WEBHOOK_SECRET must match the
+// `x-arcaevo-webhook-secret` header (fail closed) so a free results ingest
+// can't be triggered by anyone.
 export async function POST(req: Request) {
-  if (!verifySignature(req)) {
-    return Response.json({ error: "bad_signature" }, { status: 401 });
+  if (
+    !verifyWebhookSecret(
+      req,
+      "LETSGETCHECKED_WEBHOOK_SECRET",
+      "x-arcaevo-webhook-secret"
+    )
+  ) {
+    return Response.json(
+      { error: "unauthorized", message: "Missing or invalid webhook secret." },
+      { status: 401 }
+    );
   }
 
   let body: unknown;
@@ -106,10 +116,9 @@ async function ingestResults(
   ]);
   const ruleByCode = new Map(rules.map((r) => [r.code, r]));
   const takenAt = new Date();
-  const existingCount = await readingsCol.countDocuments();
 
   const docs: BiomarkerReading[] = [];
-  for (const [i, result] of results.entries()) {
+  for (const result of results) {
     const rule = ruleByCode.get(result.code);
     const history = await readingsCol
       .find({ memberId, code: result.code })
@@ -118,7 +127,7 @@ async function ingestResults(
     const prior = history.at(-1) ?? null;
     const series = [...history.map((h) => h.value), result.value];
     docs.push({
-      _id: `read_${String(existingCount + i + 1).padStart(4, "0")}`,
+      _id: newId("read"), // collision-free (see lib/ids)
       memberId,
       orderId,
       code: result.code,

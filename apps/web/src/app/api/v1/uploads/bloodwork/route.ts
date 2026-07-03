@@ -11,9 +11,10 @@
  * data. Low-confidence reads are flagged ("was this 41 or 47?") and BLOCK
  * confirmation until resolved. POST …/confirm writes the readings.
  */
-import { requireMember } from "@/lib/auth";
+import { requireConsentedMember } from "@/lib/consent-guard";
 import { parseJsonBody } from "@/lib/api";
 import { collections } from "@/lib/db";
+import { newId } from "@/lib/ids";
 import { BloodworkUploadInput, type BloodworkUpload } from "@/lib/models";
 import {
   CONFIDENCE_THRESHOLD,
@@ -21,7 +22,7 @@ import {
 } from "@/lib/vendors/ai-extraction.mock";
 
 export async function POST(req: Request) {
-  const auth = await requireMember(req);
+  const auth = await requireConsentedMember(req);
   if (auth.denied) return auth.denied;
 
   const parsed = await parseJsonBody(req, BloodworkUploadInput);
@@ -65,9 +66,8 @@ export async function POST(req: Request) {
       : extractBloodwork(fileName!);
 
   const uploads = await collections.bloodworkUploads();
-  const count = await uploads.countDocuments();
   const upload: BloodworkUpload = {
-    _id: `upload_${String(count + 1).padStart(4, "0")}`,
+    _id: newId("upload"), // collision-free (see lib/ids)
     memberId: auth.member._id,
     kind,
     fileName: fileName ?? null,

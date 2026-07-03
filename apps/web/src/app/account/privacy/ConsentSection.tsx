@@ -6,14 +6,11 @@
  *
  * - research / clinician_review toggle freely → POST /api/v1/consents
  *   (append-only, versioned trail; grant and withdraw are both POSTs).
- * - Turning off health_processing (the required purpose) triggers the
- *   account-closure flow — honestly, with a full export offered first,
- *   then type-DELETE arming. Executing records the withdrawal (the server
- *   flags closureRequired).
- *
- * TODO(erasure job): recording the health_processing withdrawal starts
- * closure in the consent trail, but no backend job erases data / refunds
- * pro-rata yet — ops handles it from the audit log until that ships.
+ * - Turning off health_processing (the required purpose) opens the honest
+ *   exit — full export offered first, then type-DELETE arming. Executing
+ *   calls POST /api/v1/account/delete, which records the withdrawal, revokes
+ *   every session, queues real erasure (+30 days) and sends the confirmation
+ *   email. The "erasure started" confirmation only shows AFTER that succeeds.
  */
 import { useState } from "react";
 
@@ -88,6 +85,38 @@ export default function ConsentSection({ initial }: { initial: Grants }) {
       return;
     }
     void post(purpose, next);
+  }
+
+  /**
+   * The real deletion. Records the withdrawal, revokes every session, queues
+   * erasure (+30 days) and sends the confirmation email — server-side. Only
+   * show the "erasure started" confirmation AFTER the endpoint returns ok.
+   */
+  async function deleteAccount() {
+    setBusy(true);
+    setNotice(null);
+    try {
+      const res = await fetch("/api/v1/account/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ surface: "web" }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setGrants((g) => ({ ...g, health_processing: false }));
+        setClosureStarted(true);
+      } else {
+        setNotice(
+          typeof data.message === "string"
+            ? data.message
+            : "We couldn't start the deletion — try again in a moment."
+        );
+      }
+    } catch {
+      setNotice("We couldn't start the deletion — try again in a moment.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   if (closureStarted) {
@@ -216,7 +245,7 @@ export default function ConsentSection({ initial }: { initial: Grants }) {
             <button
               type="button"
               disabled={armText.trim() !== "DELETE" || busy}
-              onClick={() => void post("health_processing", false)}
+              onClick={() => void deleteAccount()}
               className="block w-full cursor-pointer rounded-pill border border-[#B3543A] py-3 text-center text-[13.5px] font-semibold text-[#B3543A] disabled:cursor-default disabled:opacity-40"
             >
               Delete everything

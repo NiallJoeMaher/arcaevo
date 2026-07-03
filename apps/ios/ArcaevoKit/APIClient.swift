@@ -1,13 +1,32 @@
 import Foundation
 
+/// Compile-time gate for the offline/demo experience.
+///
+/// Enabled ONLY in DEBUG builds. In a Release (production) build this is
+/// `false`, so no demo bearer token, demo session, or fabricated
+/// member/health data can ever be sent to — or shown against — a real
+/// backend. See docs/MOCKED_APIS.md §4 (demo token / ATS / base-URL prod
+/// requirements). The full simulator/DEBUG demo experience is unaffected.
+enum DemoMode {
+    #if DEBUG
+    static let isEnabled = true
+    #else
+    static let isEnabled = false
+    #endif
+}
+
 /// Thin async/await URLSession client for the Arcaevo web backend
 /// (`apps/web` — `/api/v1`).
 ///
-/// Auth ladder (v3):
+/// Auth ladder:
 ///  1. explicit `token` override passed to `init`
 ///  2. keychain session token (`SessionStore`) from magic-link verification
-///  3. legacy `demo-member-token` — a documented mock, see
+///  3. (DEBUG only) legacy `demo-member-token` — a documented mock, see
 ///     docs/MOCKED_APIS.md §4 — so everything still demos signed out.
+///
+/// In Release, an unauthenticated request carries NO `Authorization` header
+/// (never the demo token), so the backend returns 401 and the app routes to
+/// real magic-link sign-in rather than a demo member.
 struct APIClient {
     enum APIError: Error, LocalizedError {
         case badURL
@@ -25,7 +44,21 @@ struct APIClient {
         }
     }
 
-    static let defaultBaseURL = URL(string: "http://localhost:3000/api/v1")!
+    /// Base URL, configured per build configuration via the `ARCAEVO_API_BASE_URL`
+    /// Info.plist key (Debug → http://localhost:3000/api/v1,
+    /// Release → https://arcaevo.com/api/v1; see project.yml + the per-config
+    /// Info.plist files). Falls back to production HTTPS — never plaintext HTTP.
+    static let defaultBaseURL: URL = {
+        if let raw = Bundle.main.object(forInfoDictionaryKey: "ARCAEVO_API_BASE_URL") as? String {
+            let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            if let url = URL(string: trimmed), url.scheme != nil, url.host != nil {
+                return url
+            }
+        }
+        // Safe fallback: production HTTPS. Never plaintext HTTP in Release.
+        return URL(string: "https://arcaevo.com/api/v1")!
+    }()
+
     static let demoToken = "demo-member-token"
 
     let baseURL: URL
@@ -45,8 +78,12 @@ struct APIClient {
     }
 
     /// Bearer resolved per request so signing in/out takes effect immediately.
-    var bearerToken: String {
-        tokenOverride ?? SessionStore.token ?? Self.demoToken
+    /// `nil` when there is no real session — in Release that means no
+    /// `Authorization` header at all (the demo token is DEBUG-only).
+    var bearerToken: String? {
+        if let tokenOverride { return tokenOverride }
+        if let session = SessionStore.token { return session }
+        return DemoMode.isEnabled ? Self.demoToken : nil
     }
 
     /// The web app's origin (base URL minus `/api/v1`) — used for link-outs.
@@ -242,7 +279,11 @@ struct APIClient {
         let url = URL(string: path, relativeTo: baseURL.appendingPathComponent("")) ?? baseURL.appendingPathComponent(path)
         var req = URLRequest(url: path.contains("?") ? url : baseURL.appendingPathComponent(path))
         req.httpMethod = method
-        req.setValue("Bearer \(bearerToken)", forHTTPHeaderField: "Authorization")
+        // Only attach auth when we actually have a token. In Release with no
+        // real session this is nil, so no demo token is ever sent.
+        if let bearer = bearerToken {
+            req.setValue("Bearer \(bearer)", forHTTPHeaderField: "Authorization")
+        }
         req.setValue("application/json", forHTTPHeaderField: "Accept")
         return req
     }

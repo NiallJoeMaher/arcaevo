@@ -25,6 +25,7 @@ import type {
   EligibilityConfig,
   EligibilityRejection,
   BloodworkUpload,
+  ErasureJob,
 } from "@/lib/models";
 
 const DEFAULT_URI = "mongodb://localhost:27017/arcaevo";
@@ -99,6 +100,8 @@ export const collections = {
   eligibilityRejections: () =>
     collection<EligibilityRejection>("eligibility_rejections"),
   bloodworkUploads: () => collection<BloodworkUpload>("bloodwork_uploads"),
+  /** GDPR right-to-erasure queue — drained by scripts/run-erasure.ts. */
+  erasureJobs: () => collection<ErasureJob>("erasure_jobs"),
 };
 
 /** Close the shared client (used by scripts like seed.ts; not by the app). */

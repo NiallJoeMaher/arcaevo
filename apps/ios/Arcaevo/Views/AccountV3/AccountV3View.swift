@@ -150,11 +150,12 @@ struct AccountV3View: View {
     // MARK: Data
 
     private var displayUser: User {
-        user ?? DemoDataProvider.user()
+        user ?? (DemoMode.isEnabled ? DemoDataProvider.user() : .anonymous)
     }
 
     private func load() async {
-        user = (try? await appState.api.me()) ?? DemoDataProvider.user()
+        let me = try? await appState.api.me()
+        user = me ?? (DemoMode.isEnabled ? DemoDataProvider.user() : .anonymous)
     }
 }
 

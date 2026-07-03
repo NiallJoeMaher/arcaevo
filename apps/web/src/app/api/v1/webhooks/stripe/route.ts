@@ -16,6 +16,7 @@
  */
 import { z } from "zod";
 import { collections } from "@/lib/db";
+import { verifyWebhookSecret } from "@/lib/env";
 import {
   isReadOnly,
   nextDunningStage,
@@ -37,11 +38,12 @@ const WebhookPayload = z.object({
   data: z.object({ memberId: z.string() }),
 });
 
-// MOCK: no signature check — a real integration MUST verify
-// `stripe-signature` against the webhook signing secret.
-function verifySignature(_req: Request): boolean {
-  return true; // MOCK: always accepted
-}
+// MOCK: no real Stripe signature verification yet (docs/MOCKED_APIS.md §2) — a
+// real integration MUST verify `stripe-signature` against the webhook signing
+// secret. Until then we gate on a shared secret: OPEN in dev/e2e (the client
+// fires it from /checkout), but in production STRIPE_WEBHOOK_SECRET must match
+// the `x-arcaevo-webhook-secret` header (fail closed) so no one can grant
+// themselves free membership / clear dunning.
 
 // MOCK: card metadata Stripe would put on the event.
 const MOCK_CARD = "Visa ···· 4242";
@@ -71,8 +73,13 @@ async function sendReceipt(member: User, membership: Membership, now: Date) {
 }
 
 export async function POST(req: Request) {
-  if (!verifySignature(req)) {
-    return Response.json({ error: "bad_signature" }, { status: 401 });
+  if (
+    !verifyWebhookSecret(req, "STRIPE_WEBHOOK_SECRET", "x-arcaevo-webhook-secret")
+  ) {
+    return Response.json(
+      { error: "unauthorized", message: "Missing or invalid webhook secret." },
+      { status: 401 }
+    );
   }
 
   let body: unknown;

@@ -11,6 +11,7 @@
 import { requireMember } from "@/lib/auth";
 import { parseJsonBody } from "@/lib/api";
 import { collections } from "@/lib/db";
+import { newId } from "@/lib/ids";
 import { checkEligibility } from "@/lib/eligibility";
 import { renderEmailLayout } from "@/lib/emails";
 import { GiftRedeemInput, type Membership } from "@/lib/models";
@@ -83,9 +84,8 @@ export async function POST(req: Request) {
   const now = new Date();
   const renewalDate = new Date(now);
   renewalDate.setFullYear(renewalDate.getFullYear() + 1);
-  const count = await memberships.countDocuments();
   const membership: Membership = {
-    _id: `sub_${String(count + 1).padStart(4, "0")}`,
+    _id: newId("sub"), // collision-free (see lib/ids)
     memberId: auth.member._id,
     tier: gift.tier,
     term: "annual",

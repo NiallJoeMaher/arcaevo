@@ -182,7 +182,8 @@ struct GPShareV3View: View {
         do {
             links = try await appState.api.shareLinks()
         } catch {
-            links = DemoDataProvider.shareLinks()
+            // DEBUG demo only — never fabricate share links in Release.
+            links = DemoMode.isEnabled ? DemoDataProvider.shareLinks() : []
         }
         loaded = true
     }
@@ -195,6 +196,11 @@ struct GPShareV3View: View {
             do {
                 created = try await appState.api.createShareLink(expiresInDays: 30)
             } catch {
+                guard DemoMode.isEnabled else {
+                    // Release: don't fabricate a share link on failure.
+                    creating = false
+                    return
+                }
                 created = DemoDataProvider.shareLinkCreated()
             }
             links.insert(

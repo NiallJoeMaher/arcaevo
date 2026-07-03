@@ -9,7 +9,7 @@
  *
  * Wellness language only — never diagnosis.
  */
-import { requireMember } from "@/lib/auth";
+import { requireConsentedMember } from "@/lib/consent-guard";
 import { collections } from "@/lib/db";
 import { percentChange } from "@/lib/rcv";
 import type { BiomarkerReading } from "@/lib/models";
@@ -18,7 +18,7 @@ const DISCLAIMER =
   "Not a medical device. Not a diagnosis. Consult a doctor.";
 
 export async function GET(req: Request) {
-  const auth = await requireMember(req);
+  const auth = await requireConsentedMember(req);
   if (auth.denied) return auth.denied;
 
   const [readings, rules] = await Promise.all([

@@ -14,6 +14,7 @@
  * carry all the validation logic and are unit-tested without Mongo.
  */
 import { collections } from "@/lib/db";
+import { newId } from "@/lib/ids";
 
 /** Launch allowlist, verbatim from the handoff:
  * D01–D18, D20, D22, D24, D6W, A94, A96, K32, K34, K36, K45, K56, K67, K78. */
@@ -130,9 +131,8 @@ export async function checkEligibility(
   const evaluation = evaluateRoutingKey(input, await loadAllowlist());
   if (evaluation.status === "ineligible" && evaluation.routingKey) {
     const rejections = await collections.eligibilityRejections();
-    const count = await rejections.countDocuments();
     await rejections.insertOne({
-      _id: `elig_rej_${String(count + 1).padStart(4, "0")}`,
+      _id: newId("elig_rej"), // collision-free (see lib/ids)
       routingKey: evaluation.routingKey,
       county: evaluation.county ?? "Ireland",
       at: new Date(),

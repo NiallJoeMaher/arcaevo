@@ -62,12 +62,22 @@ final class AppModel {
             self.orders = try await orders
             isDemoMode = false
         } catch {
-            // Backend unreachable → seeded demo data so the app always demos.
-            user = DemoDataProvider.user()
-            results = DemoDataProvider.results()
-            insights = DemoDataProvider.insights()
-            orders = DemoDataProvider.orders()
-            isDemoMode = true
+            if DemoMode.isEnabled {
+                // DEBUG: backend unreachable → seeded demo data so it demos.
+                user = DemoDataProvider.user()
+                results = DemoDataProvider.results()
+                insights = DemoDataProvider.insights()
+                orders = DemoDataProvider.orders()
+                isDemoMode = true
+            } else {
+                // Release: never show a fabricated member's data. Leave empty;
+                // the tab screens render their empty states.
+                user = nil
+                results = []
+                insights = []
+                orders = []
+                isDemoMode = false
+            }
         }
 
         await loadWearables()
@@ -87,12 +97,13 @@ final class AppModel {
         // If HealthKit gave us nothing (denied, or empty simulator store),
         // fall back to the seeded deterministic series.
         let isEmpty = series.values.allSatisfy(\.isEmpty)
-        if isEmpty {
+        if isEmpty && DemoMode.isEnabled {
+            // DEBUG/simulator: seed a deterministic series so charts demo.
             for metric in WearableMetric.allCases {
                 series[metric] = DemoDataProvider.wearableSeries(metric: metric, days: 30)
             }
         }
-        isUsingMockHealthData = isEmpty || health is MockHealthStore
+        isUsingMockHealthData = (health is MockHealthStore) || (isEmpty && DemoMode.isEnabled)
         wearableSeries = series
 
         // Best-effort push to the backend; fine if it's down.
@@ -109,9 +120,13 @@ final class AppModel {
             let order = try await api.createOrder(request)
             orders.insert(order, at: 0)
         } catch {
-            // Demo fallback: create the order locally so the flow still demos.
-            orders.insert(DemoDataProvider.createOrder(request), at: 0)
-            isDemoMode = true
+            if DemoMode.isEnabled {
+                // DEBUG: create the order locally so the flow still demos.
+                orders.insert(DemoDataProvider.createOrder(request), at: 0)
+                isDemoMode = true
+            } else {
+                lastOrderError = "We couldn't place that order. Please try again."
+            }
         }
     }
 }

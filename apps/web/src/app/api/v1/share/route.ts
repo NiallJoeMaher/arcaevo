@@ -7,13 +7,14 @@
  *         arcaevo.com/s/<token>.
  */
 import { randomBytes } from "node:crypto";
-import { requireMember } from "@/lib/auth";
+import { requireConsentedMember } from "@/lib/consent-guard";
 import { parseJsonBody, siteUrl } from "@/lib/api";
 import { collections } from "@/lib/db";
+import { newId } from "@/lib/ids";
 import { ShareCreateInput, type ShareLink } from "@/lib/models";
 
 export async function GET(req: Request) {
-  const auth = await requireMember(req);
+  const auth = await requireConsentedMember(req);
   if (auth.denied) return auth.denied;
 
   const links = await collections
@@ -37,17 +38,16 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const auth = await requireMember(req);
+  const auth = await requireConsentedMember(req);
   if (auth.denied) return auth.denied;
 
   const parsed = await parseJsonBody(req, ShareCreateInput);
   if (!parsed.ok) return parsed.response;
 
   const shareLinks = await collections.shareLinks();
-  const count = await shareLinks.countDocuments();
   const now = new Date();
   const link: ShareLink = {
-    _id: `share_${String(count + 1).padStart(4, "0")}`,
+    _id: newId("share"), // collision-free (see lib/ids)
     token: randomBytes(9).toString("base64url"), // short, URL-safe (…/s/k7f2…)
     userId: auth.member._id,
     createdAt: now,

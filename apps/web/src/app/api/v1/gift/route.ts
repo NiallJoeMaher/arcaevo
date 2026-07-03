@@ -7,12 +7,13 @@
  * The buyer gets one email when it's activated and NEVER sees health data.
  * MOCK: payment via the mock Stripe vendor; code delivery via the outbox.
  */
+import { randomInt } from "node:crypto";
 import { parseJsonBody } from "@/lib/api";
 import { collections } from "@/lib/db";
 import { GiftCreateInput, TIER_PRICE_EUR, type GiftCode } from "@/lib/models";
 import { paymentsVendor } from "@/lib/vendors/stripe.mock";
 
-/** Human-safe code alphabet (no 0/O/1/I). Deterministic per sequence+email. */
+/** Human-safe code alphabet (no 0/O/1/I). `seq` supplies random entropy. */
 function giftCode(seq: number, purchaserEmail: string): string {
   const alphabet = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
   let h = 0x811c9dc5;
@@ -36,7 +37,9 @@ export async function POST(req: Request) {
   const { purchaserEmail, recipientEmail, note, delivery } = parsed.data;
 
   const giftCodes = await collections.giftCodes();
-  const seq = (await giftCodes.countDocuments()) + 1;
+  // Random entropy (not countDocuments()+1) so concurrent gifts from the same
+  // purchaser can't mint the same code and collide on insert.
+  const seq = randomInt(0, 0x7fffffff);
   const code = giftCode(seq, purchaserEmail.toLowerCase());
 
   const gift: GiftCode = {

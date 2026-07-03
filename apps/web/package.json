@@ -9,6 +9,7 @@
     "lint": "eslint",
     "seed": "tsx scripts/seed.ts",
     "seed:user": "tsx scripts/seed-user.ts",
+    "erase:run": "tsx scripts/run-erasure.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "e2e": "playwright test",

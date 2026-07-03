@@ -5,6 +5,13 @@ on:
     branches: [main]
   pull_request:
 
+# Least privilege for the GITHUB_TOKEN — matters for pull_request runs from
+# forks. No job here needs write access or repo secrets (the Mongo service is
+# an ephemeral container, not a secret), so a read-only token keeps a malicious
+# fork PR from doing anything with elevated permissions.
+permissions:
+  contents: read
+
 jobs:
   web:
     name: Web — typecheck, unit, build, e2e

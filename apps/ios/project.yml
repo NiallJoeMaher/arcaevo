@@ -41,44 +41,23 @@ targets:
         # this can be enabled. Uncomment when signing with a real team:
         # com.apple.developer.associated-domains:
         #   - applinks:arcaevo.com
-    info:
-      path: Arcaevo/Info.plist
-      properties:
-        CFBundleDisplayName: Arcaevo
-        UILaunchScreen:
-          UIColorName: ""
-        UISupportedInterfaceOrientations:
-          - UIInterfaceOrientationPortrait
-        # Custom URL scheme fallback for magic-link verification while the
-        # associated-domains entitlement (universal links) is unavailable:
-        # arcaevo://verify?token=…
-        CFBundleURLTypes:
-          - CFBundleURLName: co.arcaevo.app
-            CFBundleURLSchemes:
-              - arcaevo
-        UIAppFonts:
-          - InstrumentSerif-Regular.ttf
-          - InstrumentSerif-Italic.ttf
-          - HankenGrotesk-Light.ttf
-          - HankenGrotesk-Regular.ttf
-          - HankenGrotesk-Medium.ttf
-          - HankenGrotesk-SemiBold.ttf
-          - HankenGrotesk-Bold.ttf
-          - HankenGrotesk-ExtraBold.ttf
-          - GeistMono-Regular.ttf
-          - GeistMono-Medium.ttf
-        NSHealthShareUsageDescription: >-
-          Arcaevo reads your heart rate variability, resting heart rate,
-          sleep and VO2 max from Apple Health to build your personal
-          baseline and plain-language insights. Wellness only —
-          not a medical device, not a diagnosis.
-        NSAppTransportSecurity:
-          NSAllowsLocalNetworking: true
-        ITSAppUsesNonExemptEncryption: false
+    # Per-configuration Info.plist so App Transport Security can differ by
+    # build: Info-Debug.plist keeps the localhost/local-networking exception
+    # for dev; Info-Release.plist ships NO ATS exceptions (full ATS, HTTPS
+    # only). The API base URL is read from the ARCAEVO_API_BASE_URL build
+    # setting below (Debug → http://localhost:3000, Release → https://arcaevo.com)
+    # via `$(ARCAEVO_API_BASE_URL)` in each plist. See ArcaevoKit/APIClient.swift.
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: co.arcaevo.app
         TARGETED_DEVICE_FAMILY: "1"
+      configs:
+        Debug:
+          INFOPLIST_FILE: Arcaevo/Info-Debug.plist
+          ARCAEVO_API_BASE_URL: http://localhost:3000/api/v1
+        Release:
+          INFOPLIST_FILE: Arcaevo/Info-Release.plist
+          ARCAEVO_API_BASE_URL: https://arcaevo.com/api/v1
 
   # ---------------------------------------------------------------
   # watchOS companion app (single-target watchOS app, watchOS 10+)
@@ -98,6 +77,12 @@ targets:
         CFBundleDisplayName: Arcaevo
         WKApplication: true
         WKCompanionAppBundleIdentifier: co.arcaevo.app
+        # API base URL from the per-config build setting below. No ATS
+        # exception ships: full App Transport Security is enforced (HTTPS
+        # only) in both configs. The watch's backend calls are best-effort
+        # and it demos from seeded data regardless, so it needs no localhost
+        # HTTP exception.
+        ARCAEVO_API_BASE_URL: $(ARCAEVO_API_BASE_URL)
         UIAppFonts:
           - InstrumentSerif-Regular.ttf
           - InstrumentSerif-Italic.ttf
@@ -109,12 +94,15 @@ targets:
           - HankenGrotesk-ExtraBold.ttf
           - GeistMono-Regular.ttf
           - GeistMono-Medium.ttf
-        NSAppTransportSecurity:
-          NSAllowsLocalNetworking: true
         ITSAppUsesNonExemptEncryption: false
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: co.arcaevo.app.watchkitapp
+      configs:
+        Debug:
+          ARCAEVO_API_BASE_URL: http://localhost:3000/api/v1
+        Release:
+          ARCAEVO_API_BASE_URL: https://arcaevo.com/api/v1
 
 schemes:
   Arcaevo:

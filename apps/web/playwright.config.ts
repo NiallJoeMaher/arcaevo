@@ -17,6 +17,12 @@ export const E2E_ENV = {
   ADMIN_PASSWORD: "change-me-local",
   SESSION_SECRET: "e2e-secret",
   NEXT_PUBLIC_SITE_URL: "http://localhost:3000",
+  // The suite runs a PRODUCTION build (`next start` ⇒ NODE_ENV=production), but
+  // it is a local dev environment: opt back into the demo bearer token and the
+  // open (secretless) mock webhooks that the tests + client-fired checkout rely
+  // on. Real production sets neither of these and stays locked down.
+  ALLOW_DEMO_TOKEN: "true",
+  ALLOW_OPEN_WEBHOOKS: "true",
   // Emails always land in the Mongo outbox. Locally we ALSO deliver them via
   // SMTP to the compose mailhog container (host :1026, UI :8026) so
   // email.spec.ts can assert real delivery; CI has no mailhog, so it stays

@@ -135,6 +135,12 @@ export interface EmailTemplates {
     foundingPriceEur: number; // e.g. 279
     claimUrl: string;
   };
+  /** E12 — account closure confirmation. NO health values — only the date. */
+  e12_closure_confirmation: {
+    firstName: string;
+    erasureDateLabel: string; // e.g. "2 August 2026" (+30 days)
+    appUrl: string;
+  };
 }
 
 export type EmailTemplateId = keyof EmailTemplates;
@@ -300,6 +306,20 @@ const renderers: Renderers = {
       ),
       button: { label: "Claim founding-member pricing", url: params.claimUrl },
       footerHtml: "Arcaevo Ltd · Dublin, Ireland",
+    }),
+  }),
+
+  // E12 — closure confirmed. The +30d erasure date, never a single health value.
+  e12_closure_confirmation: (params) => ({
+    subject: "Your account is closing",
+    html: renderEmailLayout({
+      headline: `We've started closing your account, ${params.firstName}.`,
+      bodyHtml: p(
+        `Your consent to process health data is withdrawn, so processing has stopped now. Your results, baselines, history and profile will be erased permanently — from our systems and our lab partners&rsquo; — by <strong>${params.erasureDateLabel}</strong>. Any remaining membership value is refunded pro-rata for unused tests.`
+      ),
+      button: { label: "Open Arcaevo", url: params.appUrl },
+      footerHtml:
+        "Changed your mind before then? Reply to this email — a person reads it. We never include health values in email.",
     }),
   }),
 };

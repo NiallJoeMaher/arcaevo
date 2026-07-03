@@ -2,11 +2,11 @@
  * GET /api/v1/results — bearer: the member's biomarker readings, newest first,
  * with the rule metadata (name/unit/RCV) joined in.
  */
-import { requireMember } from "@/lib/auth";
+import { requireConsentedMember } from "@/lib/consent-guard";
 import { collections } from "@/lib/db";
 
 export async function GET(req: Request) {
-  const auth = await requireMember(req);
+  const auth = await requireConsentedMember(req);
   if (auth.denied) return auth.denied;
 
   const [readings, rules] = await Promise.all([

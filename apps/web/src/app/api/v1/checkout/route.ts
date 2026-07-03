@@ -18,6 +18,7 @@
 import { memberFromRequest } from "@/lib/auth";
 import { parseJsonBody, siteUrl } from "@/lib/api";
 import { collections } from "@/lib/db";
+import { newId } from "@/lib/ids";
 import { checkEligibility } from "@/lib/eligibility";
 import { sendEmail } from "@/lib/emails";
 import { createMemberUser, issueMagicLink } from "@/lib/member-auth";
@@ -133,9 +134,8 @@ export async function POST(req: Request) {
   const renewalDate = new Date(now);
   renewalDate.setFullYear(renewalDate.getFullYear() + 1);
 
-  const count = await memberships.countDocuments();
   const membership: Membership = {
-    _id: `sub_${String(count + 1).padStart(4, "0")}`,
+    _id: newId("sub"), // collision-free (never `sub_${count+1}` — see lib/ids)
     memberId: member._id,
     tier,
     term: "annual",
@@ -148,9 +148,16 @@ export async function POST(req: Request) {
     dunningStage: "none",
     dunningStartedAt: null,
   };
-  // Replace any prior pending/canceled membership attempt for this member.
-  await memberships.deleteMany({ memberId: member._id, status: "pending" });
-  await memberships.insertOne(membership);
+  // Upsert on {memberId, status:"pending"} so a concurrent double-submit (or a
+  // retried checkout) can only ever leave ONE pending membership per member —
+  // the webhook then activates exactly one, never duplicate active memberships.
+  const { _id: _ignoredId, ...membershipFields } = membership;
+  const stored = await memberships.findOneAndUpdate(
+    { memberId: member._id, status: "pending" },
+    { $setOnInsert: { _id: membership._id }, $set: membershipFields },
+    { upsert: true, returnDocument: "after" }
+  );
+  const savedMembership = stored ?? membership;
 
   // --- MOCK Stripe checkout session (card + Apple Pay on web) -----------------
   const checkout = await paymentsVendor.createCheckoutSession({
@@ -163,10 +170,10 @@ export async function POST(req: Request) {
     {
       checkout, // { sessionId, url, amountEur } — MOCK: url is not hosted
       membership: {
-        id: membership._id,
+        id: savedMembership._id,
         tier,
         priceEur,
-        status: membership.status,
+        status: savedMembership.status,
         renewalDate,
       },
       member: { id: member._id, email: member.email },

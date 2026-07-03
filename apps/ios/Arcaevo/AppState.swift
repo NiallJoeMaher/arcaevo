@@ -166,6 +166,10 @@ final class AppState {
 
     @ObservationIgnored let api = APIClient()
 
+    /// Shown when the backend is unreachable in a Release build (no demo
+    /// fallback exists there).
+    static let offlineMessage = "We couldn't reach Arcaevo. Check your connection and try again."
+
     init() {
         restore()
     }
@@ -199,7 +203,12 @@ final class AppState {
             // Throttled (60s) etc — show the backend's copy verbatim.
             magicLinkMessage = message
         } catch {
-            // Backend unreachable → demo mode keeps the flow walkable.
+            guard DemoMode.isEnabled else {
+                // Release: no demo fallback — surface the failure, stay put.
+                authError = Self.offlineMessage
+                return
+            }
+            // DEBUG: backend unreachable → demo mode keeps the flow walkable.
             magicLinkMessage = DemoDataProvider.magicLinkRequested(email: signupEmail).message
             isDemoSession = true
         }
@@ -221,7 +230,12 @@ final class AppState {
             authError = message ?? "That link isn't valid."
             return
         } catch {
-            // Backend unreachable → demo session so the flow still demos.
+            guard DemoMode.isEnabled else {
+                // Release: never mint a demo session — route back to sign-in.
+                authError = Self.offlineMessage
+                return
+            }
+            // DEBUG: backend unreachable → demo session so the flow still demos.
             session = DemoDataProvider.session()
             isDemoSession = true
         }
@@ -269,9 +283,11 @@ final class AppState {
         do {
             _ = try await api.postConsents(grants, surface: "ios")
         } catch {
-            // Offline/demo: consent choice is kept locally; the screen never
-            // blocks the flow on a network failure.
-            isDemoSession = true
+            // Offline/demo (DEBUG): consent choice is kept locally; the screen
+            // never blocks the flow on a network failure. In Release the grant
+            // simply isn't recorded server-side yet (retried on next launch);
+            // no fabricated state is introduced.
+            if DemoMode.isEnabled { isDemoSession = true }
         }
         if case .onboarding(.consent) = phase { phase = .onboarding(.healthkit) }
     }
@@ -286,6 +302,10 @@ final class AppState {
             authError = message
             return
         } catch {
+            guard DemoMode.isEnabled else {
+                authError = Self.offlineMessage
+                return
+            }
             result = DemoDataProvider.eligibility(eircode: eircode)
             isDemoSession = true
         }
@@ -301,6 +321,10 @@ final class AppState {
             waitlistPosition = joined.position
             waitlistCounty = joined.county
         } catch {
+            guard DemoMode.isEnabled else {
+                authError = Self.offlineMessage
+                return
+            }
             let demo = DemoDataProvider.waitlistJoined(eircode: eircode)
             waitlistPosition = demo.position
             waitlistCounty = demo.county
@@ -347,6 +371,10 @@ final class AppState {
         do {
             extraction = try await api.uploadBloodwork(kind: kind, fileName: fileName)
         } catch {
+            guard DemoMode.isEnabled else {
+                authError = Self.offlineMessage
+                return
+            }
             extraction = DemoDataProvider.bloodworkExtraction(fileName: fileName)
             isDemoSession = true
         }
@@ -375,7 +403,9 @@ final class AppState {
                 takenAt: state.documentDate
             )
         } catch {
-            isDemoSession = true // demo: treat as written locally
+            // DEBUG demo: treat as written locally. Release: not persisted
+            // server-side, but no fabricated state is introduced.
+            if DemoMode.isEnabled { isDemoSession = true }
         }
         uploadConfirm = nil
         return true
@@ -383,6 +413,11 @@ final class AppState {
 
     // MARK: - Persistence (lightweight — UserDefaults, resume on relaunch)
 
+    // NOTE: `uploadConfirm` is deliberately NOT persisted. It holds raw,
+    // AI-extracted biomarker values (health data) mid-confirmation; keeping
+    // it in-memory only means no raw health values are ever written to
+    // UserDefaults (which is unencrypted and can land in device backups).
+    // On relaunch the user simply re-opens the upload flow.
     private struct Persisted: Codable {
         var phase: AppPhase
         var signupEmail: String
@@ -391,7 +426,6 @@ final class AppState {
         var notificationPrefs: NotificationPrefs
         var researchConsent: Bool
         var experiment: ActiveExperiment?
-        var uploadConfirm: UploadConfirmState?
     }
 
     private static let defaultsKey = "arcaevo.appState.v3"
@@ -406,8 +440,7 @@ final class AppState {
             eircodeGate: eircodeGate,
             notificationPrefs: notificationPrefs,
             researchConsent: researchConsent,
-            experiment: experiment,
-            uploadConfirm: uploadConfirm
+            experiment: experiment
         )
         if let data = try? JSONEncoder().encode(snapshot) {
             UserDefaults.standard.set(data, forKey: Self.defaultsKey)
@@ -426,7 +459,6 @@ final class AppState {
         notificationPrefs = snapshot.notificationPrefs
         researchConsent = snapshot.researchConsent
         experiment = snapshot.experiment
-        uploadConfirm = snapshot.uploadConfirm
         restoring = false
     }
 }

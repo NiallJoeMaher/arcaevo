@@ -9,6 +9,17 @@ struct User: Codable, Identifiable, Hashable {
     var email: String
     var joinedAt: Date
     var membership: Membership
+
+    /// Neutral placeholder for Release builds when `me()` is unavailable —
+    /// carries no real member data or PII (used instead of the demo member).
+    static let anonymous = User(
+        id: "",
+        name: "",
+        email: "",
+        joinedAt: Date(timeIntervalSince1970: 0),
+        membership: Membership(tier: .fusion, term: .annual, cadence: .standard,
+                               renewsAt: Date(timeIntervalSince1970: 0))
+    )
 }
 
 /// Membership tier / term / renewal. Annual billing only in v1.

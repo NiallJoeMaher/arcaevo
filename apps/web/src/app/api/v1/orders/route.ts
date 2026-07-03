@@ -4,8 +4,9 @@
  *  POST — place an order via the MOCK LetsGetChecked vendor, enforcing
  *         tier allowances + add-on pricing (€99 full / €69 recheck / €199 venous).
  */
-import { requireMember } from "@/lib/auth";
+import { requireConsentedMember } from "@/lib/consent-guard";
 import { collections } from "@/lib/db";
+import { newId } from "@/lib/ids";
 import {
   ADDON_PRICE_EUR,
   CreateOrderInput,
@@ -25,7 +26,7 @@ const PANELS_BY_TYPE: Record<TestOrderType, TestPanel[]> = {
 };
 
 export async function GET(req: Request) {
-  const auth = await requireMember(req);
+  const auth = await requireConsentedMember(req);
   if (auth.denied) return auth.denied;
 
   const orders = await collections
@@ -37,7 +38,8 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const auth = await requireMember(req);
+  // Ordering a test also needs clinician_review consent (a clinician signs off).
+  const auth = await requireConsentedMember(req, { clinicianReview: true });
   if (auth.denied) return auth.denied;
 
   let body: unknown;
@@ -106,10 +108,9 @@ export async function POST(req: Request) {
     panel
   );
 
-  const orderCount = await ordersCol.countDocuments();
   const now = new Date();
   const order: TestOrder = {
-    _id: `ord_${String(orderCount + 1).padStart(4, "0")}`,
+    _id: newId("ord"), // collision-free (see lib/ids)
     memberId: auth.member._id,
     type,
     panel,

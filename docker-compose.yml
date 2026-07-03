@@ -49,6 +49,16 @@ services:
     environment:
       MONGODB_URI: mongodb://mongo:27017/arcaevo
       ADMIN_PASSWORD: change-me-local
+      # Dev-only HMAC secret. REQUIRED in production — a real deploy MUST
+      # override this with a strong random value (the app fails to boot without
+      # SESSION_SECRET when NODE_ENV=production; there is no committed fallback).
+      SESSION_SECRET: dev-only-compose-secret-override-in-prod
+      # This local stack builds with NODE_ENV=production, but it is a dev
+      # environment: opt back into the demo bearer token and the open (secretless)
+      # mock webhooks the client-fired checkout uses. A real deploy sets NEITHER
+      # of these and configures STRIPE_WEBHOOK_SECRET / LETSGETCHECKED_WEBHOOK_SECRET.
+      ALLOW_DEMO_TOKEN: "true"
+      ALLOW_OPEN_WEBHOOKS: "true"
       NEXT_PUBLIC_SITE_URL: http://localhost:3000
       # Emails ALWAYS land in the Mongo `outbox`; with EMAIL_PROVIDER=mailhog
       # they are ADDITIONALLY delivered over SMTP to the mailhog container —

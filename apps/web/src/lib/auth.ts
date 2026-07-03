@@ -11,6 +11,10 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 import { collections } from "@/lib/db";
+// Fail-closed secret validation lives in env.ts: in production sessionSecret()
+// throws rather than fall back to a committed literal (which would let anyone
+// forge an admin cookie). demoTokenEnabled() gates the demo bearer token.
+import { demoTokenEnabled, sessionSecret } from "@/lib/env";
 import {
   memberFromSessionToken,
   sessionTokenFromCookies,
@@ -21,11 +25,6 @@ export const ADMIN_COOKIE_NAME = "arcaevo_admin_session";
 
 /** MOCK: static demo bearer token for the iOS app / API exploration. */
 export const DEMO_MEMBER_TOKEN = "demo-member-token";
-
-function sessionSecret(): string {
-  // Dev fallback — NEVER rely on this outside local development.
-  return process.env.SESSION_SECRET ?? "arcaevo-dev-secret-do-not-use-in-prod";
-}
 
 function hmac(payload: string): string {
   return createHmac("sha256", sessionSecret()).update(payload).digest("hex");
@@ -122,7 +121,11 @@ export async function memberFromRequest(req: Request): Promise<User | null> {
   const match = /^Bearer\s+(.+)$/i.exec(header);
   if (match) {
     const bearer = match[1].trim();
-    if (safeEqual(bearer, DEMO_MEMBER_TOKEN)) {
+    // Demo token is a hardcoded bypass to a real seeded member's Art.9 health
+    // data — only honour it in dev/e2e (or with ALLOW_DEMO_TOKEN=true). In
+    // production without the flag it falls through and is rejected like any
+    // other invalid token.
+    if (demoTokenEnabled() && safeEqual(bearer, DEMO_MEMBER_TOKEN)) {
       const users = await collections.users();
       return users.findOne({ isDemo: true });
     }

@@ -144,6 +144,18 @@ export const UserSchema = z.object({
   failedAttempts: z.number().int().default(0),
   /** While set and in the future, password sign-in is refused. */
   cooloffUntil: z.date().nullable().default(null),
+  // --- GDPR consent-withdrawal / erasure lifecycle (Art.9) ------------------
+  /**
+   * True once health_processing consent is withdrawn (or the member requests
+   * account deletion). While set, Art.9 data endpoints refuse the member —
+   * processing has stopped and re-consent is required. See consent-guard.ts.
+   */
+  processingSuspended: z.boolean().optional(),
+  /** When closure / consent withdrawal was recorded (drives the +30d erasure). */
+  closureRequestedAt: z.date().nullable().optional(),
+  /** Lifecycle: undefined/"active" normally, "closing" after a delete request,
+   * "closed" once the erasure job has hard-deleted the data. */
+  status: z.enum(["active", "closing", "closed"]).optional(),
 });
 export type User = z.infer<typeof UserSchema>;
 
@@ -407,6 +419,36 @@ export const BloodworkUploadSchema = z.object({
 });
 export type BloodworkUpload = z.infer<typeof BloodworkUploadSchema>;
 
+/**
+ * GDPR erasure grace window: after a member requests deletion / withdraws
+ * health_processing, their data is hard-deleted no sooner than this many days
+ * later (design §10 "erased permanently within 30 days"). The scheduled job
+ * (scripts/run-erasure.ts) only picks up jobs whose eraseAfter has passed.
+ */
+export const ERASURE_GRACE_DAYS = 30;
+
+export const ErasureJobStatus = z.enum(["scheduled", "done"]);
+export type ErasureJobStatus = z.infer<typeof ErasureJobStatus>;
+
+/**
+ * A queued right-to-erasure request (GDPR Art.17). Written when a member
+ * deletes their account; the scheduled runner hard-deletes their data across
+ * every collection (EXCEPT the consent audit trail) once eraseAfter passes.
+ */
+export const ErasureJobSchema = z.object({
+  _id: z.string(), // e.g. "erasure_0001"
+  userId: z.string(),
+  /** Stored so the runner can purge email-keyed PII (outbox, waitlist) even
+   * after the user document itself is gone — keeps the job idempotent. */
+  email: z.string(),
+  requestedAt: z.date(),
+  /** Not erased before this instant (requestedAt + ERASURE_GRACE_DAYS). */
+  eraseAfter: z.date(),
+  status: ErasureJobStatus.default("scheduled"),
+  completedAt: z.date().nullable().default(null),
+});
+export type ErasureJob = z.infer<typeof ErasureJobSchema>;
+
 // ---------------------------------------------------------------------------
 // API input schemas
 // ---------------------------------------------------------------------------
@@ -531,16 +573,23 @@ export const ShareCreateInput = z.object({
 export const BloodworkUploadInput = z.object({
   kind: z.enum(["photo", "pdf", "manual"]),
   fileName: z.string().optional(),
-  /** For kind "manual": the user-typed values (skip AI extraction). */
+  /** For kind "manual": the user-typed values (skip AI extraction). Capped so
+   * a single upload can't fabricate an unbounded marker set. */
   manualValues: z
     .array(z.object({ code: z.string(), value: z.number(), unit: z.string() }))
+    .max(100)
     .optional(),
 });
 
 export const BloodworkConfirmInput = z.object({
   uploadId: z.string().min(1),
-  /** The user-confirmed value for every marker (flagged ones resolved). */
-  values: z.array(z.object({ code: z.string(), value: z.number() })).min(1),
+  /** The user-confirmed value for every marker (flagged ones resolved). Capped
+   * at 100 — the confirm handler does one batched lookup, but an unbounded
+   * array is still a DoS amplification vector. A real panel is well under 100. */
+  values: z
+    .array(z.object({ code: z.string(), value: z.number() }))
+    .min(1)
+    .max(100),
   /** When the original sample was taken, e.g. the document date. */
   takenAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
 });

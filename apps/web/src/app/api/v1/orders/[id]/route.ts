@@ -4,7 +4,7 @@
  * syncs it onto the order (forward-only). The mock state machine advances
  * exactly one step per poll — see lib/vendors/letsgetchecked.mock.ts.
  */
-import { requireMember } from "@/lib/auth";
+import { requireConsentedMember } from "@/lib/consent-guard";
 import { collections } from "@/lib/db";
 import { ORDER_STATUS_SEQUENCE } from "@/lib/models";
 import { bloodTestVendor } from "@/lib/vendors/letsgetchecked.mock";
@@ -13,7 +13,7 @@ export async function GET(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const auth = await requireMember(req);
+  const auth = await requireConsentedMember(req);
   if (auth.denied) return auth.denied;
 
   const { id } = await params;

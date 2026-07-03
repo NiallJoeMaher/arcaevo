@@ -32,6 +32,7 @@ import {
 } from "node:crypto";
 import { cookies } from "next/headers";
 import { collections } from "@/lib/db";
+import { newId } from "@/lib/ids";
 import type { MagicLinkPurpose, Session, User } from "@/lib/models";
 
 export const MEMBER_COOKIE_NAME = "arcaevo_member_session";
@@ -300,9 +301,8 @@ export async function createMemberUser(params: {
   now?: Date;
 }): Promise<User> {
   const users = await collections.users();
-  const count = await users.countDocuments();
   const user: User = {
-    _id: `mem_${String(count + 1).padStart(4, "0")}`,
+    _id: newId("mem"), // collision-free (see lib/ids) — concurrent signups safe
     // Name is collected later (checkout details / iOS about-you screen).
     name: params.name ?? params.email.split("@")[0],
     email: params.email.toLowerCase(),

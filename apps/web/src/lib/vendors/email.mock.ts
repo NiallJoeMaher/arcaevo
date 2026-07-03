@@ -13,6 +13,7 @@
 // productionise with an EU-friendly ESP (e.g. Scaleway TEM, Postmark with
 // EU DPA) + real templates.
 import { collections } from "@/lib/db";
+import { newId } from "@/lib/ids";
 import { sendViaSmtp, smtpDeliveryEnabled } from "@/lib/vendors/email.smtp";
 import type { EmailVendor } from "@/lib/vendors/types";
 
@@ -24,8 +25,8 @@ class EmailMock implements EmailVendor {
     template: string;
   }): Promise<{ outboxId: string }> {
     const outbox = await collections.outbox();
-    const count = await outbox.countDocuments();
-    const outboxId = `email_${String(count + 1).padStart(4, "0")}`;
+    const outboxId = newId("email"); // collision-free (see lib/ids) — two
+    // concurrent sends can't mint the same _id and fail the insert.
     await outbox.insertOne({
       _id: outboxId,
       to: params.to,

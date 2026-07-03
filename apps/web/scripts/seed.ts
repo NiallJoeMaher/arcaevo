@@ -170,6 +170,7 @@ async function seed() {
     eligibilityConfig: await collections.eligibilityConfig(),
     eligibilityRejections: await collections.eligibilityRejections(),
     bloodworkUploads: await collections.bloodworkUploads(),
+    erasureJobs: await collections.erasureJobs(),
   };
   await Promise.all(Object.values(cols).map((c) => c.deleteMany({})));
 

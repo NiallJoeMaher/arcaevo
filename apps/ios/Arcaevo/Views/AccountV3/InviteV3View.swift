@@ -11,7 +11,7 @@ struct InviteV3View: View {
 
     @State private var copied = false
 
-    private var member: User { user ?? DemoDataProvider.user() }
+    private var member: User { user ?? (DemoMode.isEnabled ? DemoDataProvider.user() : .anonymous) }
 
     /// NAME-XX referral code. The demo member maps to the seeded AOIFE-K4
     /// fixture; other members get a stable letter+digit suffix from their

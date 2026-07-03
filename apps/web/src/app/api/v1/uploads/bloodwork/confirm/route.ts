@@ -13,15 +13,16 @@
  *  - Baseline bands + RCV verdicts are computed against the member's history
  *    exactly like lab readings — history is the whole point of uploading.
  */
-import { requireMember } from "@/lib/auth";
+import { requireConsentedMember } from "@/lib/consent-guard";
 import { parseJsonBody } from "@/lib/api";
 import { collections } from "@/lib/db";
+import { newId } from "@/lib/ids";
 import { BloodworkConfirmInput, type BiomarkerReading } from "@/lib/models";
 import { computeBaselineBand, computeRcvVerdict } from "@/lib/rcv";
 import { CONFIDENCE_THRESHOLD } from "@/lib/vendors/ai-extraction.mock";
 
 export async function POST(req: Request) {
-  const auth = await requireMember(req);
+  const auth = await requireConsentedMember(req);
   if (auth.denied) return auth.denied;
 
   const parsed = await parseJsonBody(req, BloodworkConfirmInput);
@@ -84,20 +85,31 @@ export async function POST(req: Request) {
     .then((c) => c.find().toArray());
   const ruleByCode = new Map(rules.map((r) => [r.code, r]));
 
+  // Batch the history lookup: ONE query for every confirmed code (bounded to
+  // ≤100 values by the zod schema), then group in memory — never a per-value
+  // query loop (that was a DoS amplification path).
+  const codes = values.map((v) => v.code);
+  const allHistory = await readingsCol
+    .find({ memberId: auth.member._id, code: { $in: codes } })
+    .sort({ takenAt: 1 })
+    .toArray();
+  const historyByCode = new Map<string, typeof allHistory>();
+  for (const h of allHistory) {
+    const arr = historyByCode.get(h.code);
+    if (arr) arr.push(h);
+    else historyByCode.set(h.code, [h]);
+  }
+
   const takenAtDate = new Date(`${takenAt}T09:00:00.000Z`);
-  const existingCount = await readingsCol.countDocuments();
   const docs: BiomarkerReading[] = [];
-  for (const [i, confirmed] of values.entries()) {
+  for (const confirmed of values) {
     const extracted = extractedByCode.get(confirmed.code)!;
     const rule = ruleByCode.get(confirmed.code);
-    const history = await readingsCol
-      .find({ memberId: auth.member._id, code: confirmed.code })
-      .sort({ takenAt: 1 })
-      .toArray();
+    const history = historyByCode.get(confirmed.code) ?? [];
     const prior = history.at(-1) ?? null;
     const series = [...history.map((h) => h.value), confirmed.value];
     docs.push({
-      _id: `read_${String(existingCount + i + 1).padStart(4, "0")}`,
+      _id: newId("read"), // collision-free (see lib/ids)
       memberId: auth.member._id,
       orderId: null, // not an Arcaevo order — user-provided history
       code: confirmed.code,

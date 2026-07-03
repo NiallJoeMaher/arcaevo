@@ -3,12 +3,12 @@
  * v1 integrations: Apple Watch + Apple Health ONLY. Any other source is
  * rejected with a roadmap message (WHOOP/Oura/Garmin are "on the roadmap").
  */
-import { requireMember } from "@/lib/auth";
+import { requireConsentedMember } from "@/lib/consent-guard";
 import { collections } from "@/lib/db";
 import { SyncWearablesInput, WearableSource } from "@/lib/models";
 
 export async function POST(req: Request) {
-  const auth = await requireMember(req);
+  const auth = await requireConsentedMember(req);
   if (auth.denied) return auth.denied;
 
   let body: unknown;

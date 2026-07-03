@@ -66,6 +66,11 @@ const SAMPLES: { [K in EmailTemplateId]: EmailTemplates[K] } = {
     foundingPriceEur: 279,
     claimUrl: "https://arcaevo.com/checkout",
   },
+  e12_closure_confirmation: {
+    firstName: "Aoife",
+    erasureDateLabel: "2 August 2026",
+    appUrl: "https://arcaevo.com/app",
+  },
 };
 
 const ALL_TEMPLATES = Object.keys(SAMPLES) as EmailTemplateId[];
@@ -162,5 +167,23 @@ describe("waitlist pair — E10 joined, E11 county open", () => {
     expect(html).toContain("first 400");
     expect(html).toContain("€279 for year one");
     expect(html).toContain(">Claim founding-member pricing</a>");
+  });
+});
+
+describe("E12 closure confirmation — the +30d date, never a value", () => {
+  it("states the erasure date and carries NO health values", () => {
+    const { subject, html } = renderEmail(
+      "e12_closure_confirmation",
+      SAMPLES.e12_closure_confirmation
+    );
+    expect(subject).toBe("Your account is closing");
+    expect(html).toContain("2 August 2026"); // +30d erasure date
+    expect(html).toContain("processing has stopped");
+    expect(html).toContain("We never include health values in email");
+
+    // Same guarantee as E7: no biomarker names or units in the body.
+    for (const forbidden of ["ApoB", "mmol", "mg/L", "µg/L", "g/L", "hs-CRP", "ferritin"]) {
+      expect(html).not.toContain(forbidden);
+    }
   });
 });

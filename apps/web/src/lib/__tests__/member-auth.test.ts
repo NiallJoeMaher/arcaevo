@@ -104,22 +104,28 @@ vi.mock("@/lib/db", () => ({
 
 // Import AFTER the mocks are registered.
 import {
+  CODE_ALPHABET,
+  CODE_LENGTH,
   COOLOFF_MS,
   MAGIC_LINK_TTL_MS,
+  MAX_CODE_ATTEMPTS,
   MAX_FAILED_ATTEMPTS,
   RESEND_THROTTLE_MS,
   applyFailedAttempt,
   canResend,
   clearFailedAttempts,
   consumeMagicLink,
+  consumeMagicLinkByCode,
   createSession,
   createWatchSession,
   evaluateMagicLink,
+  formatCode,
   hashPassword,
   isInCooloff,
   isSessionExpired,
   issueMagicLink,
   memberFromSessionToken,
+  normalizeCode,
   refreshSession,
   revokeSessions,
   revokeWatchSessions,
@@ -273,6 +279,115 @@ describe("magic links — 30-min expiry, single-use, 60s resend throttle", () =>
     expect(canResend(null, NOW)).toBe(true);
     expect(canResend(new Date(NOW.getTime() - 59_999), NOW)).toBe(false);
     expect(canResend(new Date(NOW.getTime() - RESEND_THROTTLE_MS), NOW)).toBe(true);
+  });
+});
+
+// --- prefetch-safe sign-in codes -------------------------------------------------------
+
+describe("human sign-in codes — format, alphabet, normalisation (pure)", () => {
+  const ALPHABET_RE = new RegExp(`^[${CODE_ALPHABET}]{3}-[${CODE_ALPHABET}]{3}$`);
+
+  it("issueMagicLink returns a XXX-XXX code from the unambiguous alphabet", async () => {
+    const issued = await issueMagicLink("aoife@example.ie", "signin", NOW);
+    if (issued.throttled) throw new Error("unexpected throttle");
+    expect(CODE_LENGTH).toBe(6);
+    expect(issued.code).toMatch(ALPHABET_RE);
+    // The ambiguous glyphs 0/O/1/I are never in the 32-char alphabet.
+    expect(issued.code).not.toMatch(/[01OI]/);
+    expect(CODE_ALPHABET).toBe("ABCDEFGHJKLMNPQRSTUVWXYZ23456789");
+    expect(CODE_ALPHABET).toHaveLength(32); // 256 % 32 === 0 → unbiased
+  });
+
+  it("normalizeCode strips case, dashes and spaces to the alphabet only", () => {
+    expect(normalizeCode("kx4-9wp")).toBe("KX49WP");
+    expect(normalizeCode("  Kx4 9wP ")).toBe("KX49WP");
+    expect(normalizeCode("kx4-9wp!")).toBe("KX49WP");
+  });
+
+  it("formatCode groups a normalised code as XXX-XXX", () => {
+    expect(formatCode("KX49WP")).toBe("KX4-9WP");
+  });
+});
+
+describe("consumeMagicLinkByCode — single-use, scoped, brute-force capped", () => {
+  const EMAIL = "aoife@example.ie";
+  async function issue() {
+    const issued = await issueMagicLink(EMAIL, "signin", NOW);
+    if (issued.throttled) throw new Error("unexpected throttle");
+    return issued;
+  }
+
+  it("accepts the right code once (case/dash-insensitive), then it's used", async () => {
+    const { code } = await issue();
+    const lower = code.toLowerCase().replace("-", "");
+    const first = await consumeMagicLinkByCode(EMAIL, lower, new Date(NOW.getTime() + 1000));
+    expect(first).toEqual({ state: "valid", email: EMAIL, purpose: "signin" });
+    // Single-use: the same code again is dead.
+    const second = await consumeMagicLinkByCode(EMAIL, code, new Date(NOW.getTime() + 2000));
+    expect(second.state).toBe("used");
+  });
+
+  it("a wrong code increments attempts but does not burn until the 5th", async () => {
+    await issue();
+    const tokens = fake.magicLinkTokens as FakeCollection;
+    for (let i = 1; i < MAX_CODE_ATTEMPTS; i++) {
+      const res = await consumeMagicLinkByCode(EMAIL, "ZZZ-ZZZ", NOW);
+      expect(res.state).toBe("invalid");
+      expect(tokens.docs[0].codeAttempts).toBe(i);
+      expect(tokens.docs[0].usedAt).toBeNull(); // still redeemable
+    }
+  });
+
+  it("the 5th wrong code burns the token (link included) → too_many", async () => {
+    const { code } = await issue();
+    for (let i = 1; i < MAX_CODE_ATTEMPTS; i++) {
+      await consumeMagicLinkByCode(EMAIL, "ZZZ-ZZZ", NOW);
+    }
+    const fifth = await consumeMagicLinkByCode(EMAIL, "ZZZ-ZZZ", NOW);
+    expect(fifth.state).toBe("too_many");
+    // The correct code no longer works — the token is invalidated.
+    const after = await consumeMagicLinkByCode(EMAIL, code, NOW);
+    expect(after.state).toBe("used");
+  });
+
+  it("an expired token is 'expired', a malformed code is 'invalid'", async () => {
+    await issue();
+    expect(
+      (await consumeMagicLinkByCode(EMAIL, "KX4-9WP", new Date(NOW.getTime() + MAGIC_LINK_TTL_MS))).state
+    ).toBe("expired");
+    expect((await consumeMagicLinkByCode(EMAIL, "short", NOW)).state).toBe("invalid");
+    // No token for a different email.
+    expect((await consumeMagicLinkByCode("nobody@example.ie", "KX4-9WP", NOW)).state).toBe(
+      "invalid"
+    );
+  });
+
+  it("using the CODE burns the same single token as the LINK (and vice-versa)", async () => {
+    // Code first → the link is then dead.
+    const a = await issue();
+    expect((await consumeMagicLinkByCode(EMAIL, a.code, new Date(NOW.getTime() + 1))).state).toBe(
+      "valid"
+    );
+    expect((await consumeMagicLink(a.token, new Date(NOW.getTime() + 2))).state).toBe("used");
+
+    // Link first → the code is then dead.
+    const b = await issueMagicLink(EMAIL, "signin", new Date(NOW.getTime() + RESEND_THROTTLE_MS));
+    if (b.throttled) throw new Error("unexpected throttle");
+    expect((await consumeMagicLink(b.token, new Date(NOW.getTime() + RESEND_THROTTLE_MS + 1))).state).toBe(
+      "valid"
+    );
+    expect(
+      (await consumeMagicLinkByCode(EMAIL, b.code, new Date(NOW.getTime() + RESEND_THROTTLE_MS + 2))).state
+    ).toBe("used");
+  });
+
+  it("scopes to the latest token and never redeems a reset (password) token", async () => {
+    // A reset token exists but the code path must ignore it.
+    await issueMagicLink(EMAIL, "reset", NOW);
+    const signin = await issueMagicLink(EMAIL, "signin", new Date(NOW.getTime() + 1));
+    if (signin.throttled) throw new Error("unexpected throttle");
+    const res = await consumeMagicLinkByCode(EMAIL, signin.code, new Date(NOW.getTime() + 2));
+    expect(res).toEqual({ state: "valid", email: EMAIL, purpose: "signin" });
   });
 });
 

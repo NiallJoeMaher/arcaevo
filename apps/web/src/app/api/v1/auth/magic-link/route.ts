@@ -31,12 +31,14 @@ export async function POST(req: Request) {
         { status: 429 }
       );
     }
+    const verifyUrl = `${siteUrl()}/verify?token=${issued.token}`;
+    const codeUrl = `${siteUrl()}/signin?email=${encodeURIComponent(email.toLowerCase())}`;
     await sendEmail(
       purpose === "verify" ? "e1_verify" : "e2_magic_link",
       email.toLowerCase(),
       purpose === "verify"
-        ? { confirmUrl: `${siteUrl()}/verify?token=${issued.token}` }
-        : { signinUrl: `${siteUrl()}/verify?token=${issued.token}` }
+        ? { confirmUrl: verifyUrl, code: issued.code, codeUrl }
+        : { signinUrl: verifyUrl, code: issued.code, codeUrl }
     );
   }
 

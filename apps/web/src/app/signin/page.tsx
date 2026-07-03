@@ -9,10 +9,15 @@ export const metadata: Metadata = {
   robots: { index: false },
 };
 
-export default function SigninPage() {
+export default async function SigninPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ email?: string; code?: string }>;
+}) {
+  const { email, code } = await searchParams;
   return (
     <AuthShell>
-      <SigninForm />
+      <SigninForm initialEmail={email ?? ""} codeFirst={code === "1"} />
     </AuthShell>
   );
 }

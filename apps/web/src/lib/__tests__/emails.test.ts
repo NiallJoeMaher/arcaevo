@@ -13,8 +13,16 @@ import { renderEmail, type EmailTemplateId, type EmailTemplates } from "@/lib/em
 
 /** One valid params object per template — reused across layout tests. */
 const SAMPLES: { [K in EmailTemplateId]: EmailTemplates[K] } = {
-  e1_verify: { confirmUrl: "https://arcaevo.com/verify?token=t1" },
-  e2_magic_link: { signinUrl: "https://arcaevo.com/verify?token=t2" },
+  e1_verify: {
+    confirmUrl: "https://arcaevo.com/verify?token=t1",
+    code: "KX4-9WP",
+    codeUrl: "https://arcaevo.com/signin?email=aoife%40example.ie",
+  },
+  e2_magic_link: {
+    signinUrl: "https://arcaevo.com/verify?token=t2",
+    code: "KX4-9WP",
+    codeUrl: "https://arcaevo.com/signin?email=aoife%40example.ie",
+  },
   e3_password_reset: { resetUrl: "https://arcaevo.com/verify?token=t3&reset=1" },
   e4_receipt: {
     firstName: "Aoife",
@@ -100,6 +108,22 @@ describe("subject lines set the voice (verbatim from §12)", () => {
   ] as [EmailTemplateId, string][])("%s → %j", (template, subject) => {
     expect(renderEmail(template, SAMPLES[template] as never).subject).toBe(subject);
   });
+});
+
+describe("E1/E2 carry the prefetch-safe sign-in code", () => {
+  it.each(["e1_verify", "e2_magic_link"] as const)(
+    "%s renders both the link button and the typed code",
+    (template) => {
+      const { html } = renderEmail(template, SAMPLES[template]);
+      // The link button is still there…
+      expect(html).toMatch(/\/verify\?token=/);
+      // …and the code is prominently shown with where to enter it.
+      expect(html).toContain("KX4-9WP");
+      expect(html).toContain("Or enter this code at");
+      expect(html).toContain('href="https://arcaevo.com/signin?email=aoife%40example.ie"');
+      expect(html).toContain("Useful if your email security blocks the link.");
+    }
+  );
 });
 
 describe("E7 results ready — NEVER contains values", () => {

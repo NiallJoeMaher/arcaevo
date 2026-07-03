@@ -106,6 +106,8 @@ export async function POST(req: Request) {
       if (!issued.throttled) {
         await sendEmail("e1_verify", email.toLowerCase(), {
           confirmUrl: `${siteUrl()}/verify?token=${issued.token}`,
+          code: issued.code,
+          codeUrl: `${siteUrl()}/signin?email=${encodeURIComponent(email.toLowerCase())}`,
         });
       }
     }

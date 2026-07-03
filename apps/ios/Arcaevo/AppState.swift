@@ -222,8 +222,8 @@ final class AppState {
         if case .onboarding(.signup) = phase { phase = .onboarding(.verify) }
     }
 
-    /// Redeems a magic-link token — from the universal link, the arcaevo://
-    /// scheme, or the DEV paste affordance on the verify screen.
+    /// Redeems a magic-link token — from the universal link or the arcaevo://
+    /// scheme.
     func verifyMagicLink(token: String) async {
         authBusy = true
         authError = nil
@@ -246,7 +246,38 @@ final class AppState {
             session = DemoDataProvider.session()
             isDemoSession = true
         }
+        applyVerifiedSession(session)
+    }
 
+    /// Redeems the prefetch-safe CODE the human typed on the verify screen —
+    /// for when a security appliance ate their universal link before they could
+    /// tap it. Uses the email captured at signup to scope the short code.
+    func verifyMagicLinkCode(code: String) async {
+        authBusy = true
+        authError = nil
+        defer { authBusy = false }
+
+        let session: Session
+        do {
+            session = try await api.verifyMagicLinkCode(email: signupEmail, code: code)
+            isDemoSession = false
+        } catch let APIClient.APIError.server(_, _, message) {
+            authError = message ?? "That code isn't valid."
+            return
+        } catch {
+            guard DemoMode.isEnabled else {
+                authError = Self.offlineMessage
+                return
+            }
+            session = DemoDataProvider.session()
+            isDemoSession = true
+        }
+        applyVerifiedSession(session)
+    }
+
+    /// Shared post-verify handling for both the link and code paths: store the
+    /// session, seed the watch handoff, and route onward.
+    private func applyVerifiedSession(_ session: Session) {
         SessionStore.store(session.sessionToken)
         memberName = session.member.name
         // Golden watch login: now that the phone is authenticated, mint a

@@ -27,6 +27,8 @@ interface LayoutParams {
   button?: { label: string; url: string };
   /** E8 only: rendered beside the primary button at equal weight. */
   secondaryButton?: { label: string; url: string };
+  /** Rendered between the button and the footer (e.g. the sign-in code block). */
+  afterButtonHtml?: string;
   footerHtml: string;
 }
 
@@ -58,6 +60,7 @@ export function renderEmailLayout(params: LayoutParams): string {
     <div style="font-family:'Instrument Serif',Georgia,serif;font-size:21px;line-height:1.2;margin-bottom:10px;">${params.headline}</div>
     ${params.bodyHtml}
     ${buttons}
+    ${params.afterButtonHtml ?? ""}
     <div style="font-size:11px;color:#7C887F;line-height:1.6;border-top:1px solid rgba(28,38,32,0.08);padding-top:12px;">${params.footerHtml}</div>
   </div>
 </div>`;
@@ -71,13 +74,27 @@ function insetCard(html: string): string {
   return `<div style="background:#ffffff;border:1px solid rgba(28,38,32,0.1);border-radius:12px;padding:14px 16px;margin-bottom:14px;">${html}</div>`;
 }
 
+/**
+ * The prefetch-safe sign-in code block, rendered under the button on the
+ * verify + magic-link emails. A human can TYPE this even when a security
+ * appliance (Safe Links, Mimecast, Proofpoint) has prefetched and burned the
+ * link. `code` is grouped XXX-XXX; `codeUrl` is where to enter it.
+ */
+function codeBlock(code: string, codeUrl: string): string {
+  return `<div style="margin:0 0 16px;padding:14px 16px;background:#ffffff;border:1px solid rgba(28,38,32,0.1);border-radius:12px;text-align:center;">
+    <div style="font-size:12px;color:#4A554D;line-height:1.5;margin-bottom:8px;">Or enter this code at <a href="${codeUrl}" style="color:#1E5C45;font-weight:600;text-decoration:none;">arcaevo.com/signin</a>:</div>
+    <div style="font-family:'Geist Mono',monospace;font-size:26px;font-weight:600;letter-spacing:0.14em;color:#1C2620;">${code}</div>
+    <div style="font-size:11px;color:#7C887F;line-height:1.5;margin-top:8px;">Useful if your email security blocks the link.</div>
+  </div>`;
+}
+
 // --- template params (type-safe; E7 deliberately CANNOT carry values) ------------
 
 export interface EmailTemplates {
-  /** E1 — account verification. */
-  e1_verify: { confirmUrl: string };
-  /** E2 — magic sign-in link. */
-  e2_magic_link: { signinUrl: string };
+  /** E1 — account verification. `code`/`codeUrl` = the prefetch-safe fallback. */
+  e1_verify: { confirmUrl: string; code: string; codeUrl: string };
+  /** E2 — magic sign-in link. `code`/`codeUrl` = the prefetch-safe fallback. */
+  e2_magic_link: { signinUrl: string; code: string; codeUrl: string };
   /** E3 — password reset. */
   e3_password_reset: { resetUrl: string };
   /** E4 — receipt / welcome. */
@@ -157,7 +174,7 @@ type Renderers = {
 };
 
 const renderers: Renderers = {
-  e1_verify: ({ confirmUrl }) => ({
+  e1_verify: ({ confirmUrl, code, codeUrl }) => ({
     subject: "Confirm it's you",
     html: renderEmailLayout({
       headline: "One tap and your account is real.",
@@ -165,12 +182,13 @@ const renderers: Renderers = {
         "Confirm this address and you're in — your account, your data controls, and plans whenever you're ready. The link lives for 30 minutes."
       ),
       button: { label: "Confirm my email", url: confirmUrl },
+      afterButtonHtml: codeBlock(code, codeUrl),
       footerHtml:
         "Didn't create an Arcaevo account? Ignore this and nothing happens.",
     }),
   }),
 
-  e2_magic_link: ({ signinUrl }) => ({
+  e2_magic_link: ({ signinUrl, code, codeUrl }) => ({
     subject: "Your sign-in link",
     html: renderEmailLayout({
       headline: "Tap once, you're in.",
@@ -178,6 +196,7 @@ const renderers: Renderers = {
         "This link signs you in on this device and expires in 30 minutes. If you didn't request it, ignore this email — nothing happens without the tap."
       ),
       button: { label: "Sign in to Arcaevo", url: signinUrl },
+      afterButtonHtml: codeBlock(code, codeUrl),
       footerHtml:
         "Arcaevo Ltd · Dublin, Ireland<br>You're receiving this because a sign-in was requested for this address.",
     }),

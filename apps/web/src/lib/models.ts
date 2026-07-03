@@ -351,7 +351,14 @@ export const MagicLinkPurpose = z.enum(["verify", "signin", "reset"]);
 export type MagicLinkPurpose = z.infer<typeof MagicLinkPurpose>;
 
 /** Magic-link token — 30-minute expiry, single-use. Only the SHA-256 hash of
- * the token is stored; the raw token exists only inside the emailed URL. */
+ * the token is stored; the raw token exists only inside the emailed URL.
+ *
+ * Anti-prefetch code fallback (Phase 21): the same token doc ALSO carries a
+ * short human-typeable code — `codeHash` = sha256Hex(normalizeCode(code)) —
+ * immune to email virus-scanner link prefetching (a scanner never fills in a
+ * code field). Using the code OR the link consumes the ONE token. `codeAttempts`
+ * caps brute force at 5 tries, then the token is invalidated. Both fields are
+ * optional so pre-Phase-21 rows / tests remain valid. */
 export const MagicLinkTokenSchema = z.object({
   _id: z.string(), // e.g. "mlt_0001"
   tokenHash: z.string(),
@@ -360,6 +367,10 @@ export const MagicLinkTokenSchema = z.object({
   createdAt: z.date(),
   expiresAt: z.date(),
   usedAt: z.date().nullable().default(null),
+  /** SHA-256 of the normalised human code (uppercase, alphabet chars only). */
+  codeHash: z.string().optional(),
+  /** Wrong-code attempt count; at 5 the token is burned. */
+  codeAttempts: z.number().int().default(0),
 });
 export type MagicLinkToken = z.infer<typeof MagicLinkTokenSchema>;
 
@@ -517,9 +528,22 @@ export const MagicLinkRequestInput = z.object({
   purpose: z.enum(["signin", "verify"]).default("signin"),
 });
 
-export const MagicLinkVerifyInput = z.object({
-  token: z.string().min(1),
-});
+/**
+ * Redeem a magic link by EITHER the emailed token OR an email + human code
+ * (the prefetch-safe fallback, Phase 21). The code path requires the email so
+ * the short code is scoped + rate-limited to one account. Exactly one of the
+ * two shapes must be present.
+ */
+export const MagicLinkVerifyInput = z
+  .object({
+    token: z.string().min(1).optional(),
+    email: z.string().email().optional(),
+    code: z.string().min(1).optional(),
+  })
+  .refine((v) => Boolean(v.token) || Boolean(v.email && v.code), {
+    message: "Provide either a link token or an email and code.",
+  });
+export type MagicLinkVerifyInput = z.infer<typeof MagicLinkVerifyInput>;
 
 export const SigninInput = z.object({
   email: z.string().email(),

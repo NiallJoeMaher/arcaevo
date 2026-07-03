@@ -151,6 +151,14 @@ struct APIClient {
         try await post("auth/magic-link/verify", body: ["token": token])
     }
 
+    /// `POST /auth/magic-link/verify` via the prefetch-safe CODE path — the
+    /// human types the short code from the email when a security appliance ate
+    /// their universal link. Same endpoint, same `Session` result; the code is
+    /// scoped to `email`. Works in Release (no DEBUG gate).
+    func verifyMagicLinkCode(email: String, code: String) async throws -> Session {
+        try await post("auth/magic-link/verify", body: ["email": email, "code": code])
+    }
+
     // MARK: - v2 endpoints — consents (GDPR Art. 9)
 
     func getConsents() async throws -> ConsentsState {

@@ -41,6 +41,23 @@ export async function latestVerifyToken(email: string): Promise<string | null> {
   });
 }
 
+/** Newest prefetch-safe sign-in CODE (XXX-XXX) mailed to `email` (outbox). */
+export async function latestSigninCode(email: string): Promise<string | null> {
+  return withDb(async (db) => {
+    const doc = await db
+      .collection<{ to: string; body: string; createdAt: Date }>("outbox")
+      .find({ to: email.toLowerCase() })
+      .sort({ createdAt: -1 })
+      .limit(1)
+      .next();
+    // Code lives in the mono block, grouped XXX-XXX from the 32-char alphabet.
+    const match = /([ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{3}-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{3})/.exec(
+      doc?.body ?? ""
+    );
+    return match ? match[1] : null;
+  });
+}
+
 /** Password sign-in through the real /signin UI (W3). */
 export async function signinViaUI(page: Page): Promise<void> {
   await page.goto("/signin");

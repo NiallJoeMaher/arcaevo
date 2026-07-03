@@ -119,6 +119,49 @@ export function clearFailedAttempts(): LockoutState {
   return { failedAttempts: 0, cooloffUntil: null };
 }
 
+// --- human sign-in codes (prefetch-safe fallback, Phase 21) --------------------
+
+/**
+ * UNAMBIGUOUS alphabet — no 0/O, 1/I/L. Exactly 32 chars, so `byte % 32` is
+ * bias-free (256 is a whole multiple of 32). A 6-char code from this alphabet
+ * is ~32^6 ≈ 1.07e9 — short, so it is defended by email-scoping, 5-attempt
+ * burn, 30-min expiry and single-use (see consumeMagicLinkByCode).
+ */
+export const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+export const CODE_LENGTH = 6;
+export const MAX_CODE_ATTEMPTS = 5;
+
+/** Strip a user-typed code to just the alphabet, uppercased (dash/space/case
+ * insensitive). "kx4-9wp" → "KX49WP". */
+export function normalizeCode(code: string): string {
+  const upper = code.toUpperCase();
+  let out = "";
+  for (const ch of upper) if (CODE_ALPHABET.includes(ch)) out += ch;
+  return out;
+}
+
+/** Display a normalised code grouped as XXX-XXX. */
+export function formatCode(normalized: string): string {
+  return `${normalized.slice(0, 3)}-${normalized.slice(3, 6)}`;
+}
+
+/** Generate a fresh normalised 6-char code (unbiased over the 32-char alphabet). */
+function generateCode(): string {
+  const bytes = randomBytes(CODE_LENGTH);
+  let out = "";
+  for (let i = 0; i < CODE_LENGTH; i++) {
+    out += CODE_ALPHABET[bytes[i]! % CODE_ALPHABET.length];
+  }
+  return out;
+}
+
+/** Constant-time compare of two equal-length hex digests. */
+function timingSafeEqualHex(a: string, b: string): boolean {
+  const ab = Buffer.from(a, "hex");
+  const bb = Buffer.from(b, "hex");
+  return ab.length === bb.length && timingSafeEqual(ab, bb);
+}
+
 // --- magic links (pure core + Mongo wrappers) ----------------------------------
 
 export type MagicLinkState = "valid" | "expired" | "used" | "invalid";
@@ -146,12 +189,14 @@ export function canResend(
 }
 
 export type IssueMagicLinkResult =
-  | { throttled: false; token: string; expiresAt: Date }
+  | { throttled: false; token: string; code: string; expiresAt: Date }
   | { throttled: true; retryInSeconds: number };
 
 /**
  * Issue a single-use magic-link token for an email+purpose.
- * Enforces the 60s resend throttle; stores only the token's SHA-256 hash.
+ * Enforces the 60s resend throttle; stores only the token's SHA-256 hash AND
+ * the SHA-256 hash of a short human code. Returns the raw token + the code
+ * formatted as XXX-XXX (both exist only in the emailed message; never logged).
  */
 export async function issueMagicLink(
   email: string,
@@ -176,6 +221,7 @@ export async function issueMagicLink(
 
   const token = randomBytes(32).toString("base64url");
   const tokenHash = sha256Hex(token);
+  const code = generateCode(); // already normalised (alphabet-only, uppercase)
   const expiresAt = new Date(now.getTime() + MAGIC_LINK_TTL_MS);
   await tokens.insertOne({
     _id: `mlt_${tokenHash.slice(0, 16)}`,
@@ -185,8 +231,10 @@ export async function issueMagicLink(
     createdAt: now,
     expiresAt,
     usedAt: null,
+    codeHash: sha256Hex(code),
+    codeAttempts: 0,
   });
-  return { throttled: false, token, expiresAt };
+  return { throttled: false, token, code: formatCode(code), expiresAt };
 }
 
 export type ConsumeMagicLinkResult =
@@ -203,6 +251,72 @@ export async function consumeMagicLink(
   const state = evaluateMagicLink(doc, now);
   if (state !== "valid" || !doc) return { state: state as Exclude<MagicLinkState, "valid"> };
   // Atomic burn: only succeeds if it is still unused (single-use guarantee).
+  const burned = await tokens.findOneAndUpdate(
+    { _id: doc._id, usedAt: null },
+    { $set: { usedAt: now } }
+  );
+  if (!burned) return { state: "used" };
+  return { state: "valid", email: doc.email, purpose: doc.purpose };
+}
+
+export type ConsumeMagicLinkByCodeResult =
+  | ConsumeMagicLinkResult
+  | { state: "too_many" };
+
+/**
+ * Verify + burn a magic-link token by its human code (prefetch-safe path).
+ *
+ * Scoped to the email so the short code is meaningless without knowing the
+ * account. Finds the latest non-expired sign-in/verify token for the email
+ * (reset uses the password flow, never a code), timing-safe compares the code
+ * hash, and:
+ *  - MISMATCH → increments codeAttempts; the 5th wrong try BURNS the token
+ *    (usedAt set → the emailed link dies too) and returns "too_many".
+ *  - MATCH → atomically burns the SAME single-use token as the link, so using
+ *    the code invalidates the link and vice-versa.
+ *
+ * Case- and dash-insensitive (normalizeCode). Returns the same shape as
+ * consumeMagicLink, plus "too_many".
+ */
+export async function consumeMagicLinkByCode(
+  email: string,
+  rawCode: string,
+  now: Date = new Date()
+): Promise<ConsumeMagicLinkByCodeResult> {
+  const normalizedEmail = email.toLowerCase();
+  const code = normalizeCode(rawCode);
+  if (code.length !== CODE_LENGTH) return { state: "invalid" };
+
+  const tokens = await collections.magicLinkTokens();
+  // Latest sign-in/verify token for this email (reset is password-only).
+  const latest = await tokens
+    .find({ email: normalizedEmail, purpose: { $ne: "reset" } })
+    .sort({ createdAt: -1 })
+    .limit(1)
+    .toArray();
+  const doc = latest[0] ?? null;
+
+  const state = evaluateMagicLink(doc, now);
+  if (!doc || state === "invalid") return { state: "invalid" };
+  if (state === "used") return { state: "used" };
+  if (state === "expired") return { state: "expired" };
+
+  // Valid + unexpired — compare the code.
+  if (!doc.codeHash || !timingSafeEqualHex(sha256Hex(code), doc.codeHash)) {
+    const codeAttempts = (doc.codeAttempts ?? 0) + 1;
+    if (codeAttempts >= MAX_CODE_ATTEMPTS) {
+      // Brute-force ceiling reached: burn the whole token (link included).
+      await tokens.updateOne(
+        { _id: doc._id },
+        { $set: { codeAttempts, usedAt: now } }
+      );
+      return { state: "too_many" };
+    }
+    await tokens.updateOne({ _id: doc._id }, { $set: { codeAttempts } });
+    return { state: "invalid" };
+  }
+
+  // Match — atomic single-use burn (only succeeds while still unused).
   const burned = await tokens.findOneAndUpdate(
     { _id: doc._id, usedAt: null },
     { $set: { usedAt: now } }

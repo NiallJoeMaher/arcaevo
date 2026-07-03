@@ -11,6 +11,8 @@ import {
   BiomarkerRuleSchema,
   CADENCE_UPGRADE_EUR,
   CreateOrderInput,
+  MagicLinkTokenSchema,
+  MagicLinkVerifyInput,
   MembershipSchema,
   ORDER_STATUS_SEQUENCE,
   SupportTicketSchema,
@@ -249,5 +251,49 @@ describe("pricing constants (verbatim from the design handoff)", () => {
     expect(TIER_INCLUDED_TESTS.performance).toEqual([
       { panel: "venous80", count: 1 },
     ]);
+  });
+});
+
+// --- magic-link code fallback (Phase 21) -----------------------------------
+
+describe("MagicLinkTokenSchema — optional code fields, backward compatible", () => {
+  const base = {
+    _id: "mlt_abc",
+    tokenHash: "hash",
+    email: "aoife@example.ie",
+    purpose: "signin" as const,
+    createdAt: new Date(),
+    expiresAt: new Date(),
+  };
+
+  it("accepts a pre-Phase-21 row with no code fields (codeAttempts defaults to 0)", () => {
+    const parsed = MagicLinkTokenSchema.parse({ ...base });
+    expect(parsed.codeHash).toBeUndefined();
+    expect(parsed.codeAttempts).toBe(0);
+  });
+
+  it("accepts a Phase-21 row with codeHash + codeAttempts", () => {
+    const parsed = MagicLinkTokenSchema.parse({
+      ...base,
+      codeHash: "codehash",
+      codeAttempts: 3,
+    });
+    expect(parsed.codeHash).toBe("codehash");
+    expect(parsed.codeAttempts).toBe(3);
+  });
+});
+
+describe("MagicLinkVerifyInput — token OR email+code, never neither", () => {
+  it("accepts the link token path", () => {
+    expect(MagicLinkVerifyInput.safeParse({ token: "t" }).success).toBe(true);
+  });
+  it("accepts the email+code path", () => {
+    expect(
+      MagicLinkVerifyInput.safeParse({ email: "aoife@example.ie", code: "KX4-9WP" }).success
+    ).toBe(true);
+  });
+  it("rejects an empty body and email-without-code", () => {
+    expect(MagicLinkVerifyInput.safeParse({}).success).toBe(false);
+    expect(MagicLinkVerifyInput.safeParse({ email: "aoife@example.ie" }).success).toBe(false);
   });
 });

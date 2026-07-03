@@ -14,6 +14,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import CodeForm from "@/components/account/CodeForm";
 import InboxCard from "@/components/account/InboxCard";
 import {
   Card,
@@ -27,14 +28,22 @@ import {
 
 type Sent = { purpose: "signin" | "reset" } | null;
 
-export default function SigninForm() {
+export default function SigninForm({
+  initialEmail = "",
+  codeFirst = false,
+}: {
+  initialEmail?: string;
+  codeFirst?: boolean;
+}) {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [passwordFailed, setPasswordFailed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState<Sent>(null);
+  // Prefetch-safe fallback: type the code from the email instead of the link.
+  const [codeMode, setCodeMode] = useState(codeFirst);
 
   function requireEmail(): boolean {
     if (email) return true;
@@ -125,6 +134,10 @@ export default function SigninForm() {
     }
   }
 
+  if (codeMode) {
+    return <CodeForm initialEmail={email} onBack={() => setCodeMode(false)} />;
+  }
+
   if (sent) {
     return (
       <InboxCard
@@ -213,6 +226,16 @@ export default function SigninForm() {
           {passwordFailed
             ? "Or skip the password — we'll email you a link."
             : "✉  Email me a sign-in link instead"}
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setError(null);
+            setCodeMode(true);
+          }}
+          className="mb-[14px] block w-full cursor-pointer text-center text-[12.5px] font-semibold text-forest"
+        >
+          Enter a code instead
         </button>
         <p className="text-center text-[12.5px] text-caption">
           New here?{" "}

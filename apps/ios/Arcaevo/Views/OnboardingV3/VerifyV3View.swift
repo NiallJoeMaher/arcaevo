@@ -2,12 +2,28 @@ import SwiftUI
 
 /// ONBOARDING 3/7 — Check your inbox (light, centered).
 /// Magic-link wait state. The real link opens the app (universal link /
-/// arcaevo:// scheme → AppState.handleIncomingURL). In DEBUG builds a
-/// paste-link/token affordance stays, because local dev "emails" land in
-/// the backend's Mongo outbox the app can't read.
+/// arcaevo:// scheme → AppState.handleIncomingURL). PREFETCH-SAFE FALLBACK
+/// (Phase 21): if a security appliance ate the universal link, the human
+/// types the 6-char CODE from the same email — a real Release affordance
+/// (a scanner never fills in and submits a code field).
 struct VerifyV3View: View {
     @Environment(AppState.self) private var appState
-    @State private var pastedToken = ""
+    @State private var code = ""
+
+    /// The unambiguous code alphabet (mirrors the web's CODE_ALPHABET).
+    private static let alphabet = Set("ABCDEFGHJKLMNPQRSTUVWXYZ23456789")
+
+    /// Uppercase, keep only alphabet chars, group as XXX-XXX (max 6).
+    static func formatCode(_ raw: String) -> String {
+        let cleaned = String(raw.uppercased().filter { alphabet.contains($0) }.prefix(6))
+        guard cleaned.count > 3 else { return cleaned }
+        let idx = cleaned.index(cleaned.startIndex, offsetBy: 3)
+        return "\(cleaned[..<idx])-\(cleaned[idx...])"
+    }
+
+    private var normalizedCodeCount: Int {
+        code.filter { Self.alphabet.contains($0) }.count
+    }
 
     private var email: String {
         appState.signupEmail.isEmpty ? "your email" : appState.signupEmail
@@ -67,16 +83,20 @@ struct VerifyV3View: View {
                     Task { await appState.requestMagicLink() }
                 }
 
-                #if DEBUG
-                // DEV ONLY: paste the verify link or raw token from the
-                // Mongo outbox to continue. Compiled out of release builds.
+                // Prefetch-safe fallback: type the code from the email. Works
+                // in Release — the way in when the link gets scanned/blocked.
                 VStack(alignment: .leading, spacing: 8) {
-                    ArcEyebrow(text: "Dev · paste link or token", color: .arcSecondaryLight)
-                    TextField("https://arcaevo.com/verify?token=…", text: $pastedToken)
-                        .font(.arcMono(12))
+                    ArcEyebrow(text: "Link blocked? Enter your code", color: .arcSecondaryLight)
+                    TextField("XXX-XXX", text: $code)
+                        .font(.arcMono(16))
                         .foregroundStyle(Color.ink)
-                        .textInputAutocapitalization(.never)
+                        .multilineTextAlignment(.center)
+                        .textInputAutocapitalization(.characters)
                         .autocorrectionDisabled()
+                        .onChange(of: code) { _, newValue in
+                            let formatted = Self.formatCode(newValue)
+                            if formatted != code { code = formatted }
+                        }
                         .padding(12)
                         .background(.white, in: RoundedRectangle(cornerRadius: 12))
                         .overlay(
@@ -84,30 +104,22 @@ struct VerifyV3View: View {
                                 .stroke(Color.arcDarkSurface.opacity(0.16), lineWidth: 1)
                         )
                     ArcPillButton(
-                        title: "Verify token",
-                        disabled: pastedToken.isEmpty || appState.authBusy,
+                        title: "Sign in with code",
+                        disabled: normalizedCodeCount != 6 || appState.authBusy,
                         fontSize: 14,
                         verticalPadding: 13
                     ) {
-                        Task { await appState.verifyMagicLink(token: Self.extractToken(from: pastedToken)) }
+                        Task { await appState.verifyMagicLinkCode(code: code) }
                     }
+                    Text("Useful if your email security blocks the link.")
+                        .font(.arcSans(11.5))
+                        .foregroundStyle(Color.arcSecondaryLight)
                 }
                 .padding(.top, 22)
-                #endif
             }
             .padding(EdgeInsets(top: 26, leading: 32, bottom: 40, trailing: 32))
             .frame(maxWidth: .infinity)
         }
         .scrollBounceBehavior(.basedOnSize)
-    }
-
-    /// Accepts a full verify URL or a bare token.
-    static func extractToken(from input: String) -> String {
-        let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
-        if let comps = URLComponents(string: trimmed),
-           let token = comps.queryItems?.first(where: { $0.name == "token" })?.value {
-            return token
-        }
-        return trimmed
     }
 }

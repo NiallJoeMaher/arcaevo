@@ -85,6 +85,21 @@ Every loop iteration: read this file first, do the next unchecked work, update t
 - [x] `cdk synth` passes
 - [x] `docker compose up --build` running and healthy, seeded — web :3000, mongo host :27019 (27017/27018 held by other projects), mongo-express :8083 (8081/8082 held by other projects)
 
+## Security audit + hardening (2026-07-03) — COMPLETE
+
+Multi-agent adversarial audit (8 attack surfaces, 3-lens verification) found 8 confirmed defects; all fixed + regression-tested + verified live. Details in docs/ASSUMPTIONS.md (security section) and the "Security hardening" commit.
+- [x] CRITICAL: SESSION_SECRET/ADMIN_PASSWORD fail closed in production (src/lib/env.ts + instrumentation.ts) — no committed fallback secret in prod; admin cookie no longer forgeable
+- [x] CRITICAL: GDPR Art.9 consent enforced server-side (src/lib/consent-guard.ts on all 8 health endpoints); withdrawal revokes sessions immediately
+- [x] CRITICAL: real account erasure (POST /api/v1/account/delete → flag + revoke + E12 email + erasure_jobs; scripts/run-erasure.ts / `npm run erase:run`; retains consent audit trail)
+- [x] CRITICAL: collision-safe runtime IDs (src/lib/ids.ts) + checkout upsert prevents duplicate/bricked memberships
+- [x] HIGH: demo bearer token gated to non-prod / ALLOW_DEMO_TOKEN (web) and DEBUG-only (iOS)
+- [x] HIGH: security headers globally (CSP frame-ancestors none, HSTS, X-Frame DENY, nosniff, referrer-policy; no-referrer + no-store on token/health pages) — verified live
+- [x] HIGH: webhooks require shared secret in prod (STRIPE/LGC_WEBHOOK_SECRET), open only in dev/e2e
+- [x] MEDIUM: bloodwork confirm array capped (max 100) + batched $in query
+- [x] iOS: per-config base URL (Release=HTTPS) + ATS exception DEBUG-only; session token Keychain AfterFirstUnlockThisDeviceOnly; health values no longer persisted to UserDefaults
+- [x] infra/CI: CDK bucket SSL/encryption/public-access-block verified; CI least-privilege `permissions: contents: read`
+- [x] Verified: tsc clean, 156 vitest, 47 Playwright e2e, iOS Debug+Release BUILD SUCCEEDED, stack live + reseeded
+
 ## V2 — accounts, auth, commerce (handoff: design_handoff_v2/, started 2026-07-02 morning)
 
 Spec: `design_handoff_v2/README.md` (rules) + `designs/AccountFlows.dc.html` (19 sections, all screens/emails/edge states). iOS Prototype.dc.html deferred until user hands over native design updates.

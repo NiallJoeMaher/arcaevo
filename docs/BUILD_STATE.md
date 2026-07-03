@@ -144,6 +144,21 @@ Non-negotiables: email + magic-link auth only (universal links open the app); pa
 - [x] App running in simulator: installed + launched co.arcaevo.app on booted iPhone 15 Pro
 - [x] Push to GitHub after green — pushed 2026-07-03
 
+## Phase 19 — Mock email + personal seeds (2026-07-03)
+
+Real mock-email infrastructure (MailHog over SMTP) + personal seed accounts. `nodemailer` + `@types/nodemailer` installed by the user for this phase.
+
+- [x] docker-compose `mailhog` service (mailhog/mailhog:latest, container arcaevo-mailhog) — host **1026:1025** SMTP / **8026:8025** UI (1025/8025, 1027/8027, 1030/8030 are held by other local projects' mail catchers); web service env: `EMAIL_PROVIDER=mailhog`, `SMTP_HOST=mailhog`, `SMTP_PORT=1025`
+- [x] `src/lib/vendors/email.smtp.ts` — nodemailer transport (SMTP_HOST default localhost, SMTP_PORT default 1026, no auth/TLS for MailHog, from `Arcaevo <hello@arcaevo.com>`). The Mongo `outbox` write stays ALWAYS (e2e + admin read it); with `EMAIL_PROVIDER=mailhog|smtp` the same email is ADDITIONALLY sent via SMTP, fire-and-forget with error logging — an SMTP failure can never break an API request. MOCKED_APIS.md §7 rewritten
+- [x] `scripts/seed-user.ts` + `npm run seed:user` — personal sign-in-able account (args via env or `KEY=VALUE` argv: EMAIL required, NAME, PASSWORD default arcaevo-demo-2026, TIER default performance, WITH_DATA default 1): verified user w/ real random-salt scrypt hash, active membership, 3 consents granted (research ON — own account), 40 readings = 2 lab draws (computed baselines + RCV verdicts, "did it work?" story) + one 10-marker self-reported hollow-gold draw, 90d wearables, 3 orders incl. results_ready ×2 + shipped recheck, active GP share link (`/s/gp-<slug>`), referral code from the name. Idempotent per email (rerun refreshes only that user's docs); does NOT wipe other collections — but the main seed DOES wipe everything, so rerun seed:user after every `npm run seed`
+- [x] E2E path: the seeded `demo@arcaevo.test` / demo-password-123 member (mem_0026) already covers the stable e2e password account — seed.ts unchanged
+- [x] `e2e/email.spec.ts` — (a) signup → E1 lands in the Mongo outbox w/ a `/verify?token=` link; (b) the same email arrives in MailHog via SMTP w/ correct from/to/subject, `test.skip` with a clear message when localhost:8026 is unreachable (CI stays outbox-only). playwright.config.ts webServer env passes through EMAIL_PROVIDER/SMTP_HOST/SMTP_PORT with local defaults (`mailhog` / `localhost` / `1026`) and empty EMAIL_PROVIDER under CI
+- [x] README quick-start updated (mailhog UI :8026, seed:user usage) + this section
+
+### Log
+
+- 2026-07-03: Phase 19 complete. VERIFIED: tsc clean · 122/122 vitest · **42/42 Playwright** (40 prior + 2 new email tests; the MailHog SMTP assertion ran for real, no skip) · docker stack rebuilt on the new image w/ mailhog wired, reseeded + seed:user rerun · `POST /api/v1/auth/signin` on the running stack → 200 `{member: mem_u_niall-codu-co, needsConsent: false}` for niall@codu.co / arcaevo-demo-2026 · a signup via the containerised web delivered "Confirm it's you" to MailHog over the compose network (7 messages total at http://localhost:8026). seed:user idempotency verified: double-run keeps 1 user / 1 membership / 40 readings / 360 wearables; the 27 other users untouched. Personal account seeded: mem_u_niall-codu-co · Niall Maher · performance €399/yr · referral NIALL-1T · share /s/gp-niall-codu-co.
+
 ## Wanted deps (agents append here instead of installing)
 
 - `vitest` (dev, apps/web) — unit tests for lib logic: rcv.ts verdicts/baseline bands (pure functions, test-ready), stripe.mock refund rules, LGC mock state machine. Add `"test": "vitest run"` to scripts once installed.

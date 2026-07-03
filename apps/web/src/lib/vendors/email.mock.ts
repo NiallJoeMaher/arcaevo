@@ -1,10 +1,19 @@
-// MOCK: Email vendor — nothing is ever sent.
+// MOCK: Email vendor — the Mongo `outbox` is the source of truth.
 //
-// Every "send" is appended to the Mongo `outbox` collection (and logged to the
-// console) so receipts / kit reminders / results-ready emails are inspectable
-// in mongo-express. See docs/MOCKED_APIS.md §7: productionise with an
-// EU-friendly ESP (e.g. Scaleway TEM, Postmark with EU DPA) + real templates.
+// Every "send" is appended to the Mongo `outbox` collection (and logged to
+// the console) so receipts / kit reminders / results-ready emails are
+// inspectable in mongo-express — the e2e suite and the admin views rely on
+// this, so the outbox write ALWAYS happens, whatever the provider.
+//
+// When EMAIL_PROVIDER=mailhog (or =smtp), the same email is ADDITIONALLY
+// delivered over real SMTP via email.smtp.ts (nodemailer → the compose
+// `mailhog` service, UI at http://localhost:8026). That delivery is
+// fire-and-forget: an SMTP failure is logged and never breaks the API
+// request that triggered the email. See docs/MOCKED_APIS.md §7:
+// productionise with an EU-friendly ESP (e.g. Scaleway TEM, Postmark with
+// EU DPA) + real templates.
 import { collections } from "@/lib/db";
+import { sendViaSmtp, smtpDeliveryEnabled } from "@/lib/vendors/email.smtp";
 import type { EmailVendor } from "@/lib/vendors/types";
 
 class EmailMock implements EmailVendor {
@@ -29,6 +38,23 @@ class EmailMock implements EmailVendor {
     console.log(
       `[email.mock] outbox ${outboxId} → ${params.to} · ${params.template} · "${params.subject}"`
     );
+
+    // Optional real SMTP delivery (MailHog / dev ESP) — fire-and-forget so a
+    // dead SMTP host can never fail the request that sent the email.
+    if (smtpDeliveryEnabled()) {
+      void sendViaSmtp({
+        to: params.to,
+        subject: params.subject,
+        html: params.body,
+      }).catch((err) => {
+        console.error(
+          `[email.smtp] delivery failed for ${outboxId} → ${params.to}: ${
+            err instanceof Error ? err.message : String(err)
+          }`
+        );
+      });
+    }
+
     return { outboxId };
   }
 }

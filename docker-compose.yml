@@ -28,6 +28,17 @@ services:
       mongo:
         condition: service_healthy
 
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: arcaevo-mailhog
+    ports:
+      # Host 1026 (SMTP) / 8026 (web UI) — the default 1025/8025 pair is held
+      # by other local projects' mail catchers (assemblpro-mailhog on
+      # 1025/8025; codu-mailpit and eventson-mailhog hold 1027/8027, 1030/8030).
+      # Inside the compose network the web container still uses mailhog:1025.
+      - "1026:1025"
+      - "8026:8025"
+
   web:
     build:
       context: ./apps/web
@@ -39,9 +50,17 @@ services:
       MONGODB_URI: mongodb://mongo:27017/arcaevo
       ADMIN_PASSWORD: change-me-local
       NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      # Emails ALWAYS land in the Mongo `outbox`; with EMAIL_PROVIDER=mailhog
+      # they are ADDITIONALLY delivered over SMTP to the mailhog container —
+      # browse them at http://localhost:8026.
+      EMAIL_PROVIDER: mailhog
+      SMTP_HOST: mailhog
+      SMTP_PORT: 1025
     depends_on:
       mongo:
         condition: service_healthy
+      mailhog:
+        condition: service_started
 
 volumes:
   mongo-data:

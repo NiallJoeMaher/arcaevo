@@ -38,9 +38,12 @@ Nothing here is wired to a real vendor yet. Every mock lives behind a small inte
 
 - `apps/web/src/lib/analytics.ts` is a no-op unless `NEXT_PUBLIC_POSTHOG_KEY` is set (EU host hardcoded: `https://eu.i.posthog.com`). No US-hosted scripts, per handoff.
 
-## 7. Email (receipts, kit reminders, results-ready) — MOCKED
+## 7. Email (receipts, kit reminders, results-ready) — MOCK OUTBOX + OPTIONAL REAL SMTP (MailHog)
 
-- `apps/web/src/lib/vendors/email.mock.ts` logs to console/Mongo `outbox` collection instead of sending. To productionise: EU-friendly ESP (e.g. Scaleway TEM, Postmark EU DPA) + templates.
+- **Outbox (always)**: `apps/web/src/lib/vendors/email.mock.ts` writes every send to the console + Mongo `outbox` collection — the e2e suite (`e2e/v2-helpers.ts` token fishing, `e2e/email.spec.ts`) and admin views read it, so this write happens regardless of provider.
+- **SMTP (additional, env-switched)**: with `EMAIL_PROVIDER=mailhog` (or `=smtp`), the same rendered email is ALSO sent via `email.smtp.ts` (nodemailer, from `Arcaevo <hello@arcaevo.com>`, `SMTP_HOST`/`SMTP_PORT` — defaults `localhost:1026`, no auth/TLS for MailHog). Delivery is fire-and-forget with error logging: an SMTP failure never breaks the API request.
+- **MailHog**: docker-compose `mailhog` service — SMTP on host **:1026**, web UI at **http://localhost:8026** (the standard 1025/8025 pair is taken by other local projects; inside the compose network the web container uses `mailhog:1025`).
+- To productionise: point `SMTP_HOST`/`SMTP_PORT` at an EU-friendly ESP (e.g. Scaleway TEM, Postmark EU DPA), add auth + TLS in `email.smtp.ts`, and decide whether the outbox write stays as an audit log.
 
 ## 8. Apple HealthKit (iOS) — REAL API, MOCK FALLBACK
 

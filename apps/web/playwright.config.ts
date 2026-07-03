@@ -17,6 +17,14 @@ export const E2E_ENV = {
   ADMIN_PASSWORD: "change-me-local",
   SESSION_SECRET: "e2e-secret",
   NEXT_PUBLIC_SITE_URL: "http://localhost:3000",
+  // Emails always land in the Mongo outbox. Locally we ALSO deliver them via
+  // SMTP to the compose mailhog container (host :1026, UI :8026) so
+  // email.spec.ts can assert real delivery; CI has no mailhog, so it stays
+  // outbox-only (and email.spec.ts skips its MailHog assertions there).
+  // Pass-through lets either be overridden per run.
+  EMAIL_PROVIDER: process.env.EMAIL_PROVIDER ?? (process.env.CI ? "" : "mailhog"),
+  SMTP_HOST: process.env.SMTP_HOST ?? "localhost",
+  SMTP_PORT: process.env.SMTP_PORT ?? "1026",
 };
 
 export default defineConfig({

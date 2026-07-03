@@ -1,28 +1,43 @@
 import SwiftUI
+import SafariServices
 
-// MARK: - v3 navigation shell (Phase 15 foundation)
+// MARK: - v3 navigation shell (Phase 16 — journey screens)
 //
-// Skeletal but functional screens wired to the AppState machine + APIClient
-// v2. The Phase 16 screen wave rebuilds each of these pixel-faithfully to
-// Prototype.dc.html — the routing, state and API calls here are final.
+// Owns: shared v3 chrome, onboarding step routing (Views/OnboardingV3/),
+// the free-tier → purchase → testing NavigationStack (Views/FreeTierV3/,
+// Views/PurchaseV3/, Views/TestingV3/) and the member tab shell.
+// Member tab content (Views/MemberV3/ etc.) belongs to other agents —
+// the placeholders below stay until their screens land.
+
+// MARK: Prototype colors not in Theme.swift (scoped to the journey screens)
+
+extension Color {
+    /// Gate-fail tone ("Cork — not in the service area yet").
+    static let arcGateFail = Color(hex: 0xB3543A)
+    /// Near-black text on bright-green badges (MOST POPULAR).
+    static let arcBadgeInk = Color(hex: 0x04130D)
+}
 
 // MARK: Shared chrome
 
-/// Pill CTA per the prototype (border-radius 100, 600–700 weight).
+/// Pill CTA per the prototype (border-radius 100px, weight 600).
 struct ArcPillButton: View {
     var title: String
     var disabled = false
     var onDark = false
+    var fontSize: CGFloat = 15
+    var verticalPadding: CGFloat = 16
+    var fill: Color? = nil
     var action: () -> Void
 
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.arcSans(14, weight: .semibold))
+                .font(.arcSans(fontSize, weight: .semibold))
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 13)
-                .background(onDark ? Color.arcCream : Color.arcDeepGreen)
-                .foregroundStyle(onDark ? Color.arcDarkSurface : Color.arcCream)
+                .padding(.vertical, verticalPadding)
+                .background(fill ?? (onDark ? Color.arcCream : Color.arcDeepGreen))
+                .foregroundStyle(onDark && fill == nil ? Color.arcDarkSurface : Color.white)
                 .clipShape(Capsule())
                 .opacity(disabled ? 0.45 : 1)
         }
@@ -31,47 +46,155 @@ struct ArcPillButton: View {
     }
 }
 
+/// Bordered secondary pill (1px ink-alpha border, no fill).
+struct ArcGhostPill: View {
+    var title: String
+    var fontSize: CGFloat = 15
+    var verticalPadding: CGFloat = 15
+    var textColor = Color.arcDarkSurface
+    var borderColor = Color.arcDarkSurface.opacity(0.22)
+    var action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.arcSans(fontSize, weight: .semibold))
+                .foregroundStyle(textColor)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, verticalPadding)
+                .overlay(Capsule().stroke(borderColor, lineWidth: 1))
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+/// "‹ Back" link — 14px, #7C887F, ≥44pt hit target.
+struct ArcBackLink: View {
+    var title = "Back"
+    var action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text("‹ \(title)")
+                .font(.arcSans(14))
+                .foregroundStyle(Color.arcSecondaryLight)
+                .frame(minHeight: 44, alignment: .leading)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+/// The identity mark — radial-gradient orb.
+struct ArcOrb: View {
+    var size: CGFloat = 34
+    var haloWidth: CGFloat = 0
+
+    var body: some View {
+        Circle()
+            .fill(RadialGradient(
+                colors: [Color(hex: 0x5FB592), .arcDeepGreen],
+                center: .init(x: 0.32, y: 0.30),
+                startRadius: 0,
+                endRadius: size * 0.7
+            ))
+            .frame(width: size, height: size)
+            .background(
+                haloWidth > 0
+                    ? Circle().fill(Color.arcDeepGreen.opacity(0.08))
+                        .frame(width: size + haloWidth * 2, height: size + haloWidth * 2)
+                    : nil
+            )
+    }
+}
+
 /// Geist Mono uppercase eyebrow label.
 struct ArcEyebrow: View {
     var text: String
     var onDark = false
+    var size: CGFloat = 10
+    var color: Color? = nil
 
     var body: some View {
         Text(text.uppercased())
-            .font(.arcMono(10, weight: .medium))
-            .kerning(1.2)
-            .foregroundStyle(onDark ? Color.arcMutedOnDark : Color.arcDeepGreen)
+            .font(.arcMono(size, weight: .medium))
+            .kerning(size * 0.11)
+            .foregroundStyle(color ?? (onDark ? Color.arcMutedOnDark : Color.arcDeepGreen))
     }
 }
 
-/// 40×22 toggle with 18px knob, green when on — prototype toggle spec.
+/// 40×23 toggle with 19px knob, green when on — notifications-screen spec.
 struct ArcToggle: View {
     @Binding var isOn: Bool
 
     var body: some View {
         Button {
-            withAnimation(.easeInOut(duration: 0.15)) { isOn.toggle() }
+            withAnimation(.easeInOut(duration: 0.2)) { isOn.toggle() }
         } label: {
             ZStack(alignment: isOn ? .trailing : .leading) {
                 Capsule()
                     .fill(isOn ? Color.arcPrimaryGreen : Color.arcDarkSurface.opacity(0.18))
-                    .frame(width: 40, height: 22)
+                    .frame(width: 40, height: 23)
                 Circle()
                     .fill(.white)
-                    .frame(width: 18, height: 18)
+                    .frame(width: 19, height: 19)
                     .padding(2)
             }
         }
         .buttonStyle(.plain)
         .frame(minWidth: 44, minHeight: 44) // hit target
+        .sensoryFeedback(.selection, trigger: isOn)
     }
+}
+
+/// In-app browser for the web checkout link-out (payment is NEVER in-app).
+struct V3SafariView: UIViewControllerRepresentable {
+    let url: URL
+
+    func makeUIViewController(context: Context) -> SFSafariViewController {
+        let controller = SFSafariViewController(url: url)
+        controller.preferredControlTintColor = UIColor(Color.arcDeepGreen)
+        return controller
+    }
+
+    func updateUIViewController(_ controller: SFSafariViewController, context: Context) {}
+}
+
+// MARK: - Journey routing (free tier → purchase → testing)
+
+/// Prototype flow: plans → (fusion → checkout) | (essential/performance →
+/// gate → checkout | waitlist) → success → activate kit | nurse booking →
+/// sample journey (→ critical value demo).
+enum JourneyRoute: Hashable {
+    case plans
+    case gate(Membership.Tier)
+    case waitlist(Membership.Tier)
+    case checkout(Membership.Tier)
+    case success(Membership.Tier)
+    case activateKit(Membership.Tier)
+    case nurseBooking(Membership.Tier)
+    case sampleJourney(Membership.Tier)
+    case criticalValue(Membership.Tier)
+}
+
+/// Navigation path for the journey stack, injected into every journey screen.
+@MainActor
+@Observable
+final class JourneyFlow {
+    var path: [JourneyRoute] = []
+    /// The eircode typed on the gate — the waitlist join reuses it.
+    var lastEircode: String = ""
+
+    func push(_ route: JourneyRoute) { path.append(route) }
+    func pop() { if !path.isEmpty { path.removeLast() } }
 }
 
 // MARK: - Onboarding flow (welcome → … → notifications)
 
 struct OnboardingFlowView: View {
     @Environment(AppState.self) private var appState
-    @Environment(AppModel.self) private var model
 
     var body: some View {
         ZStack {
@@ -79,403 +202,55 @@ struct OnboardingFlowView: View {
             if case .onboarding(let step) = appState.phase {
                 Group {
                     switch step {
-                    case .welcome: welcome
-                    case .signup: SignupStepView()
-                    case .verify: VerifyStepView()
-                    case .consent: ConsentStepView()
-                    case .healthkit: healthKitPrimer
-                    case .aboutYou: aboutYou
-                    case .notifications: NotificationsStepView()
+                    case .welcome: WelcomeV3View()
+                    case .signup: SignupV3View()
+                    case .verify: VerifyV3View()
+                    case .consent: ConsentV3View()
+                    case .healthkit: HealthKitPrimerV3View()
+                    case .aboutYou: AboutYouV3View()
+                    case .notifications: NotificationsV3View()
                     }
                 }
-                .padding(28)
                 .transition(.opacity)
+                .id(step)
             }
         }
-    }
-
-    private var welcome: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Circle()
-                .fill(RadialGradient(
-                    colors: [Color(hex: 0x5FB592), .arcDeepGreen],
-                    center: .init(x: 0.32, y: 0.30),
-                    startRadius: 0, endRadius: 24
-                ))
-                .frame(width: 34, height: 34)
-            Spacer()
-            ArcEyebrow(text: "Arcaevo")
-            Text("Your baseline,\nnot a population average.")
-                .font(.arcSerif(34))
-                .foregroundStyle(Color.ink)
-                .lineSpacing(2)
-            Text("Blood tests and your Apple Watch, fused into one plain-language story. Wellness, never diagnosis.")
-                .font(.arcSans(14))
-                .foregroundStyle(Color.arcSecondaryDark)
-            Spacer()
-            ArcPillButton(title: "Get started") { appState.advanceOnboarding() }
-        }
-    }
-
-    private var healthKitPrimer: some View {
-        // Primer-before-sheet: explain first, THEN show the system sheet.
-        VStack(alignment: .leading, spacing: 16) {
-            Spacer()
-            ArcEyebrow(text: "Apple Health")
-            Text("Read-only. Your data stays yours.")
-                .font(.arcSerif(30))
-                .foregroundStyle(Color.ink)
-            Text("Arcaevo reads HRV, resting heart rate, sleep and VO₂ max to build your baseline. We never write to Apple Health, and it's a device permission — separate from your account.")
-                .font(.arcSans(14))
-                .foregroundStyle(Color.arcSecondaryDark)
-            Spacer()
-            ArcPillButton(title: "Connect Apple Health") {
-                Task {
-                    await model.requestHealthAccess()
-                    appState.advanceOnboarding()
-                }
-            }
-            Button("Not now") { appState.advanceOnboarding() }
-                .font(.arcSans(13, weight: .medium))
-                .foregroundStyle(Color.arcSecondaryLight)
-                .frame(maxWidth: .infinity)
-        }
-    }
-
-    private var aboutYou: some View {
-        // Placeholder — Phase 16 builds the full about-you screen.
-        VStack(alignment: .leading, spacing: 16) {
-            Spacer()
-            ArcEyebrow(text: "About you")
-            Text("A little context makes the baseline smarter.")
-                .font(.arcSerif(30))
-                .foregroundStyle(Color.ink)
-            Text("Age band, training habits and goals — coming in the full screen build.")
-                .font(.arcSans(14))
-                .foregroundStyle(Color.arcSecondaryDark)
-            Spacer()
-            ArcPillButton(title: "Continue") { appState.advanceOnboarding() }
-        }
+        .animation(.easeInOut(duration: 0.2), value: appState.phase)
     }
 }
 
-private struct SignupStepView: View {
-    @Environment(AppState.self) private var appState
+// MARK: - Free tier shell (home → plans → purchase → testing)
 
-    var body: some View {
-        @Bindable var appState = appState
-        VStack(alignment: .leading, spacing: 16) {
-            Spacer()
-            ArcEyebrow(text: "Create account")
-            Text("Email and a magic link.\nNo passwords needed.")
-                .font(.arcSerif(30))
-                .foregroundStyle(Color.ink)
-            TextField("you@example.com", text: $appState.signupEmail)
-                .font(.arcSans(15))
-                .textContentType(.emailAddress)
-                .keyboardType(.emailAddress)
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled()
-                .padding(14)
-                .background(.white, in: RoundedRectangle(cornerRadius: 14))
-            Spacer()
-            ArcPillButton(
-                title: "Send my sign-in link",
-                disabled: !appState.signupEmail.contains("@")
-            ) {
-                Task { await appState.requestMagicLink() }
-            }
-        }
-    }
-}
-
-private struct VerifyStepView: View {
-    @Environment(AppState.self) private var appState
-    @State private var pastedToken = ""
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Spacer()
-            ArcEyebrow(text: "Check your inbox")
-            Text("Tap the link we sent to \(appState.signupEmail.isEmpty ? "your email" : appState.signupEmail).")
-                .font(.arcSerif(28))
-                .foregroundStyle(Color.ink)
-            Text(appState.magicLinkMessage ?? "The link opens this app and signs you in. It's valid for 30 minutes.")
-                .font(.arcSans(13.5))
-                .foregroundStyle(Color.arcSecondaryDark)
-            if let error = appState.authError {
-                Text(error)
-                    .font(.arcSans(13, weight: .medium))
-                    .foregroundStyle(Color.arcAmber)
-            }
-            Spacer()
-
-            // DEV ONLY: the local backend writes the magic-link email to a
-            // Mongo outbox the app can't read — paste the link or raw token
-            // here to continue. Removed for production builds via #if DEBUG.
-            #if DEBUG
-            VStack(alignment: .leading, spacing: 8) {
-                ArcEyebrow(text: "Dev · paste link or token")
-                TextField("https://arcaevo.com/verify?token=…", text: $pastedToken)
-                    .font(.arcMono(12))
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                    .padding(12)
-                    .background(.white, in: RoundedRectangle(cornerRadius: 12))
-                ArcPillButton(title: "Verify token", disabled: pastedToken.isEmpty) {
-                    let token = extractToken(from: pastedToken)
-                    Task { await appState.verifyMagicLink(token: token) }
-                }
-            }
-            #endif
-
-            Button("Resend link") {
-                Task { await appState.requestMagicLink() }
-            }
-            .font(.arcSans(13, weight: .medium))
-            .foregroundStyle(Color.arcSecondaryLight)
-            .frame(maxWidth: .infinity)
-        }
-    }
-
-    /// Accepts a full verify URL or a bare token.
-    private func extractToken(from input: String) -> String {
-        let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
-        if let comps = URLComponents(string: trimmed),
-           let token = comps.queryItems?.first(where: { $0.name == "token" })?.value {
-            return token
-        }
-        return trimmed
-    }
-}
-
-private struct ConsentStepView: View {
-    @Environment(AppState.self) private var appState
-
-    var body: some View {
-        @Bindable var appState = appState
-        VStack(alignment: .leading, spacing: 14) {
-            ArcEyebrow(text: "Health-data consent")
-            Text("Your data. Your say.")
-                .font(.arcSerif(30))
-                .foregroundStyle(Color.ink)
-            Text("GDPR Article 9 — three purposes, versioned, revocable any time in Account.")
-                .font(.arcSans(13.5))
-                .foregroundStyle(Color.arcSecondaryDark)
-
-            consentRow(
-                title: ConsentPurpose.healthProcessing.displayName,
-                sub: "Required — it's what the product is.",
-                required: true
-            )
-            consentRow(
-                title: ConsentPurpose.clinicianReview.displayName,
-                sub: "Required for tests — a clinician signs off results.",
-                required: true
-            )
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(ConsentPurpose.research.displayName)
-                        .font(.arcSans(14, weight: .semibold))
-                        .foregroundStyle(Color.ink)
-                    Text("Optional — off by default. Anonymised, never sold.")
-                        .font(.arcSans(12.5))
-                        .foregroundStyle(Color.arcSecondaryLight)
-                }
-                Spacer()
-                ArcToggle(isOn: $appState.researchConsent)
-            }
-            .padding(14)
-            .background(.white, in: RoundedRectangle(cornerRadius: 16))
-
-            Spacer()
-            ArcPillButton(title: "Agree and continue") {
-                Task { await appState.submitConsents() }
-            }
-        }
-    }
-
-    private func consentRow(title: String, sub: String, required: Bool) -> some View {
-        HStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: 3) {
-                Text(title)
-                    .font(.arcSans(14, weight: .semibold))
-                    .foregroundStyle(Color.ink)
-                Text(sub)
-                    .font(.arcSans(12.5))
-                    .foregroundStyle(Color.arcSecondaryLight)
-            }
-            Spacer()
-            Text("ON")
-                .font(.arcMono(10, weight: .medium))
-                .foregroundStyle(Color.arcPrimaryGreen)
-                .padding(.top, 4)
-        }
-        .padding(14)
-        .background(.white, in: RoundedRectangle(cornerRadius: 16))
-    }
-}
-
-private struct NotificationsStepView: View {
-    @Environment(AppState.self) private var appState
-
-    var body: some View {
-        @Bindable var appState = appState
-        VStack(alignment: .leading, spacing: 14) {
-            ArcEyebrow(text: "Notifications")
-            Text("Only what matters.\nNever streaks.")
-                .font(.arcSerif(30))
-                .foregroundStyle(Color.ink)
-            Text("Results never arrive in a push — you'll be told they're ready, nothing more.")
-                .font(.arcSans(13.5))
-                .foregroundStyle(Color.arcSecondaryDark)
-
-            prefRow("Results & clinician notes", "The reason the app exists", $appState.notificationPrefs.results)
-            prefRow("Test & fasting reminders", "The night before, and the morning of", $appState.notificationPrefs.reminders)
-            prefRow("Weekly focus", "One nudge a week, never streaks", $appState.notificationPrefs.weeklyFocus)
-            prefRow("Lock app with Face ID", "It's health data — on by default", $appState.notificationPrefs.faceIDLock)
-
-            Spacer()
-            ArcPillButton(title: "Finish setup") { appState.completeOnboarding() }
-        }
-    }
-
-    private func prefRow(_ title: String, _ sub: String, _ binding: Binding<Bool>) -> some View {
-        HStack(alignment: .center) {
-            VStack(alignment: .leading, spacing: 3) {
-                Text(title)
-                    .font(.arcSans(14, weight: .semibold))
-                    .foregroundStyle(Color.ink)
-                Text(sub)
-                    .font(.arcSans(12.5))
-                    .foregroundStyle(Color.arcSecondaryLight)
-            }
-            Spacer()
-            ArcToggle(isOn: binding)
-        }
-        .padding(.vertical, 2)
-    }
-}
-
-// MARK: - Free tier home (placeholder — Phase 16 rebuilds)
-
+/// Root of the `.freeTier` phase — one NavigationStack for the whole
+/// purchase + testing journey. Named `FreeHomeView` so RootView keeps
+/// compiling unchanged.
 struct FreeHomeView: View {
-    @Environment(AppState.self) private var appState
-    @Environment(\.openURL) private var openURL
-    @State private var eircode = ""
-    @State private var pendingTier: Membership.Tier?
+    @State private var flow = JourneyFlow()
 
     var body: some View {
-        ZStack {
-            Color.arcDarkSurface.ignoresSafeArea()
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    ArcEyebrow(text: "Free tier", onDark: true)
-                    Text("You're in. The full picture needs a plan.")
-                        .font(.arcSerif(30))
-                        .foregroundStyle(Color.arcCream)
-
-                    ForEach(Membership.Tier.allCases, id: \.self) { tier in
-                        planCard(tier)
+        NavigationStack(path: $flow.path) {
+            FreeHomeV3View()
+                .navigationBarBackButtonHidden(true)
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationDestination(for: JourneyRoute.self) { route in
+                    Group {
+                        switch route {
+                        case .plans: PlansV3View()
+                        case .gate(let tier): EircodeGateV3View(tier: tier)
+                        case .waitlist(let tier): WaitlistV3View(tier: tier)
+                        case .checkout(let tier): CheckoutV3View(tier: tier)
+                        case .success(let tier): SuccessV3View(tier: tier)
+                        case .activateKit(let tier): ActivateKitV3View(tier: tier)
+                        case .nurseBooking(let tier): NurseBookingV3View(tier: tier)
+                        case .sampleJourney(let tier): SampleJourneyV3View(tier: tier)
+                        case .criticalValue(let tier): CriticalValueV3View(tier: tier)
+                        }
                     }
-
-                    if case .fail(_, let county) = appState.eircodeGate {
-                        waitlistCard(county: county ?? "your county")
-                    }
-
-                    Text(Brand.disclaimer)
-                        .font(.arcMono(9.5))
-                        .foregroundStyle(Color.arcRailDim)
+                    .navigationBarBackButtonHidden(true)
+                    .toolbar(.hidden, for: .navigationBar)
                 }
-                .padding(24)
-            }
         }
-    }
-
-    private func planCard(_ tier: Membership.Tier) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text(tier.displayName)
-                    .font(.arcSans(16, weight: .bold))
-                    .foregroundStyle(Color.arcCream)
-                Spacer()
-                Text(tier.priceLine)
-                    .font(.arcMono(11, weight: .medium))
-                    .foregroundStyle(Color.arcBrightGreen)
-            }
-
-            if tier != .fusion {
-                // Eircode gate applies to Essential/Performance only.
-                HStack(spacing: 8) {
-                    TextField("Eircode (e.g. D08)", text: $eircode)
-                        .font(.arcMono(12))
-                        .textInputAutocapitalization(.characters)
-                        .autocorrectionDisabled()
-                        .padding(10)
-                        .background(.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 10))
-                        .foregroundStyle(Color.arcCream)
-                    Button("Check") {
-                        Task { await appState.checkEircode(eircode) }
-                    }
-                    .font(.arcSans(13, weight: .semibold))
-                    .foregroundStyle(Color.arcBrightGreen)
-                }
-                if case .pass(let key, _) = appState.eircodeGate {
-                    Text("\(key) — you're in the Dublin service area")
-                        .font(.arcSans(12.5))
-                        .foregroundStyle(Color.arcBrightGreen)
-                }
-            }
-
-            ArcPillButton(
-                title: "Start \(tier.displayName) on the web",
-                disabled: tier != .fusion && !gatePassed,
-                onDark: true
-            ) {
-                // Payments ALWAYS link out to web checkout — no IAP.
-                openURL(appState.checkoutURL(for: tier))
-                pendingTier = tier
-            }
-
-            if pendingTier == tier {
-                // DEV/demo affordance until real return-from-web deep link.
-                Button("I've finished checkout — activate \(tier.displayName)") {
-                    appState.activateMembership(tier)
-                }
-                .font(.arcSans(12.5, weight: .medium))
-                .foregroundStyle(Color.arcMutedOnDark)
-                .frame(maxWidth: .infinity)
-            }
-        }
-        .padding(16)
-        .background(.white.opacity(0.05), in: RoundedRectangle(cornerRadius: 16))
-    }
-
-    private var gatePassed: Bool {
-        if case .pass = appState.eircodeGate { return true }
-        return false
-    }
-
-    private func waitlistCard(county: String) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Not in \(county) yet — but you're next.")
-                .font(.arcSans(14, weight: .semibold))
-                .foregroundStyle(Color.arcCream)
-            if let position = appState.waitlistPosition {
-                Text("You're number \(position) in \(appState.waitlistCounty ?? county).")
-                    .font(.arcSans(13))
-                    .foregroundStyle(Color.arcMutedOnDark)
-            } else {
-                ArcPillButton(title: "Join the early-access list", onDark: true) {
-                    Task { await appState.joinWaitlist(eircode: eircode) }
-                }
-            }
-            Text("Fusion works anywhere: your watch + any past bloodwork.")
-                .font(.arcSans(12.5))
-                .foregroundStyle(Color.arcHollowGold)
-        }
-        .padding(16)
-        .background(.white.opacity(0.05), in: RoundedRectangle(cornerRadius: 16))
+        .environment(flow)
     }
 }
 
@@ -487,15 +262,17 @@ struct MemberShellView: View {
     var body: some View {
         VStack(spacing: 0) {
             Group {
+                // The real Phase 16 member screens (each owns its own
+                // NavigationStack — don't double-wrap).
                 switch appState.selectedTab {
                 case .today:
-                    NavigationStack { TodayView() }
+                    MemberTodayV3View()
                 case .results:
-                    NavigationStack { ResultsView() }
+                    MemberResultsV3View()
                 case .experiments:
-                    ExperimentsPlaceholderView()
+                    ExperimentsV3View()
                 case .account:
-                    AccountPlaceholderView()
+                    AccountV3View()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -541,7 +318,7 @@ struct ArcTabBar: View {
     }
 }
 
-// MARK: - Placeholder tabs (rebuilt in Phase 16)
+// MARK: - Placeholder tabs (other agents' Phase 16 screens replace these)
 
 struct ExperimentsPlaceholderView: View {
     @Environment(AppState.self) private var appState

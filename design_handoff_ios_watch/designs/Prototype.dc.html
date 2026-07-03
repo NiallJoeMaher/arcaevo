@@ -1,0 +1,1467 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #1C2620; }
+  ::selection { background: #34A07C; color: #04130D; }
+</style>
+</helmet>
+
+<div style="font-family:'Hanken Grotesk',sans-serif; min-height:100vh; background:#1C2620; color:#F4F1EA; display:flex; align-items:stretch;">
+
+  <!-- RAIL -->
+  <sc-if value="{{ railVisible }}" hint-placeholder-val="{{ true }}">
+  <div style="width:264px; flex-shrink:0; border-right:1px solid rgba(255,255,255,0.08); padding:28px 20px; display:flex; flex-direction:column; gap:2px; overflow-y:auto; max-height:100vh; position:sticky; top:0;">
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+      <div style="width:20px; height:20px; border-radius:50%; background:radial-gradient(circle at 32% 30%, #5FB592, #1E5C45 70%);"></div>
+      <span style="font-size:15px; font-weight:600;">Arcaevo</span>
+      <span style="font-family:'Geist Mono',monospace; font-size:9px; letter-spacing:0.12em; color:#8FA89A; padding-top:2px;">PROTOTYPE</span>
+    </div>
+    <div style="font-size:11.5px; color:#8FA89A; line-height:1.5; margin-bottom:16px;">Tap through the real flow, or jump to any screen.</div>
+    <sc-for list="{{ steps }}" as="s" hint-placeholder-count="15">
+      <div onClick="{{ s.go }}" style="display:flex; align-items:center; gap:10px; padding:{{ s.pad }}; border-radius:9px; cursor:{{ s.cursor }}; background:{{ s.bg }};" style-hover="background:rgba(255,255,255,0.06)">
+        <span style="font-family:'Geist Mono',monospace; font-size:10px; color:{{ s.numColor }}; width:20px; flex-shrink:0;">{{ s.num }}</span>
+        <span style="font-family:{{ s.font }}; font-size:{{ s.size }}; font-weight:{{ s.weight }}; letter-spacing:{{ s.ls }}; color:{{ s.color }};">{{ s.label }}</span>
+      </div>
+    </sc-for>
+    <div style="margin-top:auto; padding-top:18px; border-top:1px solid rgba(255,255,255,0.08); font-size:11px; color:#8FA89A; line-height:1.6;">Flow spec: <a href="AccountFlows.dc.html" style="color:#7FD3AE;">Accounts &amp; access</a></div>
+  </div>
+  </sc-if>
+
+  <!-- STAGE -->
+  <div style="flex:1; display:flex; align-items:center; justify-content:center; padding:36px 24px; min-height:100vh;">
+    <div style="display:flex; flex-direction:column; align-items:center; gap:16px;">
+
+      <!-- PHONE -->
+      <sc-if value="{{ phoneVisible }}" hint-placeholder-val="{{ true }}">
+      <div style="width:392px; background:#0E1512; border-radius:52px; padding:10px; box-shadow:0 42px 90px -38px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.07);">
+        <div style="width:100%; height:756px; background:#ECE7DD; border-radius:43px; overflow:hidden; position:relative; color:#1C2620; display:flex; flex-direction:column;">
+
+          <!-- status bar -->
+          <div style="flex-shrink:0; height:48px; display:flex; align-items:center; justify-content:space-between; padding:0 30px; font-size:13px; font-weight:600; color:{{ statusColor }}; position:relative; z-index:5;">
+            <span>9:41</span>
+            <div style="position:absolute; left:50%; transform:translateX(-50%); top:11px; width:112px; height:28px; background:#0E1512; border-radius:100px;"></div>
+            <span style="font-family:'Geist Mono',monospace; font-size:11px;">●●●&nbsp; ⌁&nbsp; ▮</span>
+          </div>
+
+          <!-- ===== WELCOME ===== -->
+          <sc-if value="{{ is.welcome }}" hint-placeholder-val="{{ true }}">
+          <div data-screen-label="Welcome" style="flex:1; display:flex; flex-direction:column; padding:26px 28px 30px; overflow-y:auto;">
+            <div style="width:34px; height:34px; border-radius:50%; background:radial-gradient(circle at 32% 30%, #5FB592, #1E5C45 70%); box-shadow:0 0 0 8px rgba(30,92,69,0.08); margin-bottom:auto; margin-top:26px;"></div>
+            <div style="font-family:'Instrument Serif',serif; font-size:40px; line-height:1.05; letter-spacing:-0.015em; margin-bottom:16px;">Know what's actually happening inside your body.</div>
+            <div style="font-size:15.5px; color:#4A554D; line-height:1.55; margin-bottom:30px;">Bloods and your Watch, read together — with the one or two changes worth making.</div>
+            <div onClick="{{ nav.signup }}" style="background:#1E5C45; color:#fff; text-align:center; padding:16px; border-radius:100px; font-weight:600; font-size:15px; margin-bottom:11px; cursor:pointer;" style-hover="background:#174937">Create account</div>
+            <div onClick="{{ nav.signup }}" style="border:1px solid rgba(28,38,32,0.22); text-align:center; padding:15px; border-radius:100px; font-weight:600; font-size:15px; cursor:pointer;" style-hover="background:rgba(28,38,32,0.05)">Sign in</div>
+          </div>
+          </sc-if>
+
+          <!-- ===== SIGN UP ===== -->
+          <sc-if value="{{ is.signup }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Create account" style="flex:1; display:flex; flex-direction:column; padding:14px 28px 30px; overflow-y:auto;">
+            <div onClick="{{ nav.welcome }}" style="font-size:14px; color:#7C887F; margin-bottom:24px; cursor:pointer;">‹ Back</div>
+            <div style="font-family:'Instrument Serif',serif; font-size:31px; line-height:1.1; margin-bottom:6px;">Create your account</div>
+            <div style="font-size:13.5px; color:#7C887F; margin-bottom:26px;">Free. No card, no commitment — Dublin or not.</div>
+            <div style="font-size:13px; font-weight:600; margin-bottom:7px;">Email</div>
+            <div style="border:1.5px solid #34A07C; border-radius:12px; padding:14px 16px; font-size:14.5px; background:#fff; margin-bottom:16px;">aoife@example.ie</div>
+            <div style="font-size:13px; font-weight:600; margin-bottom:7px;">Password <span style="color:#7C887F; font-weight:400;">· optional — we can email a link</span></div>
+            <div style="border:1px solid rgba(28,38,32,0.16); border-radius:12px; padding:14px 16px; font-size:14.5px; color:#7C887F; background:#fff; margin-bottom:20px;">••••••••••</div>
+            <div style="display:flex; gap:11px; align-items:flex-start; margin-bottom:24px;">
+              <span style="width:18px; height:18px; border-radius:5px; background:#1E5C45; flex-shrink:0; margin-top:1px; color:#fff; font-size:11px; text-align:center; line-height:18px;">✓</span>
+              <span style="font-size:13px; line-height:1.5; color:#4A554D;">I'm over 18 and agree to the <span style="text-decoration:underline;">Terms</span> and <span style="text-decoration:underline;">Privacy Policy</span></span>
+            </div>
+            <div onClick="{{ nav.verify }}" style="background:#1E5C45; color:#fff; text-align:center; padding:16px; border-radius:100px; font-weight:600; font-size:15px; margin-bottom:16px; cursor:pointer;">Create account</div>
+            <div style="font-size:13.5px; color:#7C887F; text-align:center;">Already a member? <span style="color:#1E5C45; font-weight:600;">Sign in</span></div>
+          </div>
+          </sc-if>
+
+          <!-- ===== VERIFY ===== -->
+          <sc-if value="{{ is.verify }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Check inbox" style="flex:1; display:flex; flex-direction:column; justify-content:center; padding:26px 32px 40px; text-align:center; overflow-y:auto;">
+            <div style="width:64px; height:64px; border-radius:50%; background:rgba(52,160,124,0.14); color:#1E5C45; font-size:26px; line-height:64px; margin:0 auto 22px;">✉</div>
+            <div style="font-family:'Instrument Serif',serif; font-size:29px; line-height:1.12; margin-bottom:12px;">Check your inbox</div>
+            <p style="font-size:14.5px; line-height:1.6; color:#4A554D; margin:0 0 30px;">We've sent a confirmation link to<br><strong>aoife@example.ie</strong>. It's valid for 30 minutes.</p>
+            <div onClick="{{ nav.consent }}" style="background:#1E5C45; color:#fff; text-align:center; padding:15px; border-radius:100px; font-weight:600; font-size:14px; margin-bottom:12px; cursor:pointer;">I tapped the link ✓&nbsp; <span style="font-weight:400; font-size:12px; opacity:0.8;">(simulate)</span></div>
+            <div style="border:1px solid rgba(28,38,32,0.18); text-align:center; padding:14px; border-radius:100px; font-weight:600; font-size:14px; color:#4A554D;">Resend email</div>
+          </div>
+          </sc-if>
+
+          <!-- ===== CONSENT ===== -->
+          <sc-if value="{{ is.consent }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Consent" style="flex:1; display:flex; flex-direction:column; padding:16px 26px 28px; overflow-y:auto;">
+            <div style="font-family:'Instrument Serif',serif; font-size:28px; line-height:1.12; margin-bottom:8px;">Your health data, on your terms</div>
+            <div style="font-size:13px; color:#7C887F; line-height:1.55; margin-bottom:20px;">Before Arcaevo reads a blood result or a night's sleep, we need your explicit permission. Withdraw — and erase — any time.</div>
+            <div style="background:#fff; border:1px solid rgba(28,38,32,0.12); border-radius:14px; padding:14px 16px; margin-bottom:10px; display:flex; gap:11px;">
+              <span style="width:17px; height:17px; border-radius:5px; background:#1E5C45; color:#fff; font-size:10px; text-align:center; line-height:17px; flex-shrink:0; margin-top:1px;">✓</span>
+              <div style="font-size:12.5px; line-height:1.5;"><strong>Process my health data</strong> <span style="font-family:'Geist Mono',monospace; font-size:8.5px; color:#1E5C45; letter-spacing:0.08em;">REQUIRED</span><br><span style="color:#7C887F;">Blood results, wearable metrics and my profile — for baselines, insights and verdicts. EU-hosted, never sold.</span></div>
+            </div>
+            <div style="background:#fff; border:1px solid rgba(28,38,32,0.12); border-radius:14px; padding:14px 16px; margin-bottom:10px; display:flex; gap:11px;">
+              <span style="width:17px; height:17px; border-radius:5px; background:#1E5C45; color:#fff; font-size:10px; text-align:center; line-height:17px; flex-shrink:0; margin-top:1px;">✓</span>
+              <div style="font-size:12.5px; line-height:1.5;"><strong>Clinician review</strong> <span style="font-family:'Geist Mono',monospace; font-size:8.5px; color:#1E5C45; letter-spacing:0.08em;">REQUIRED FOR TESTS</span><br><span style="color:#7C887F;">A registered clinician signs off my results and contacts me if a value is critical.</span></div>
+            </div>
+            <div onClick="{{ toggleResearch }}" style="background:#fff; border:1px solid rgba(28,38,32,0.12); border-radius:14px; padding:14px 16px; margin-bottom:22px; display:flex; gap:11px; cursor:pointer;">
+              <span style="width:17px; height:17px; border-radius:5px; flex-shrink:0; margin-top:1px; background:{{ researchBg }}; border:1.5px solid {{ researchBorder }}; color:#fff; font-size:10px; text-align:center; line-height:15px;">{{ researchTick }}</span>
+              <div style="font-size:12.5px; line-height:1.5;"><strong>Anonymised research</strong> <span style="font-family:'Geist Mono',monospace; font-size:8.5px; color:#7C887F; letter-spacing:0.08em;">OPTIONAL — TAP TO CHANGE</span><br><span style="color:#7C887F;">De-identified data may improve Arcaevo's rules and ranges. Off by default.</span></div>
+            </div>
+            <div onClick="{{ nav.healthkit }}" style="background:#1E5C45; color:#fff; text-align:center; padding:15px; border-radius:100px; font-weight:600; font-size:14.5px; cursor:pointer; margin-top:auto;">Agree &amp; continue</div>
+            <div style="font-size:11px; color:#7C887F; text-align:center; margin-top:12px;">Full details in our <span style="text-decoration:underline;">Health Data Notice</span> · GDPR Art. 9(2)(a)</div>
+          </div>
+          </sc-if>
+
+          <!-- ===== HEALTHKIT ===== -->
+          <sc-if value="{{ is.healthkit }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Apple Health" style="flex:1; display:flex; flex-direction:column; padding:16px 26px 0; overflow:hidden; position:relative;">
+            <div style="font-family:'Instrument Serif',serif; font-size:28px; line-height:1.12; margin-bottom:10px;">Let your Watch do the talking</div>
+            <div style="font-size:13.5px; color:#4A554D; line-height:1.6; margin-bottom:16px;">We read sleep, heart rate, HRV, VO₂max and workouts from Apple Health — read-only, on your device's terms. No Apple account sign-in needed.</div>
+            <div onClick="{{ nav.about }}" style="border:1px solid rgba(28,38,32,0.2); text-align:center; padding:13px; border-radius:100px; font-weight:600; font-size:13px; color:#7C887F; cursor:pointer;">Not now — I'll add it later</div>
+            <div style="position:absolute; left:10px; right:10px; bottom:0; background:#fff; border-radius:20px 20px 0 0; box-shadow:0 -14px 40px rgba(28,38,32,0.2); padding:22px 20px 26px;">
+              <div style="font-size:14px; font-weight:700; text-align:center; margin-bottom:5px;">"Arcaevo" would like to access your Health data</div>
+              <div style="font-size:11.5px; color:#7C887F; text-align:center; margin-bottom:16px;">Sleep · Heart Rate · HRV · VO₂max · Workouts</div>
+              <div style="display:flex; justify-content:space-between; align-items:center; font-size:13px; padding:11px 6px; border-top:1px solid rgba(28,38,32,0.08);"><span>Turn On All</span><span style="width:38px; height:22px; border-radius:100px; background:#34A07C; position:relative;"><span style="position:absolute; right:2px; top:2px; width:18px; height:18px; border-radius:50%; background:#fff;"></span></span></div>
+              <div onClick="{{ nav.about }}" style="background:#1E5C45; color:#fff; text-align:center; padding:14px; border-radius:100px; font-weight:600; font-size:14px; margin-top:14px; cursor:pointer;">Allow</div>
+            </div>
+          </div>
+          </sc-if>
+
+          <!-- ===== ABOUT YOU ===== -->
+          <sc-if value="{{ is.about }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="About you" style="flex:1; display:flex; flex-direction:column; padding:16px 26px 28px; overflow-y:auto;">
+            <div style="font-family:'Instrument Serif',serif; font-size:28px; line-height:1.12; margin-bottom:8px;">A little about you</div>
+            <div style="font-size:13px; color:#7C887F; line-height:1.5; margin-bottom:22px;">Ranges and baselines depend on these three answers.</div>
+            <div style="font-size:13px; font-weight:600; margin-bottom:7px;">Date of birth</div>
+            <div style="border:1px solid rgba(28,38,32,0.16); border-radius:12px; padding:13px 16px; font-size:14px; background:#fff; margin-bottom:16px;">14 / 03 / 1991</div>
+            <div style="font-size:13px; font-weight:600; margin-bottom:7px;">Sex at birth <span style="color:#7C887F; font-weight:400;">· sets lab ranges</span></div>
+            <div style="display:flex; gap:9px; margin-bottom:16px;">
+              <span style="flex:1; border:1.5px solid #1E5C45; background:rgba(52,160,124,0.08); color:#1E5C45; border-radius:100px; padding:12px; text-align:center; font-size:13.5px; font-weight:600;">Female</span>
+              <span style="flex:1; border:1px solid rgba(28,38,32,0.16); border-radius:100px; padding:12px; text-align:center; font-size:13.5px;">Male</span>
+            </div>
+            <div style="font-size:13px; font-weight:600; margin-bottom:7px;">What matters most right now?</div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:26px;">
+              <span style="border:1.5px solid #1E5C45; background:rgba(52,160,124,0.08); color:#1E5C45; border-radius:100px; padding:9px 15px; font-size:13px; font-weight:600;">Heart health</span>
+              <span style="border:1px solid rgba(28,38,32,0.16); border-radius:100px; padding:9px 15px; font-size:13px;">Energy</span>
+              <span style="border:1px solid rgba(28,38,32,0.16); border-radius:100px; padding:9px 15px; font-size:13px;">Performance</span>
+              <span style="border:1px solid rgba(28,38,32,0.16); border-radius:100px; padding:9px 15px; font-size:13px;">Longevity</span>
+            </div>
+            <div onClick="{{ nav.notify }}" style="background:#1E5C45; color:#fff; text-align:center; padding:15px; border-radius:100px; font-weight:600; font-size:14.5px; cursor:pointer; margin-top:auto;">Continue</div>
+          </div>
+          </sc-if>
+
+          <!-- ===== NOTIFICATIONS ===== -->
+          <sc-if value="{{ is.notify }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Notifications" style="flex:1; display:flex; flex-direction:column; padding:16px 26px 28px; overflow-y:auto;">
+            <div style="font-family:'Instrument Serif',serif; font-size:28px; line-height:1.12; margin-bottom:8px;">Only the ones worth a buzz</div>
+            <div style="font-size:13px; color:#7C887F; line-height:1.5; margin-bottom:22px;">We send results, kit reminders and weekly focus — never streak guilt. Tap to change.</div>
+            <sc-for list="{{ notifRows }}" as="n" hint-placeholder-count="4">
+              <div onClick="{{ n.toggle }}" style="background:#fff; border:1px solid rgba(28,38,32,0.12); border-radius:14px; padding:15px 16px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
+                <div><div style="font-size:13.5px; font-weight:600;">{{ n.label }}</div><div style="font-size:11px; color:#7C887F;">{{ n.sub }}</div></div>
+                <span style="width:40px; height:23px; border-radius:100px; background:{{ n.bg }}; position:relative; transition:background 0.2s;"><span style="position:absolute; top:2px; left:{{ n.knobLeft }}; width:19px; height:19px; border-radius:50%; background:#fff; transition:left 0.2s;"></span></span>
+              </div>
+            </sc-for>
+            <div onClick="{{ nav.home }}" style="background:#1E5C45; color:#fff; text-align:center; padding:15px; border-radius:100px; font-weight:600; font-size:14.5px; cursor:pointer; margin-top:auto;">Take me to my data</div>
+          </div>
+          </sc-if>
+
+          <!-- ===== FREE HOME ===== -->
+          <sc-if value="{{ is.home }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Free home" style="flex:1; display:flex; flex-direction:column; padding:14px 24px 24px; overflow-y:auto; background:#1C2620; color:#F4F1EA; margin:-48px 0 0; padding-top:62px;">
+            <div style="font-family:'Geist Mono',monospace; font-size:11px; color:#8FA89A; letter-spacing:0.1em; margin-bottom:18px;">GOOD MORNING, AOIFE</div>
+            <div style="background:rgba(52,160,124,0.12); border:1px solid rgba(52,160,124,0.3); border-radius:16px; padding:15px 16px; margin-bottom:12px;">
+              <div style="font-family:'Geist Mono',monospace; font-size:9.5px; color:#7FD3AE; letter-spacing:0.1em; margin-bottom:7px;">APPLE HEALTH · CONNECTED</div>
+              <div style="font-size:14px; font-weight:600; line-height:1.45;">Resting HR 54 · Sleep 7h 12m · 8,940 steps</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.06); border-radius:16px; padding:15px 16px; margin-bottom:12px;">
+              <div style="font-family:'Geist Mono',monospace; font-size:9.5px; color:#8FA89A; letter-spacing:0.1em; margin-bottom:10px;">RESTING HR · 90 DAYS</div>
+              <svg viewBox="0 0 300 54" style="width:100%; height:48px;"><polyline points="6,14 50,20 96,17 142,27 190,32 238,38 294,40" fill="none" stroke="#34A07C" stroke-width="2.5" stroke-linecap="round"></polyline></svg>
+              <div style="font-size:12px; color:#8FA89A; margin-top:6px;">Down 4 bpm since April — a good sign.</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.06); border-radius:16px; padding:15px 16px; margin-bottom:16px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:7px;"><span style="font-family:'Geist Mono',monospace; font-size:9.5px; color:#8FA89A; letter-spacing:0.1em; min-width:0;">WHAT'S DRIVING IT?</span><span style="font-family:'Geist Mono',monospace; font-size:9.5px; color:#D99A4E; white-space:nowrap; flex-shrink:0;">🔒 MEMBERS</span></div>
+              <div style="font-size:13px; color:#8FA89A; line-height:1.55;">Bloods would tell us whether this is fitness — or something to check.</div>
+            </div>
+            <div style="background:#F4F1EA; color:#1C2620; border-radius:18px; padding:18px; margin-top:auto;">
+              <div style="font-size:15px; font-weight:700; line-height:1.35; margin-bottom:4px;">Your watch is talking. Add bloods to hear the whole story.</div>
+              <div onClick="{{ nav.plans }}" style="background:#1E5C45; color:#fff; text-align:center; padding:12px; border-radius:100px; font-weight:600; font-size:13.5px; margin-top:12px; cursor:pointer;">See plans — from €119/yr</div>
+            </div>
+          </div>
+          </sc-if>
+
+          <!-- ===== PLANS ===== -->
+          <sc-if value="{{ is.plans }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Plans" style="flex:1; display:flex; flex-direction:column; padding:14px 26px 26px; overflow-y:auto;">
+            <div onClick="{{ nav.home }}" style="font-size:14px; color:#7C887F; margin-bottom:16px; cursor:pointer;">‹ Back</div>
+            <div style="font-family:'Instrument Serif',serif; font-size:27px; line-height:1.12; margin-bottom:18px;">One membership. Tests included.</div>
+            <div onClick="{{ pickFusion }}" style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.12); border-radius:18px; padding:18px; margin-bottom:11px; cursor:pointer;" style-hover="border-color:#1E5C45">
+              <div style="display:flex; justify-content:space-between; align-items:baseline;"><span style="font-size:16px; font-weight:700;">Fusion</span><span style="font-family:'Instrument Serif',serif; font-size:22px;">€119<span style="font-size:12px; color:#7C887F; font-family:'Hanken Grotesk';">/yr</span></span></div>
+              <div style="font-size:12px; color:#7C887F; margin-top:3px;">Your watch + any past bloodwork · works anywhere, nothing ships</div>
+            </div>
+            <div onClick="{{ pickEssential }}" style="background:#1C2620; color:#F4F1EA; border-radius:18px; padding:18px; margin-bottom:11px; cursor:pointer; position:relative;">
+              <span style="position:absolute; top:14px; right:16px; font-family:'Geist Mono',monospace; font-size:8.5px; background:#34A07C; color:#04130D; padding:3px 8px; border-radius:100px; letter-spacing:0.06em;">MOST POPULAR</span>
+              <div style="display:flex; justify-content:space-between; align-items:baseline;"><span style="font-size:16px; font-weight:700;">Essential</span><span style="font-family:'Instrument Serif',serif; font-size:22px; margin-right:86px;">€329<span style="font-size:12px; color:#8FA89A; font-family:'Hanken Grotesk';">/yr</span></span></div>
+              <div style="font-size:12px; color:#8FA89A; margin-top:3px;">2 finger-prick tests a year, kits to your door, clinician-reviewed</div>
+            </div>
+            <div onClick="{{ pickPerformance }}" style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.12); border-radius:18px; padding:18px; margin-bottom:16px; cursor:pointer;" style-hover="border-color:#1E5C45">
+              <div style="display:flex; justify-content:space-between; align-items:baseline;"><span style="font-size:16px; font-weight:700;">Performance</span><span style="font-family:'Instrument Serif',serif; font-size:22px;">€399<span style="font-size:12px; color:#7C887F; font-family:'Hanken Grotesk';">/yr</span></span></div>
+              <div style="font-size:12px; color:#7C887F; margin-top:3px;">Venous panel · 80+ markers · nurse comes to you, Dublin</div>
+            </div>
+            <div style="font-size:11.5px; color:#7C887F; text-align:center; line-height:1.6; margin-top:auto;">Tap a plan — payment happens on arcaevo.com.<br>Essential &amp; Performance check your Eircode first.</div>
+          </div>
+          </sc-if>
+
+          <!-- ===== GATE ===== -->
+          <sc-if value="{{ is.gate }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Eligibility" style="flex:1; display:flex; flex-direction:column; padding:14px 26px 28px; overflow-y:auto;">
+            <div onClick="{{ nav.plans }}" style="font-size:14px; color:#7C887F; margin-bottom:16px; cursor:pointer;">‹ Plans</div>
+            <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#1E5C45; margin-bottom:14px;">STEP 1 OF 3 · {{ planLabel }}</div>
+            <div style="font-family:'Instrument Serif',serif; font-size:27px; line-height:1.12; margin-bottom:8px;">First — can we reach you?</div>
+            <div style="font-size:13px; color:#7C887F; line-height:1.55; margin-bottom:22px;">Kits go by courier and nurses travel, so we're starting where we can do both well: Dublin.</div>
+            <div style="font-size:13px; font-weight:600; margin-bottom:8px;">Your Eircode <span style="color:#7C887F; font-weight:400;">· tap one to try</span></div>
+            <div style="display:flex; gap:9px; margin-bottom:18px;">
+              <div onClick="{{ tryDublin }}" style="flex:1; border:{{ dubBorder }}; background:{{ dubBg }}; border-radius:12px; padding:13px; text-align:center; font-family:'Geist Mono',monospace; font-size:14px; letter-spacing:0.06em; cursor:pointer;">D08 XY24</div>
+              <div onClick="{{ tryCork }}" style="flex:1; border:{{ corkBorder }}; background:{{ corkBg }}; border-radius:12px; padding:13px; text-align:center; font-family:'Geist Mono',monospace; font-size:14px; letter-spacing:0.06em; cursor:pointer;">T12 AB90</div>
+            </div>
+            <sc-if value="{{ gatePass }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex; gap:9px; align-items:center; font-size:14px; color:#1E5C45; font-weight:600; margin-bottom:22px;"><span style="width:22px; height:22px; border-radius:50%; background:rgba(52,160,124,0.16); font-size:12px; text-align:center; line-height:22px;">✓</span>You're in the Dublin service area</div>
+              <div onClick="{{ nav.checkout }}" style="background:#1E5C45; color:#fff; text-align:center; padding:15px; border-radius:100px; font-weight:600; font-size:14.5px; cursor:pointer;">Continue to your details</div>
+            </sc-if>
+            <sc-if value="{{ gateFail }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex; gap:9px; align-items:center; font-size:14px; color:#B3543A; font-weight:600; margin-bottom:22px;"><span style="width:22px; height:22px; border-radius:50%; background:rgba(179,84,58,0.12); font-size:12px; text-align:center; line-height:22px;">→</span>Cork — not in the service area yet</div>
+              <div onClick="{{ nav.waitlist }}" style="background:#1E5C45; color:#fff; text-align:center; padding:15px; border-radius:100px; font-weight:600; font-size:14.5px; cursor:pointer;">See your options</div>
+            </sc-if>
+            <div style="font-size:11.5px; color:#7C887F; text-align:center; margin-top:auto;">Only the routing key is checked — we don't store it until you order.</div>
+          </div>
+          </sc-if>
+
+          <!-- ===== WAITLIST ===== -->
+          <sc-if value="{{ is.waitlist }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Early access" style="flex:1; display:flex; flex-direction:column; padding:14px 26px 28px; overflow-y:auto;">
+            <div onClick="{{ nav.gate }}" style="font-size:14px; color:#7C887F; margin-bottom:16px; cursor:pointer;">‹ Back</div>
+            <div style="font-family:'Instrument Serif',serif; font-size:27px; line-height:1.12; margin-bottom:10px;">Not in Cork yet — but you're next.</div>
+            <div style="font-size:13.5px; color:#4A554D; line-height:1.6; margin-bottom:22px;">We're starting in Dublin so every kit, courier and nurse visit is flawless before we widen the map. Join the early-access list and we'll open your area in order of demand — first booking and founding-member pricing included.</div>
+            <sc-if value="{{ waitJoinedNo }}" hint-placeholder-val="{{ true }}">
+              <div onClick="{{ joinWaitlist }}" style="background:#1E5C45; color:#fff; text-align:center; padding:15px; border-radius:100px; font-weight:600; font-size:14.5px; margin-bottom:11px; cursor:pointer;">Join the early-access list</div>
+            </sc-if>
+            <sc-if value="{{ waitJoinedYes }}" hint-placeholder-val="{{ false }}">
+              <div style="background:rgba(52,160,124,0.1); border:1px solid rgba(52,160,124,0.35); border-radius:14px; padding:16px; margin-bottom:11px; text-align:center;">
+                <div style="font-size:14px; font-weight:700; color:#1E5C45; margin-bottom:3px;">✓ You're № 214 for Cork</div>
+                <div style="font-size:12px; color:#4A554D;">Confirmation sent · monthly updates · 30-day founding window when Cork opens</div>
+              </div>
+            </sc-if>
+            <div onClick="{{ pickFusionFromWaitlist }}" style="border:1px solid rgba(28,38,32,0.2); text-align:center; padding:14px; border-radius:100px; font-weight:600; font-size:14px; cursor:pointer;">Start with Fusion instead — €119/yr</div>
+            <div style="font-size:11.5px; color:#7C887F; text-align:center; margin-top:14px;">Fusion works anywhere: your watch + any past bloodwork.</div>
+          </div>
+          </sc-if>
+
+          <!-- ===== CHECKOUT ===== -->
+          <sc-if value="{{ is.checkout }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Checkout" style="flex:1; display:flex; flex-direction:column; padding:14px 26px 26px; overflow-y:auto;">
+            <div onClick="{{ nav.plans }}" style="font-size:14px; color:#7C887F; margin-bottom:14px; cursor:pointer;">‹ Plans</div>
+            <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#1E5C45; margin-bottom:12px;">ARCAEVO.COM · SECURE CHECKOUT · {{ planLabel }}</div>
+            <div style="background:#fff; border:1px solid rgba(28,38,32,0.12); border-radius:14px; padding:15px 16px; margin-bottom:12px;">
+              <div style="display:flex; justify-content:space-between; font-size:13.5px; margin-bottom:5px;"><span>{{ planName }} · 1 year</span><span style="font-family:'Geist Mono',monospace;">{{ planPrice }}</span></div>
+              <div style="display:flex; justify-content:space-between; font-size:12px; color:#7C887F;"><span>{{ planIncludes }}</span><span style="font-family:'Geist Mono',monospace;">Included</span></div>
+              <div style="height:1px; background:rgba(28,38,32,0.1); margin:9px 0;"></div>
+              <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:700;"><span>Due today</span><span style="font-family:'Geist Mono',monospace;">{{ planPrice }}</span></div>
+            </div>
+            <div style="font-size:12.5px; font-weight:600; margin-bottom:6px;">Delivery details</div>
+            <div style="border:1px solid rgba(28,38,32,0.16); border-radius:12px; padding:12px 14px; font-size:13px; background:#fff; margin-bottom:12px; line-height:1.5;">Aoife Byrne · 14 Emmet Road, Inchicore<br>Dublin 8 · D08 XY24 · b. 14/03/1991</div>
+            <div style="border:1px solid rgba(28,38,32,0.16); border-radius:12px; padding:12px 14px; font-size:13px; background:#fff; margin-bottom:14px; display:flex; justify-content:space-between;"><span style="font-family:'Geist Mono',monospace;">4242 4242 4242 4242</span><span style="color:#7C887F; font-size:11px;">VISA · 08/28</span></div>
+            <div onClick="{{ nav.success }}" style="background:#0E1512; color:#fff; text-align:center; padding:14px; border-radius:100px; font-weight:600; font-size:14px; margin-bottom:9px; cursor:pointer;"> Pay — Apple Pay</div>
+            <div onClick="{{ nav.success }}" style="background:#1E5C45; color:#fff; text-align:center; padding:14px; border-radius:100px; font-weight:600; font-size:14px; margin-bottom:10px; cursor:pointer;">Pay {{ planPrice }}</div>
+            <div style="font-size:11.5px; color:#7C887F; text-align:center; margin-top:auto;">Full refund until your kit ships or your draw is booked.</div>
+          </div>
+          </sc-if>
+
+          <!-- ===== SUCCESS ===== -->
+          <sc-if value="{{ is.success }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Member" style="flex:1; display:flex; flex-direction:column; padding:20px 28px 28px; overflow-y:auto;">
+            <div style="width:60px; height:60px; border-radius:50%; background:rgba(52,160,124,0.14); color:#1E5C45; font-size:26px; line-height:60px; text-align:center; margin-bottom:20px;">✓</div>
+            <div style="font-family:'Instrument Serif',serif; font-size:30px; line-height:1.1; margin-bottom:8px;">You're a member, Aoife.</div>
+            <div style="font-size:13.5px; color:#7C887F; margin-bottom:24px;">Receipt sent to aoife@example.ie</div>
+            <div style="display:flex; gap:13px; margin-bottom:14px;"><span style="font-family:'Geist Mono',monospace; font-size:12px; color:#1E5C45; width:22px;">01</span><div style="font-size:14px; line-height:1.5;"><strong>{{ successStep1 }}</strong></div></div>
+            <div style="display:flex; gap:13px; margin-bottom:14px;"><span style="font-family:'Geist Mono',monospace; font-size:12px; color:#1E5C45; width:22px;">02</span><div style="font-size:14px; line-height:1.5;"><strong>Your Watch is already flowing</strong> — baselines start building tonight.</div></div>
+            <div style="display:flex; gap:13px; margin-bottom:24px;"><span style="font-family:'Geist Mono',monospace; font-size:12px; color:#1E5C45; width:22px;">03</span><div style="font-size:14px; line-height:1.5;"><strong>Test on a Tue–Thu morning</strong>, fasted, and post the same day.</div></div>
+            <div onClick="{{ successCtaGo }}" style="background:#1E5C45; color:#fff; text-align:center; padding:15px; border-radius:100px; font-weight:600; font-size:14.5px; margin-top:auto; cursor:pointer;">{{ successCtaLabel }}</div>
+          </div>
+          </sc-if>
+
+          <!-- ===== ACTIVATE ===== -->
+          <sc-if value="{{ is.activate }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Activate kit" style="flex:1; display:flex; flex-direction:column; padding:16px 26px 28px; overflow-y:auto;">
+            <div style="font-family:'Geist Mono',monospace; font-size:10px; color:#1E5C45; letter-spacing:0.1em; margin-bottom:14px;">YOUR KIT HAS ARRIVED</div>
+            <div style="font-family:'Instrument Serif',serif; font-size:27px; line-height:1.12; margin-bottom:18px;">Link this kit to you before you begin</div>
+            <div style="background:#fff; border:1.5px dashed rgba(28,38,32,0.25); border-radius:18px; height:160px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; margin-bottom:14px;">
+              <div style="width:54px; height:54px; border-radius:12px; background:repeating-linear-gradient(0deg,#1C2620,#1C2620 3px,transparent 3px,transparent 7px), repeating-linear-gradient(90deg,#1C2620,#1C2620 3px,transparent 3px,transparent 7px); opacity:0.75;"></div>
+              <div style="font-size:13px; font-weight:600;">Scan the QR on the tube</div>
+            </div>
+            <div style="text-align:center; font-size:12px; color:#7C887F; margin-bottom:14px;">or enter the code by hand</div>
+            <div style="border:1px solid rgba(28,38,32,0.16); border-radius:12px; padding:13px; font-family:'Geist Mono',monospace; font-size:16px; letter-spacing:0.14em; text-align:center; background:#fff; margin-bottom:18px;">ARC-7F2K-D8</div>
+            <div onClick="{{ nav.journey }}" style="background:#1E5C45; color:#fff; text-align:center; padding:15px; border-radius:100px; font-weight:600; font-size:14px; cursor:pointer; margin-top:auto;">It's mine — show me how to test</div>
+          </div>
+          </sc-if>
+
+          <!-- ===== JOURNEY ===== -->
+          <sc-if value="{{ is.journey }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Sample journey" style="flex:1; display:flex; flex-direction:column; padding:14px 26px 26px; overflow-y:auto; background:#1C2620; color:#F4F1EA; margin:-48px 0 0; padding-top:62px;">
+            <div style="font-family:'Geist Mono',monospace; font-size:10px; color:#8FA89A; letter-spacing:0.1em; margin-bottom:6px;">YOUR JULY SAMPLE</div>
+            <div style="font-family:'Instrument Serif',serif; font-size:25px; line-height:1.15; margin-bottom:24px;">On its way to becoming answers.</div>
+            <div style="display:flex; gap:15px; margin-bottom:18px;"><span style="width:24px; height:24px; border-radius:50%; background:#34A07C; color:#04130D; font-size:13px; text-align:center; line-height:24px; flex-shrink:0;">✓</span><div><div style="font-size:14.5px; font-weight:700;">Kit activated</div><div style="font-size:12px; color:#8FA89A;">Mon 6 July, 08:12</div></div></div>
+            <div style="display:flex; gap:15px; margin-bottom:18px;"><span style="width:24px; height:24px; border-radius:50%; background:#34A07C; color:#04130D; font-size:13px; text-align:center; line-height:24px; flex-shrink:0;">✓</span><div><div style="font-size:14.5px; font-weight:700;">Sample posted</div><div style="font-size:12px; color:#8FA89A;">Mon 6 July, 11:40 · An Post tracked</div></div></div>
+            <div style="display:flex; gap:15px; margin-bottom:18px;"><span style="width:24px; height:24px; border-radius:50%; border:2px solid #34A07C; color:#7FD3AE; font-size:11px; text-align:center; line-height:20px; flex-shrink:0;">●</span><div><div style="font-size:14.5px; font-weight:700;">At the lab</div><div style="font-size:12px; color:#8FA89A;">Received Tue 7 July · processing 24–48h</div></div></div>
+            <div style="display:flex; gap:15px; margin-bottom:18px; opacity:0.5;"><span style="width:24px; height:24px; border-radius:50%; border:2px solid rgba(255,255,255,0.3); flex-shrink:0;"></span><div><div style="font-size:14.5px; font-weight:700;">Clinician review</div><div style="font-size:12px; color:#8FA89A;">Every panel signed off by a doctor</div></div></div>
+            <div style="display:flex; gap:15px; margin-bottom:22px; opacity:0.5;"><span style="width:24px; height:24px; border-radius:50%; border:2px solid rgba(255,255,255,0.3); flex-shrink:0;"></span><div><div style="font-size:14.5px; font-weight:700;">Results ready</div><div style="font-size:12px; color:#8FA89A;">Push + email — never values in the email</div></div></div>
+            <div style="font-size:12px; color:#8FA89A; text-align:center; margin-bottom:14px;">Something wrong? <span style="color:#7FD3AE; font-weight:600;">Message us about this sample</span></div>
+            <div onClick="{{ nav.welcome }}" style="border:1px solid rgba(255,255,255,0.25); text-align:center; padding:13px; border-radius:100px; font-weight:600; font-size:13px; cursor:pointer; margin-top:auto;">↺&nbsp; Restart the prototype</div>
+          </div>
+          </sc-if>
+
+          <!-- ===== NURSE BOOKING ===== -->
+          <sc-if value="{{ is.booking }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Nurse booking" style="flex:1; display:flex; flex-direction:column; padding:14px 26px 26px; overflow-y:auto;">
+            <div onClick="{{ nav.success }}" style="font-size:14px; color:#7C887F; margin-bottom:14px; cursor:pointer;">‹ Back</div>
+            <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#1E5C45; margin-bottom:12px;">PERFORMANCE · NURSE VISIT</div>
+            <div style="font-family:'Instrument Serif',serif; font-size:27px; line-height:1.12; margin-bottom:8px;">When should we come?</div>
+            <div style="font-size:13px; color:#7C887F; line-height:1.55; margin-bottom:20px;">Morning slots, fasted. 20 minutes at your home or desk — 14 Emmet Road, D08.</div>
+            <div style="display:flex; gap:9px; margin-bottom:12px;">
+              <sc-for list="{{ bookDays }}" as="d" hint-placeholder-count="3">
+                <div onClick="{{ d.pick }}" style="flex:1; border:{{ d.border }}; background:{{ d.bg }}; border-radius:12px; padding:12px 6px; text-align:center; cursor:pointer;">
+                  <div style="font-size:14px; font-weight:700; color:{{ d.color }};">{{ d.label }}</div>
+                  <div style="font-size:11px; color:#7C887F;">July</div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:22px;">
+              <sc-for list="{{ bookSlots }}" as="t" hint-placeholder-count="4">
+                <span onClick="{{ t.pick }}" style="border:{{ t.border }}; background:{{ t.bg }}; color:{{ t.color }}; border-radius:100px; padding:10px 16px; font-family:'Geist Mono',monospace; font-size:13px; cursor:pointer;">{{ t.label }}</span>
+              </sc-for>
+            </div>
+            <sc-if value="{{ bookedNo }}" hint-placeholder-val="{{ true }}">
+              <div onClick="{{ confirmBooking }}" style="background:#1E5C45; color:#fff; text-align:center; padding:15px; border-radius:100px; font-weight:600; font-size:14px; cursor:pointer;">{{ bookCta }}</div>
+            </sc-if>
+            <sc-if value="{{ bookedYes }}" hint-placeholder-val="{{ false }}">
+              <div style="background:rgba(52,160,124,0.1); border:1px solid rgba(52,160,124,0.35); border-radius:14px; padding:16px; text-align:center; margin-bottom:11px;">
+                <div style="font-size:14px; font-weight:700; color:#1E5C45; margin-bottom:3px;">✓ Booked — {{ bookDayVal }} July, {{ bookSlotVal }}</div>
+                <div style="font-size:12px; color:#4A554D;">Fasting reminder the night before · nurse's name and photo the morning of</div>
+              </div>
+              <div onClick="{{ nav.journey }}" style="border:1px solid rgba(28,38,32,0.2); text-align:center; padding:13px; border-radius:100px; font-weight:600; font-size:13.5px; cursor:pointer;">Follow my sample journey</div>
+            </sc-if>
+            <div style="font-size:11.5px; color:#7C887F; text-align:center; margin-top:auto;">Free reschedule up to 24h before the visit.</div>
+          </div>
+          </sc-if>
+
+          <!-- ===== CRITICAL VALUE ===== -->
+          <sc-if value="{{ is.critical }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Critical value" style="flex:1; display:flex; flex-direction:column; padding:16px 26px 28px; overflow-y:auto;">
+            <div style="font-family:'Geist Mono',monospace; font-size:10px; color:#1E5C45; letter-spacing:0.1em; margin-bottom:14px;">YOUR RESULTS</div>
+            <div style="font-family:'Instrument Serif',serif; font-size:29px; line-height:1.12; margin-bottom:12px;">Dr. Nolan would like a word first.</div>
+            <div style="font-size:13.5px; color:#4A554D; line-height:1.6; margin-bottom:20px;">One value on your panel needs a conversation before you read it alone. This is precaution, not panic — it's often a lab artefact or a fasting issue.</div>
+            <div style="background:#fff; border:1px solid rgba(28,38,32,0.12); border-radius:16px; padding:18px; margin-bottom:11px;">
+              <div style="font-size:14px; font-weight:700; margin-bottom:4px;">She'll call today</div>
+              <div style="font-size:12.5px; color:#7C887F; line-height:1.5;">Between 14:00–17:00 on 087 ··· ··21. From a Dublin number.</div>
+            </div>
+            <div style="border:1px solid rgba(28,38,32,0.2); text-align:center; padding:13px; border-radius:100px; font-weight:600; font-size:13.5px; margin-bottom:16px; cursor:pointer;">Choose a better time</div>
+            <div onClick="{{ nav.results }}" style="font-size:13px; color:#1E5C45; font-weight:600; text-align:center; cursor:pointer;">The rest of your panel is ready to read now →</div>
+            <div style="font-size:11.5px; color:#7C887F; text-align:center; line-height:1.6; margin-top:auto;">Never a red number in a push notification —<br>a person first, always.</div>
+          </div>
+          </sc-if>
+
+          <!-- ===== UPLOAD ===== -->
+          <sc-if value="{{ is.upload }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Add bloodwork" style="flex:1; display:flex; flex-direction:column; padding:14px 26px 28px; overflow-y:auto;">
+            <div onClick="{{ nav.home }}" style="font-size:14px; color:#7C887F; margin-bottom:14px; cursor:pointer;">‹ Back</div>
+            <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#1E5C45; margin-bottom:12px;">ADD BLOODWORK</div>
+            <div style="font-family:'Instrument Serif',serif; font-size:27px; line-height:1.12; margin-bottom:8px;">Got old results? They still count.</div>
+            <div style="font-size:13px; color:#4A554D; line-height:1.55; margin-bottom:20px;">A GP letter, a hospital printout, a PDF from another service — AI reads them all, and you approve every number.</div>
+            <div onClick="{{ nav.confirmupload }}" style="background:#fff; border:1px solid rgba(28,38,32,0.12); border-radius:15px; padding:16px; margin-bottom:10px; display:flex; gap:13px; align-items:center; cursor:pointer;" style-hover="border-color:#1E5C45"><span style="font-size:19px;">⌗</span><div><div style="font-size:14px; font-weight:700;">Photograph a printout</div><div style="font-size:11.5px; color:#7C887F;">Best in daylight, flat on a table</div></div></div>
+            <div onClick="{{ nav.confirmupload }}" style="background:#fff; border:1px solid rgba(28,38,32,0.12); border-radius:15px; padding:16px; margin-bottom:10px; display:flex; gap:13px; align-items:center; cursor:pointer;" style-hover="border-color:#1E5C45"><span style="font-size:19px;">▤</span><div><div style="font-size:14px; font-weight:700;">Upload a PDF</div><div style="font-size:11.5px; color:#7C887F;">From Files, Mail or another app</div></div></div>
+            <div onClick="{{ nav.manual }}" style="background:#fff; border:1px solid rgba(28,38,32,0.12); border-radius:15px; padding:16px; margin-bottom:18px; display:flex; gap:13px; align-items:center; cursor:pointer;" style-hover="border-color:#1E5C45"><span style="font-size:19px;">✎</span><div><div style="font-size:14px; font-weight:700;">Type values by hand</div><div style="font-size:11.5px; color:#7C887F;">Just a few markers? Faster to type</div></div></div>
+            <div style="font-size:11.5px; color:#7C887F; text-align:center; line-height:1.5; margin-top:auto;">Processed in the EU · the original file is yours to delete anytime</div>
+          </div>
+          </sc-if>
+
+          <!-- ===== CONFIRM UPLOAD ===== -->
+          <sc-if value="{{ is.confirmupload }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Confirm reading" style="flex:1; display:flex; flex-direction:column; padding:14px 26px 26px; overflow-y:auto;">
+            <div onClick="{{ nav.upload }}" style="font-size:14px; color:#7C887F; margin-bottom:14px; cursor:pointer;">‹ Back</div>
+            <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#1E5C45; margin-bottom:12px;">CHECK THE READING · 12 MARKERS FOUND</div>
+            <div style="font-family:'Instrument Serif',serif; font-size:24px; line-height:1.15; margin-bottom:16px;">St. Vincent's · 14 Feb 2026 — look right?</div>
+            <div style="background:#fff; border:1px solid rgba(28,38,32,0.12); border-radius:13px; padding:13px 15px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;"><div><div style="font-size:13.5px; font-weight:700;">Total cholesterol</div><div style="font-size:11px; color:#7C887F;">mmol/L</div></div><span style="font-family:'Geist Mono',monospace; font-size:16px;">5.1</span></div>
+            <div style="background:#fff; border:1px solid rgba(28,38,32,0.12); border-radius:13px; padding:13px 15px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;"><div><div style="font-size:13.5px; font-weight:700;">HDL</div><div style="font-size:11px; color:#7C887F;">mmol/L</div></div><span style="font-family:'Geist Mono',monospace; font-size:16px;">1.4</span></div>
+            <div style="background:rgba(217,154,78,0.08); border:1.5px solid rgba(217,154,78,0.5); border-radius:13px; padding:13px 15px; margin-bottom:16px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><div><div style="font-size:13.5px; font-weight:700;">Ferritin</div><div style="font-size:11px; color:#B3543A;">Low confidence — was this 41 or 47?</div></div><span style="font-family:'Geist Mono',monospace; font-size:16px;">{{ ferValue }}</span></div>
+              <div style="display:flex; gap:8px;">
+                <span onClick="{{ pick41 }}" style="flex:1; border:{{ fer41Border }}; background:{{ fer41Bg }}; border-radius:100px; padding:9px; text-align:center; font-family:'Geist Mono',monospace; font-size:13px; cursor:pointer;">41</span>
+                <span onClick="{{ pick47 }}" style="flex:1; border:{{ fer47Border }}; background:{{ fer47Bg }}; border-radius:100px; padding:9px; text-align:center; font-family:'Geist Mono',monospace; font-size:13px; cursor:pointer;">47</span>
+              </div>
+            </div>
+            <sc-if value="{{ ferResolved }}" hint-placeholder-val="{{ false }}">
+              <div onClick="{{ nav.timeline }}" style="background:#1E5C45; color:#fff; text-align:center; padding:14px; border-radius:100px; font-weight:600; font-size:14px; margin-bottom:10px; cursor:pointer;">Looks right — add all 12</div>
+            </sc-if>
+            <sc-if value="{{ ferPending }}" hint-placeholder-val="{{ true }}">
+              <div style="background:rgba(28,38,32,0.12); color:#7C887F; text-align:center; padding:14px; border-radius:100px; font-weight:600; font-size:14px; margin-bottom:10px;">Resolve ferritin to continue</div>
+            </sc-if>
+            <div style="text-align:center; font-size:12px; color:#7C887F;">View the original side-by-side</div>
+          </div>
+          </sc-if>
+
+          <!-- ===== TIMELINE ===== -->
+          <sc-if value="{{ is.timeline }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Timeline" style="flex:1; display:flex; flex-direction:column; padding:14px 26px 26px; overflow-y:auto; background:#1C2620; color:#F4F1EA; margin:-48px 0 0; padding-top:62px;">
+            <div style="font-family:'Geist Mono',monospace; font-size:10px; color:#8FA89A; letter-spacing:0.1em; margin-bottom:6px;">TOTAL CHOLESTEROL · 2 YEARS</div>
+            <div style="font-family:'Instrument Serif',serif; font-size:24px; line-height:1.15; margin-bottom:18px;">Trending the right way.</div>
+            <div style="background:rgba(255,255,255,0.06); border-radius:16px; padding:16px; margin-bottom:12px;">
+              <svg viewBox="0 0 300 96" style="width:100%; height:88px;">
+                <polyline points="20,34 130,46" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="2" stroke-dasharray="5 5"></polyline>
+                <polyline points="130,46 252,60" fill="none" stroke="#34A07C" stroke-width="2.5" stroke-linecap="round"></polyline>
+                <circle cx="20" cy="34" r="5" fill="none" stroke="#D9C9A4" stroke-width="2.5"></circle>
+                <circle cx="130" cy="46" r="5" fill="none" stroke="#D9C9A4" stroke-width="2.5"></circle>
+                <circle cx="252" cy="60" r="6" fill="#34A07C"></circle>
+              </svg>
+              <div style="display:flex; justify-content:space-between; font-family:'Geist Mono',monospace; font-size:9.5px; color:#8FA89A;"><span>FEB 25 · 5.4</span><span>FEB 26 · 5.1</span><span>JUL 26 · 4.8</span></div>
+            </div>
+            <div style="display:flex; gap:9px; align-items:center; margin-bottom:14px; flex-wrap:wrap;">
+              <span style="width:11px; height:11px; border-radius:50%; border:2px solid #D9C9A4; flex-shrink:0;"></span><span style="font-size:12px; color:#CFD6CF;">Self-reported</span>
+              <span style="width:11px; height:11px; border-radius:50%; background:#34A07C; margin-left:10px; flex-shrink:0;"></span><span style="font-size:12px; color:#CFD6CF;">Arcaevo lab</span>
+            </div>
+            <div style="background:rgba(255,255,255,0.06); border-radius:16px; padding:15px 16px; margin-bottom:18px;">
+              <div style="font-family:'Geist Mono',monospace; font-size:9.5px; color:#7FD3AE; letter-spacing:0.1em; margin-bottom:7px;">WHAT THIS UNLOCKS</div>
+              <div style="font-size:13px; line-height:1.55; color:#CFD6CF;">Two years of history means your baseline starts today, not in six months. Trend verdicts now reach back to Feb 2025.</div>
+            </div>
+            <div onClick="{{ nav.gpshare }}" style="background:#F4F1EA; color:#1C2620; text-align:center; padding:14px; border-radius:100px; font-weight:600; font-size:14px; margin-top:auto; cursor:pointer;">Share with your GP</div>
+          </div>
+          </sc-if>
+
+          <!-- ===== GP SHARE ===== -->
+          <sc-if value="{{ is.gpshare }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Share with GP" style="flex:1; display:flex; flex-direction:column; padding:14px 26px 26px; overflow-y:auto;">
+            <div onClick="{{ nav.timeline }}" style="font-size:14px; color:#7C887F; margin-bottom:14px; cursor:pointer;">‹ Back</div>
+            <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#1E5C45; margin-bottom:12px;">SHARE WITH YOUR GP</div>
+            <div style="font-family:'Instrument Serif',serif; font-size:26px; line-height:1.12; margin-bottom:8px;">Bring your GP the whole picture.</div>
+            <div style="font-size:13px; color:#4A554D; line-height:1.55; margin-bottom:18px;">A two-page clinician summary: results with dates and ranges, trend arrows, reviewed by Dr. Nolan (IMC 412887). No app needed on their end.</div>
+            <div style="background:#fff; border:1px solid rgba(28,38,32,0.12); border-radius:14px; padding:14px 16px; margin-bottom:9px;">
+              <div style="font-size:13px; font-weight:700; margin-bottom:4px;">What's included</div>
+              <div style="font-size:12px; color:#7C887F; line-height:1.7;">✓ All lab results · 2 years<br>✓ Wearable trends summary<br>✗ Your notes &amp; experiments — off by default</div>
+            </div>
+            <div style="background:#fff; border:1px solid rgba(28,38,32,0.12); border-radius:14px; padding:14px 16px; margin-bottom:18px; display:flex; justify-content:space-between; align-items:center;">
+              <div><div style="font-size:13px; font-weight:700;">Link expires</div><div style="font-size:11.5px; color:#7C887F;">After 30 days, or when you revoke it</div></div>
+              <span style="font-family:'Geist Mono',monospace; font-size:12px; color:#1E5C45;">30 DAYS</span>
+            </div>
+            <sc-if value="{{ gpNo }}" hint-placeholder-val="{{ true }}">
+              <div onClick="{{ createGpLink }}" style="background:#1E5C45; color:#fff; text-align:center; padding:14px; border-radius:100px; font-weight:600; font-size:14px; cursor:pointer; margin-top:auto;">Create secure link</div>
+            </sc-if>
+            <sc-if value="{{ gpYes }}" hint-placeholder-val="{{ false }}">
+              <div style="background:rgba(52,160,124,0.1); border:1px solid rgba(52,160,124,0.35); border-radius:14px; padding:15px; margin-top:auto; margin-bottom:10px;">
+                <div style="font-family:'Geist Mono',monospace; font-size:13px; text-align:center; margin-bottom:6px;">arcaevo.com/s/k7f2-m9q1</div>
+                <div style="font-size:11.5px; color:#4A554D; text-align:center;">Active · expires 1 Aug · opened 0 times · <span style="color:#B3543A; font-weight:600;">Revoke</span></div>
+              </div>
+              <div onClick="{{ nav.account }}" style="border:1px solid rgba(28,38,32,0.2); text-align:center; padding:13px; border-radius:100px; font-weight:600; font-size:13.5px; cursor:pointer;">Done</div>
+            </sc-if>
+          </div>
+          </sc-if>
+
+          <!-- ===== ACCOUNT HUB ===== -->
+          <sc-if value="{{ is.account }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Account" style="flex:1; display:flex; flex-direction:column; padding:16px 26px 26px; overflow-y:auto;">
+            <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#1E5C45; margin-bottom:12px;">ACCOUNT</div>
+            <div style="font-family:'Instrument Serif',serif; font-size:27px; line-height:1.12; margin-bottom:2px;">Aoife Byrne</div>
+            <div style="font-size:13px; color:#7C887F; margin-bottom:18px;">aoife@example.ie</div>
+            <div style="background:#1C2620; color:#F4F1EA; border-radius:16px; padding:16px 18px; margin-bottom:14px;">
+              <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:3px;"><span style="font-size:14.5px; font-weight:700;">Essential · €329/yr</span><span style="font-family:'Geist Mono',monospace; font-size:9.5px; color:#7FD3AE; letter-spacing:0.08em;">ACTIVE</span></div>
+              <div style="font-size:12px; color:#9FB0A6;">Renews 2 July 2027 · 1 of 2 tests used · billing on arcaevo.com</div>
+            </div>
+            <div onClick="{{ nav.security }}" style="background:#fff; border:1px solid rgba(28,38,32,0.1); border-radius:14px; padding:15px 16px; margin-bottom:9px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" style-hover="border-color:#1E5C45"><span style="font-size:14px; font-weight:600;">Sign-in &amp; security</span><span style="color:#7C887F;">›</span></div>
+            <div onClick="{{ nav.privacy }}" style="background:#fff; border:1px solid rgba(28,38,32,0.1); border-radius:14px; padding:15px 16px; margin-bottom:9px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" style-hover="border-color:#1E5C45"><span style="font-size:14px; font-weight:600;">Data &amp; privacy</span><span style="color:#7C887F;">›</span></div>
+            <div onClick="{{ nav.connections }}" style="background:#fff; border:1px solid rgba(28,38,32,0.1); border-radius:14px; padding:15px 16px; margin-bottom:9px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" style-hover="border-color:#1E5C45"><span style="font-size:14px; font-weight:600;">Connected sources</span><span style="color:#7C887F;">›</span></div>
+            <div onClick="{{ nav.invite }}" style="background:#fff; border:1px solid rgba(28,38,32,0.1); border-radius:14px; padding:15px 16px; margin-bottom:9px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" style-hover="border-color:#1E5C45"><span style="font-size:14px; font-weight:600;">Invite someone — give a month</span><span style="color:#7C887F;">›</span></div>
+            <div onClick="{{ nav.notify }}" style="background:#fff; border:1px solid rgba(28,38,32,0.1); border-radius:14px; padding:15px 16px; margin-bottom:9px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" style-hover="border-color:#1E5C45"><span style="font-size:14px; font-weight:600;">Notifications</span><span style="color:#7C887F;">›</span></div>
+            <div style="background:#fff; border:1px solid rgba(28,38,32,0.1); border-radius:14px; padding:15px 16px; display:flex; justify-content:space-between; align-items:center;"><span style="font-size:14px; font-weight:600;">Help &amp; support</span><span style="color:#7C887F;">›</span></div>
+          </div>
+          </sc-if>
+
+          <!-- ===== SECURITY ===== -->
+          <sc-if value="{{ is.security }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Security" style="flex:1; display:flex; flex-direction:column; padding:14px 26px 26px; overflow-y:auto;">
+            <div onClick="{{ nav.account }}" style="font-size:14px; color:#7C887F; margin-bottom:14px; cursor:pointer;">‹ Account</div>
+            <div style="font-family:'Instrument Serif',serif; font-size:25px; line-height:1.12; margin-bottom:18px;">Sign-in &amp; security</div>
+            <sc-if value="{{ passkeyNo }}" hint-placeholder-val="{{ true }}">
+              <div style="background:rgba(52,160,124,0.08); border:1px solid rgba(52,160,124,0.3); border-radius:15px; padding:15px 16px; margin-bottom:10px;">
+                <div style="font-size:13.5px; font-weight:700; margin-bottom:3px;">Add a passkey — skip passwords entirely</div>
+                <div style="font-size:12px; color:#4A554D; line-height:1.5; margin-bottom:12px;">Face ID becomes your sign-in. Nothing to remember, nothing to steal.</div>
+                <div onClick="{{ addPasskey }}" style="border:1px solid #1E5C45; color:#1E5C45; text-align:center; padding:10px; border-radius:100px; font-size:12.5px; font-weight:600; cursor:pointer;">Add passkey</div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ passkeyYes }}" hint-placeholder-val="{{ false }}">
+              <div style="background:rgba(52,160,124,0.1); border:1px solid rgba(52,160,124,0.35); border-radius:15px; padding:15px 16px; margin-bottom:10px;">
+                <div style="font-size:13.5px; font-weight:700; color:#1E5C45;">✓ Passkey added</div>
+                <div style="font-size:12px; color:#4A554D; margin-top:3px;">Face ID signs you in on this iPhone from now on.</div>
+              </div>
+            </sc-if>
+            <div style="background:#fff; border:1px solid rgba(28,38,32,0.1); border-radius:15px; padding:15px 16px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+              <div><div style="font-size:13.5px; font-weight:700;">Password</div><div style="font-size:11.5px; color:#7C887F;">Set · last changed March 2026</div></div>
+              <span style="border:1px solid rgba(28,38,32,0.2); border-radius:100px; padding:7px 14px; font-size:12px; font-weight:600;">Change</span>
+            </div>
+            <div onClick="{{ toggle2fa }}" style="background:#fff; border:1px solid rgba(28,38,32,0.1); border-radius:15px; padding:15px 16px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
+              <div><div style="font-size:13.5px; font-weight:700;">Two-factor authentication</div><div style="font-size:11.5px; color:#7C887F;">Authenticator app (TOTP) · optional</div></div>
+              <span style="width:40px; height:23px; border-radius:100px; background:{{ twofaBg }}; position:relative; transition:background 0.2s; flex-shrink:0;"><span style="position:absolute; top:2px; left:{{ twofaKnob }}; width:19px; height:19px; border-radius:50%; background:#fff; transition:left 0.2s;"></span></span>
+            </div>
+            <div style="background:#fff; border:1px solid rgba(28,38,32,0.1); border-radius:15px; padding:15px 16px;">
+              <div style="font-size:13.5px; font-weight:700; margin-bottom:10px;">Where you're signed in</div>
+              <div style="display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid rgba(28,38,32,0.06);"><div style="font-size:12.5px;"><strong>iPhone 16 · this app</strong><span style="color:#7C887F;"> — Dublin</span></div><span style="font-family:'Geist Mono',monospace; font-size:10px; color:#1E5C45;">NOW</span></div>
+              <div style="display:flex; justify-content:space-between; align-items:center; padding:7px 0;"><div style="font-size:12.5px;"><strong>Safari · MacBook</strong><span style="color:#7C887F;"> — 2 days ago</span></div><span onClick="{{ endSession }}" style="font-size:12px; color:{{ sessColor }}; font-weight:600; cursor:pointer;">{{ sessLabel }}</span></div>
+            </div>
+          </div>
+          </sc-if>
+
+          <!-- ===== PRIVACY ===== -->
+          <sc-if value="{{ is.privacy }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Data and privacy" style="flex:1; display:flex; flex-direction:column; padding:14px 26px 26px; overflow-y:auto;">
+            <div onClick="{{ nav.account }}" style="font-size:14px; color:#7C887F; margin-bottom:14px; cursor:pointer;">‹ Account</div>
+            <div style="font-family:'Instrument Serif',serif; font-size:25px; line-height:1.12; margin-bottom:6px;">Data &amp; privacy</div>
+            <div style="font-size:12.5px; color:#7C887F; margin-bottom:16px;">The same permissions you granted on day one — still yours to change.</div>
+            <div onClick="{{ nav.deleteacct }}" style="background:#fff; border:1px solid rgba(28,38,32,0.1); border-radius:14px; padding:14px 16px; margin-bottom:9px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
+              <div><div style="font-size:13px; font-weight:700;">Process my health data</div><div style="font-size:11px; color:#7C887F;">Required — turning off starts account closure</div></div>
+              <span style="width:40px; height:23px; border-radius:100px; background:#34A07C; position:relative; flex-shrink:0;"><span style="position:absolute; top:2px; left:19px; width:19px; height:19px; border-radius:50%; background:#fff;"></span></span>
+            </div>
+            <div style="background:#fff; border:1px solid rgba(28,38,32,0.1); border-radius:14px; padding:14px 16px; margin-bottom:9px; display:flex; justify-content:space-between; align-items:center;">
+              <div><div style="font-size:13px; font-weight:700;">Clinician review</div><div style="font-size:11px; color:#7C887F;">Required for tests</div></div>
+              <span style="width:40px; height:23px; border-radius:100px; background:#34A07C; position:relative; flex-shrink:0;"><span style="position:absolute; top:2px; left:19px; width:19px; height:19px; border-radius:50%; background:#fff;"></span></span>
+            </div>
+            <div onClick="{{ toggleResearch }}" style="background:#fff; border:1px solid rgba(28,38,32,0.1); border-radius:14px; padding:14px 16px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
+              <div><div style="font-size:13px; font-weight:700;">Anonymised research</div><div style="font-size:11px; color:#7C887F;">Optional · off by default</div></div>
+              <span style="width:40px; height:23px; border-radius:100px; background:{{ researchSwBg }}; position:relative; transition:background 0.2s; flex-shrink:0;"><span style="position:absolute; top:2px; left:{{ researchSwKnob }}; width:19px; height:19px; border-radius:50%; background:#fff; transition:left 0.2s;"></span></span>
+            </div>
+            <div onClick="{{ requestExport }}" style="background:#fff; border:1px solid rgba(28,38,32,0.1); border-radius:14px; padding:14px 16px; margin-bottom:9px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
+              <div><div style="font-size:13px; font-weight:700;">Export my data</div><div style="font-size:11px; color:#7C887F;">Everything as CSV + clinician PDF, within the hour</div></div>
+              <span style="font-size:12px; color:#1E5C45; font-weight:600; white-space:nowrap; flex-shrink:0;">{{ exportLabel }}</span>
+            </div>
+            <div onClick="{{ nav.gpshare }}" style="background:#fff; border:1px solid rgba(28,38,32,0.1); border-radius:14px; padding:14px 16px; margin-bottom:9px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
+              <div><div style="font-size:13px; font-weight:700;">GP share links</div><div style="font-size:11px; color:#7C887F;">Create, track and revoke</div></div><span style="color:#7C887F;">›</span>
+            </div>
+            <div onClick="{{ nav.deleteacct }}" style="border:1px solid rgba(179,84,58,0.4); border-radius:14px; padding:14px 16px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
+              <div><div style="font-size:13px; font-weight:700; color:#B3543A;">Delete account &amp; data</div><div style="font-size:11px; color:#7C887F;">Permanent · export offered first</div></div><span style="color:#B3543A;">›</span>
+            </div>
+          </div>
+          </sc-if>
+
+          <!-- ===== DELETE ACCOUNT ===== -->
+          <sc-if value="{{ is.deleteacct }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Delete account" style="flex:1; display:flex; flex-direction:column; padding:14px 26px 26px; overflow-y:auto;">
+            <div onClick="{{ nav.privacy }}" style="font-size:14px; color:#7C887F; margin-bottom:14px; cursor:pointer;">‹ Back</div>
+            <sc-if value="{{ delDoneNo }}" hint-placeholder-val="{{ true }}">
+              <div style="font-family:'Instrument Serif',serif; font-size:25px; line-height:1.12; margin-bottom:10px;">Delete your account and data</div>
+              <div style="font-size:13px; color:#4A554D; line-height:1.6; margin-bottom:18px;">This erases your results, baselines, history and profile permanently — from our systems and our lab partners' — within 30 days. It cannot be undone.</div>
+              <div style="display:flex; gap:11px; margin-bottom:12px;"><span style="font-family:'Geist Mono',monospace; font-size:11px; color:#1E5C45;">01</span><span style="font-size:13px; line-height:1.5;">We offer a full export first — most people want the PDF for their GP.</span></div>
+              <div style="display:flex; gap:11px; margin-bottom:16px;"><span style="font-family:'Geist Mono',monospace; font-size:11px; color:#1E5C45;">02</span><span style="font-size:13px; line-height:1.5;">Type <strong>DELETE</strong> to confirm — no password quiz, no phone call.</span></div>
+              <div onClick="{{ armDelete }}" style="border:1px solid rgba(28,38,32,0.2); border-radius:12px; padding:13px 16px; font-family:'Geist Mono',monospace; font-size:14px; letter-spacing:0.1em; text-align:center; background:#fff; margin-bottom:16px; cursor:pointer; color:{{ delTypedColor }};">{{ delTyped }}</div>
+              <div onClick="{{ requestExport }}" style="border:1px solid rgba(28,38,32,0.2); text-align:center; padding:13px; border-radius:100px; font-weight:600; font-size:13.5px; margin-bottom:10px; cursor:pointer;">{{ exportLabel }}</div>
+              <div onClick="{{ doDelete }}" style="border:1px solid #B3543A; color:#B3543A; text-align:center; padding:13px; border-radius:100px; font-weight:600; font-size:13.5px; cursor:pointer; opacity:{{ delOpacity }};">Delete everything</div>
+            </sc-if>
+            <sc-if value="{{ delDoneYes }}" hint-placeholder-val="{{ false }}">
+              <div style="width:56px; height:56px; border-radius:50%; background:rgba(179,84,58,0.1); color:#B3543A; font-size:22px; line-height:56px; text-align:center; margin-bottom:18px;">✓</div>
+              <div style="font-family:'Instrument Serif',serif; font-size:25px; line-height:1.12; margin-bottom:10px;">Erasure scheduled.</div>
+              <div style="font-size:13.5px; color:#4A554D; line-height:1.6; margin-bottom:18px;">Everything is deleted by <strong>1 August 2026</strong>. A confirmation email with the exact date is on its way, and unused test value is refunded pro-rata.</div>
+              <div onClick="{{ restartProto }}" style="border:1px solid rgba(28,38,32,0.2); text-align:center; padding:14px; border-radius:100px; font-weight:600; font-size:14px; cursor:pointer;">↺&nbsp; Restart the prototype</div>
+            </sc-if>
+          </div>
+          </sc-if>
+
+          <!-- ===== INVITE ===== -->
+          <sc-if value="{{ is.invite }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Invite" style="flex:1; display:flex; flex-direction:column; padding:14px 26px 26px; overflow-y:auto;">
+            <div onClick="{{ nav.account }}" style="font-size:14px; color:#7C887F; margin-bottom:14px; cursor:pointer;">‹ Account</div>
+            <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#1E5C45; margin-bottom:12px;">INVITE SOMEONE</div>
+            <div style="font-family:'Instrument Serif',serif; font-size:26px; line-height:1.12; margin-bottom:8px;">Know someone who'd want this?</div>
+            <div style="font-size:13px; color:#4A554D; line-height:1.55; margin-bottom:20px;">They get a month free on any plan. When they join, a free month lands on your renewal. That's the whole scheme.</div>
+            <div style="background:#fff; border:1.5px dashed rgba(28,38,32,0.25); border-radius:15px; padding:18px; text-align:center; margin-bottom:11px;">
+              <div style="font-family:'Geist Mono',monospace; font-size:18px; letter-spacing:0.12em; margin-bottom:3px;">AOIFE-K4</div>
+              <div style="font-size:11.5px; color:#7C887F;">Your code — tap to copy</div>
+            </div>
+            <div onClick="{{ copyInvite }}" style="background:#1E5C45; color:#fff; text-align:center; padding:14px; border-radius:100px; font-weight:600; font-size:14px; margin-bottom:11px; cursor:pointer;">{{ inviteLabel }}</div>
+            <div style="background:#fff; border:1px solid rgba(28,38,32,0.12); border-radius:15px; padding:14px 16px;">
+              <div style="font-size:12.5px; color:#7C887F; line-height:1.7;">2 joined so far → 2 free months applied<br><span style="color:#1E5C45; font-weight:600;">Renewal now 2 October 2027</span></div>
+            </div>
+            <div style="font-size:11.5px; color:#7C887F; text-align:center; line-height:1.6; margin-top:auto;">No leaderboards, no streaks — just a fair trade.</div>
+          </div>
+          </sc-if>
+
+          <!-- ===== CONNECTIONS ===== -->
+          <sc-if value="{{ is.connections }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Connected sources" style="flex:1; display:flex; flex-direction:column; padding:14px 26px 26px; overflow-y:auto;">
+            <div onClick="{{ nav.account }}" style="font-size:14px; color:#7C887F; margin-bottom:14px; cursor:pointer;">‹ Account</div>
+            <div style="font-family:'Instrument Serif',serif; font-size:25px; line-height:1.12; margin-bottom:6px;">Connected sources</div>
+            <div style="font-size:12.5px; color:#7C887F; margin-bottom:18px;">One primary source per metric, so nothing double-counts. Disconnecting keeps your history.</div>
+            <div style="background:#fff; border:1px solid rgba(52,160,124,0.35); border-radius:15px; padding:15px 16px; margin-bottom:9px; display:flex; justify-content:space-between; align-items:center;">
+              <div><div style="font-size:13.5px; font-weight:700;">Apple Health</div><div style="font-size:11.5px; color:#7C887F;">Watch · syncing since July 2026</div></div>
+              <span style="font-family:'Geist Mono',monospace; font-size:9.5px; color:#1E5C45; letter-spacing:0.08em;">CONNECTED</span>
+            </div>
+            <sc-for list="{{ connRows }}" as="c" hint-placeholder-count="3">
+              <div style="background:#fff; border:{{ c.border }}; border-radius:15px; padding:15px 16px; margin-bottom:9px; display:flex; justify-content:space-between; align-items:center;">
+                <div><div style="font-size:13.5px; font-weight:700;">{{ c.name }}</div><div style="font-size:11.5px; color:#7C887F;">{{ c.sub }}</div></div>
+                <span onClick="{{ c.toggle }}" style="border:{{ c.btnBorder }}; color:{{ c.btnColor }}; border-radius:100px; padding:8px 15px; font-size:12px; font-weight:600; cursor:pointer; white-space:nowrap;">{{ c.label }}</span>
+              </div>
+            </sc-for>
+            <div style="font-size:11.5px; color:#7C887F; text-align:center; line-height:1.6; margin-top:auto;">These connections also unlock Android —<br>no HealthKit required.</div>
+          </div>
+          </sc-if>
+
+          <!-- ===== MEMBER DASHBOARD ===== -->
+          <sc-if value="{{ is.dashboard }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Member home" style="flex:1; display:flex; flex-direction:column; padding:14px 24px 20px; overflow-y:auto; background:#1C2620; color:#F4F1EA; margin:-48px 0 0; padding-top:62px;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:16px;">
+              <span style="font-family:'Geist Mono',monospace; font-size:11px; color:#8FA89A; letter-spacing:0.1em;">GOOD MORNING, AOIFE</span>
+              <span style="display:flex; align-items:center; gap:12px;"><span style="font-family:'Geist Mono',monospace; font-size:10px; color:#5E6E64;">WED 2 JUL</span><span onClick="{{ nav.account }}" style="color:#8FA89A; cursor:pointer; font-size:15px; line-height:1;">◍</span></span>
+            </div>
+            <div style="display:flex; align-items:center; gap:18px; margin-bottom:16px;">
+              <div style="position:relative; width:96px; height:96px; flex-shrink:0;">
+                <svg viewBox="0 0 120 120" style="width:96px; height:96px;"><circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="10"></circle><circle cx="60" cy="60" r="50" fill="none" stroke="#34A07C" stroke-width="10" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="82" transform="rotate(-90 60 60)"></circle></svg>
+                <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;"><span style="font-family:'Geist Mono',monospace; font-size:27px; font-weight:500; line-height:1;">74</span><span style="font-size:8.5px; color:#8FA89A; letter-spacing:0.08em;">HEALTH SCORE</span></div>
+              </div>
+              <div>
+                <div style="font-size:14.5px; font-weight:700; line-height:1.35; margin-bottom:4px;">Up 3 since June.</div>
+                <div style="font-size:12px; color:#8FA89A; line-height:1.5;">Sleep and ApoB did the lifting — the score follows your data, not your effort.</div>
+              </div>
+            </div>
+            <div onClick="{{ nav.results }}" style="background:rgba(52,160,124,0.12); border:1px solid rgba(52,160,124,0.35); border-radius:16px; padding:14px 16px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
+              <div><div style="font-family:'Geist Mono',monospace; font-size:9px; color:#7FD3AE; letter-spacing:0.1em; margin-bottom:5px;">JULY PANEL · REVIEWED</div><div style="font-size:13.5px; font-weight:600;">38 markers in — one worth acting on</div></div>
+              <span style="color:#7FD3AE; font-size:16px;">›</span>
+            </div>
+            <div onClick="{{ nav.insights }}" style="background:rgba(255,255,255,0.06); border-radius:16px; padding:14px 16px; margin-bottom:10px; cursor:pointer;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:6px;"><span style="font-family:'Geist Mono',monospace; font-size:9px; color:#8FA89A; letter-spacing:0.1em;">FOCUS THIS WEEK</span><span style="font-family:'Geist Mono',monospace; font-size:9px; color:#7FD3AE;">WHY? ›</span></div>
+              <div style="font-size:14px; font-weight:600; line-height:1.4;">Keep the evening walks — your ApoB is answering them.</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.06); border-radius:16px; padding:13px 16px; margin-bottom:10px;">
+              <div style="font-family:'Geist Mono',monospace; font-size:9px; color:#8FA89A; letter-spacing:0.1em; margin-bottom:7px;">TODAY · APPLE WATCH</div>
+              <div style="display:flex; gap:14px; font-size:12.5px; font-weight:600;"><span>❤ 54 <span style="color:#8FA89A; font-weight:400;">rhr</span></span><span>☾ 7h 12m <span style="color:#8FA89A; font-weight:400;">sleep</span></span><span>⚡ 8,940 <span style="color:#8FA89A; font-weight:400;">steps</span></span></div>
+            </div>
+            <div onClick="{{ nav.fusion }}" style="background:rgba(255,255,255,0.06); border-radius:16px; padding:13px 16px; margin-bottom:10px; cursor:pointer;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span style="font-family:'Geist Mono',monospace; font-size:9px; color:#8FA89A; letter-spacing:0.1em;">FUSION · APOB × RESTING HR</span><span style="font-family:'Geist Mono',monospace; font-size:9px; color:#7FD3AE;">OPEN ›</span></div>
+              <svg viewBox="0 0 300 32" style="width:100%; height:28px;"><polyline points="0,8 60,11 120,14 180,18 240,22 300,25" fill="none" stroke="#D9C9A4" stroke-width="2" opacity="0.85" stroke-linecap="round"></polyline><circle cx="30" cy="9" r="4" fill="#34A07C"></circle><circle cx="150" cy="16" r="4" fill="#34A07C"></circle><circle cx="266" cy="23" r="4" fill="#34A07C"></circle></svg>
+            </div>
+            <div onClick="{{ nav.experiments }}" style="background:rgba(255,255,255,0.06); border-radius:16px; padding:13px 16px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
+              <div><div style="font-family:'Geist Mono',monospace; font-size:9px; color:#8FA89A; letter-spacing:0.1em; margin-bottom:5px;">ACTIVE EXPERIMENT</div><div style="font-size:13px; font-weight:600;">Evening walks · 87% adherence</div></div>
+              <span style="color:#8FA89A; font-size:16px;">›</span>
+            </div>
+          </div>
+          </sc-if>
+
+          <!-- ===== RESULTS ===== -->
+          <sc-if value="{{ is.results }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Results" style="flex:1; display:flex; flex-direction:column; padding:14px 24px 20px; overflow-y:auto; background:#1C2620; color:#F4F1EA; margin:-48px 0 0; padding-top:62px;">
+            <div style="font-family:'Geist Mono',monospace; font-size:10px; color:#8FA89A; letter-spacing:0.1em; margin-bottom:6px;">JULY PANEL · SIGNED OFF BY DR. NOLAN · 2 JUL</div>
+            <div style="font-family:'Instrument Serif',serif; font-size:26px; line-height:1.12; margin-bottom:14px;">38 markers, one thing worth doing.</div>
+            <div style="display:flex; gap:8px; margin-bottom:16px;">
+              <span style="background:rgba(52,160,124,0.14); color:#7FD3AE; border-radius:100px; padding:6px 12px; font-family:'Geist Mono',monospace; font-size:11px;">34 IN RANGE</span>
+              <span style="background:rgba(217,154,78,0.14); color:#E9BC85; border-radius:100px; padding:6px 12px; font-family:'Geist Mono',monospace; font-size:11px;">3 WATCH</span>
+              <span style="background:rgba(179,84,58,0.16); color:#E2A08D; border-radius:100px; padding:6px 12px; font-family:'Geist Mono',monospace; font-size:11px;">1 ACT</span>
+            </div>
+            <div onClick="{{ nav.marker }}" style="background:rgba(255,255,255,0.06); border:1px solid rgba(217,154,78,0.35); border-radius:15px; padding:14px 16px; margin-bottom:9px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
+              <div><div style="font-size:13.5px; font-weight:700;">Cardiovascular</div><div style="font-size:11.5px; color:#E9BC85;">ApoB above optimal — moving the right way</div></div>
+              <span style="color:#8FA89A;">›</span>
+            </div>
+            <div style="background:rgba(255,255,255,0.06); border-radius:15px; padding:14px 16px; margin-bottom:9px; display:flex; justify-content:space-between; align-items:center;">
+              <div><div style="font-size:13.5px; font-weight:700;">Metabolic</div><div style="font-size:11.5px; color:#8FA89A;">HbA1c, glucose, insulin — all in range</div></div>
+              <span style="font-family:'Geist Mono',monospace; font-size:10px; color:#7FD3AE;">✓</span>
+            </div>
+            <div style="background:rgba(255,255,255,0.06); border-radius:15px; padding:14px 16px; margin-bottom:9px; display:flex; justify-content:space-between; align-items:center;">
+              <div><div style="font-size:13.5px; font-weight:700;">Nutrients</div><div style="font-size:11.5px; color:#E9BC85;">Ferritin 29 — just under, worth watching</div></div>
+              <span style="color:#8FA89A;">›</span>
+            </div>
+            <div style="background:rgba(255,255,255,0.06); border-radius:15px; padding:14px 16px; margin-bottom:9px; display:flex; justify-content:space-between; align-items:center;">
+              <div><div style="font-size:13.5px; font-weight:700;">Inflammation</div><div style="font-size:11.5px; color:#8FA89A;">CRP low and steady</div></div>
+              <span style="font-family:'Geist Mono',monospace; font-size:10px; color:#7FD3AE;">✓</span>
+            </div>
+            <div style="background:rgba(255,255,255,0.06); border-radius:15px; padding:14px 16px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
+              <div><div style="font-size:13.5px; font-weight:700;">Hormones</div><div style="font-size:11.5px; color:#8FA89A;">Thyroid panel — all in range</div></div>
+              <span style="font-family:'Geist Mono',monospace; font-size:10px; color:#7FD3AE;">✓</span>
+            </div>
+            <div style="font-size:12px; color:#8FA89A; text-align:center;">Compared with February: 5 improved · 1 slipped · 32 steady</div>
+          </div>
+          </sc-if>
+
+          <!-- ===== MARKER DETAIL ===== -->
+          <sc-if value="{{ is.marker }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Marker detail" style="flex:1; display:flex; flex-direction:column; padding:14px 24px 20px; overflow-y:auto; background:#1C2620; color:#F4F1EA; margin:-48px 0 0; padding-top:62px;">
+            <div onClick="{{ nav.results }}" style="font-size:13px; color:#8FA89A; margin-bottom:12px; cursor:pointer;">‹ Results</div>
+            <div style="font-family:'Geist Mono',monospace; font-size:10px; color:#8FA89A; letter-spacing:0.1em; margin-bottom:6px;">APOB · CARDIOVASCULAR</div>
+            <div style="display:flex; align-items:baseline; gap:10px; margin-bottom:8px;">
+              <span style="font-family:'Geist Mono',monospace; font-size:38px; font-weight:500; line-height:1;">0.94</span>
+              <span style="font-size:13px; color:#8FA89A;">g/L</span>
+              <span style="font-family:'Geist Mono',monospace; font-size:12px; color:#7FD3AE;">↓ from 1.12</span>
+            </div>
+            <div style="display:inline-flex; margin-bottom:14px;"><span style="background:rgba(217,154,78,0.14); color:#E9BC85; border-radius:100px; padding:6px 12px; font-family:'Geist Mono',monospace; font-size:10.5px;">ABOVE OPTIMAL — MOVING THE RIGHT WAY</span></div>
+            <div style="background:rgba(255,255,255,0.06); border-radius:15px; padding:14px; margin-bottom:10px;">
+              <svg viewBox="0 0 300 80" style="width:100%; height:72px;">
+                <rect x="0" y="46" width="300" height="30" fill="rgba(52,160,124,0.1)"></rect>
+                <text x="6" y="72" fill="#5E6E64" font-size="9" font-family="monospace">OPTIMAL &lt; 1.00</text>
+                <polyline points="30,18 150,30 268,40" fill="none" stroke="#34A07C" stroke-width="2.5" stroke-linecap="round"></polyline>
+                <circle cx="30" cy="18" r="5" fill="none" stroke="#D9C9A4" stroke-width="2.5"></circle>
+                <circle cx="150" cy="30" r="5" fill="#34A07C"></circle>
+                <circle cx="268" cy="40" r="6" fill="#34A07C"></circle>
+              </svg>
+              <div style="display:flex; justify-content:space-between; font-family:'Geist Mono',monospace; font-size:9px; color:#8FA89A;"><span>FEB 25 · 1.21</span><span>FEB 26 · 1.12</span><span>JUL 26 · 0.94</span></div>
+            </div>
+            <div style="background:rgba(255,255,255,0.06); border-radius:15px; padding:13px 15px; margin-bottom:10px;">
+              <div style="font-family:'Geist Mono',monospace; font-size:9px; color:#8FA89A; letter-spacing:0.1em; margin-bottom:6px;">WHAT IT IS</div>
+              <div style="font-size:12.5px; line-height:1.55; color:#CFD6CF;">The count of particles that carry cholesterol into artery walls — a better predictor of heart risk than LDL alone.</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.06); border-radius:15px; padding:13px 15px; margin-bottom:12px;">
+              <div style="font-family:'Geist Mono',monospace; font-size:9px; color:#7FD3AE; letter-spacing:0.1em; margin-bottom:6px;">WHAT MOVED IT · BLOOD + WATCH</div>
+              <div style="font-size:12.5px; line-height:1.55; color:#CFD6CF;">Your Watch logged 46 evening walks since February — the drop tracks them almost week for week. This is your experiment working.</div>
+            </div>
+            <div onClick="{{ nav.experiments }}" style="background:#F4F1EA; color:#1C2620; text-align:center; padding:13px; border-radius:100px; font-weight:600; font-size:13.5px; cursor:pointer;">Keep the plan — see the experiment</div>
+          </div>
+          </sc-if>
+
+          <!-- ===== INSIGHTS ===== -->
+          <sc-if value="{{ is.insights }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Insights" style="flex:1; display:flex; flex-direction:column; padding:14px 24px 20px; overflow-y:auto; background:#1C2620; color:#F4F1EA; margin:-48px 0 0; padding-top:62px;">
+            <div style="font-family:'Geist Mono',monospace; font-size:10px; color:#8FA89A; letter-spacing:0.1em; margin-bottom:6px;">THIS WEEK · TOP 3</div>
+            <div style="font-family:'Instrument Serif',serif; font-size:26px; line-height:1.12; margin-bottom:16px;">Three things your data agrees on.</div>
+            <div style="background:rgba(255,255,255,0.06); border-radius:15px; padding:15px 16px; margin-bottom:10px;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:7px;"><span style="font-family:'Geist Mono',monospace; font-size:10px; color:#7FD3AE;">01</span><span style="font-family:'Geist Mono',monospace; font-size:8.5px; color:#8FA89A; letter-spacing:0.08em;">BLOOD + WATCH</span></div>
+              <div style="font-size:14px; font-weight:700; line-height:1.4; margin-bottom:5px;">The walks are working — keep them exactly as they are.</div>
+              <div style="font-size:12px; color:#8FA89A; line-height:1.5;">ApoB down 16% over 46 logged walks. Changing nothing is this week's best move.</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.06); border-radius:15px; padding:15px 16px; margin-bottom:10px;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:7px;"><span style="font-family:'Geist Mono',monospace; font-size:10px; color:#7FD3AE;">02</span><span style="font-family:'Geist Mono',monospace; font-size:8.5px; color:#8FA89A; letter-spacing:0.08em;">BLOOD</span></div>
+              <div style="font-size:14px; font-weight:700; line-height:1.4; margin-bottom:5px;">Ferritin slipped under range — food first, not pills.</div>
+              <div style="font-size:12px; color:#8FA89A; line-height:1.5;">29 µg/L, down from 41. Red meat, lentils or a fortified breakfast 3×/week; recheck in January before supplementing.</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.06); border-radius:15px; padding:15px 16px; margin-bottom:14px;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:7px;"><span style="font-family:'Geist Mono',monospace; font-size:10px; color:#7FD3AE;">03</span><span style="font-family:'Geist Mono',monospace; font-size:8.5px; color:#8FA89A; letter-spacing:0.08em;">WATCH</span></div>
+              <div style="font-size:14px; font-weight:700; line-height:1.4; margin-bottom:5px;">Your deep sleep still pays for screens after 23:00.</div>
+              <div style="font-size:12px; color:#8FA89A; line-height:1.5;">On late nights, deep sleep drops 31 minutes. Worth a two-week experiment when the walks are settled.</div>
+            </div>
+            <div style="font-size:11.5px; color:#5E6E64; line-height:1.6; text-align:center; margin-top:auto;">AI writes the words. The maths comes from your own baselines —<br>never generic advice.</div>
+          </div>
+          </sc-if>
+
+          <!-- ===== EXPERIMENTS ===== -->
+          <sc-if value="{{ is.experiments }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Experiments" style="flex:1; display:flex; flex-direction:column; padding:14px 24px 20px; overflow-y:auto; background:#1C2620; color:#F4F1EA; margin:-48px 0 0; padding-top:62px;">
+            <div style="font-family:'Geist Mono',monospace; font-size:10px; color:#8FA89A; letter-spacing:0.1em; margin-bottom:6px;">EXPERIMENTS</div>
+            <div style="font-family:'Instrument Serif',serif; font-size:26px; line-height:1.12; margin-bottom:16px;">One change at a time.</div>
+            <div style="background:rgba(52,160,124,0.1); border:1px solid rgba(52,160,124,0.35); border-radius:16px; padding:15px 16px; margin-bottom:10px;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:7px;"><span style="font-family:'Geist Mono',monospace; font-size:9px; color:#7FD3AE; letter-spacing:0.1em;">ACTIVE · SINCE 12 MAY</span><span style="font-family:'Geist Mono',monospace; font-size:11px; color:#7FD3AE;">87%</span></div>
+              <div style="font-size:14.5px; font-weight:700; margin-bottom:6px;">Evening walks — 30 min, 5×/week</div>
+              <div style="height:6px; border-radius:100px; background:rgba(255,255,255,0.1); margin-bottom:8px;"><div style="width:87%; height:100%; border-radius:100px; background:#34A07C;"></div></div>
+              <div style="font-size:11.5px; color:#8FA89A; line-height:1.5;">Adherence read from your Watch — no logging. Verdict lands with your January recheck.</div>
+            </div>
+            <div onClick="{{ nav.verdict }}" style="background:rgba(255,255,255,0.06); border-radius:16px; padding:15px 16px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
+              <div><div style="font-family:'Geist Mono',monospace; font-size:9px; color:#8FA89A; letter-spacing:0.1em; margin-bottom:5px;">COMPLETED · FEB–JUN</div><div style="font-size:13.5px; font-weight:700;">Cut caffeine after 14:00</div></div>
+              <span style="background:rgba(52,160,124,0.14); color:#7FD3AE; border-radius:100px; padding:6px 12px; font-family:'Geist Mono',monospace; font-size:10px;">IT WORKED ›</span>
+            </div>
+            <div style="font-family:'Geist Mono',monospace; font-size:9px; color:#8FA89A; letter-spacing:0.1em; margin-bottom:9px;">START NEXT · SUGGESTED BY YOUR DATA</div>
+            <sc-for list="{{ expSuggestions }}" as="e" hint-placeholder-count="2">
+              <div onClick="{{ e.pick }}" style="background:rgba(255,255,255,0.06); border:{{ e.border }}; border-radius:15px; padding:13px 15px; margin-bottom:9px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
+                <div><div style="font-size:13px; font-weight:600;">{{ e.name }}</div><div style="font-size:11px; color:#8FA89A;">{{ e.why }}</div></div>
+                <span style="font-family:'Geist Mono',monospace; font-size:10px; color:{{ e.tagColor }}; white-space:nowrap;">{{ e.tag }}</span>
+              </div>
+            </sc-for>
+            <div onClick="{{ nav.expstart }}" style="border:1px solid rgba(255,255,255,0.2); text-align:center; padding:12px; border-radius:100px; font-weight:600; font-size:13px; cursor:pointer; margin-top:6px;" style-hover="border-color:#34A07C">Start something else ›</div>
+            <div style="font-size:11.5px; color:#5E6E64; text-align:center; margin-top:auto; padding-top:12px;">One active experiment at a time — otherwise nothing is learnable.</div>
+          </div>
+          </sc-if>
+
+          <!-- ===== VERDICT ===== -->
+          <sc-if value="{{ is.verdict }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Verdict" style="flex:1; display:flex; flex-direction:column; padding:14px 24px 20px; overflow-y:auto; background:#1C2620; color:#F4F1EA; margin:-48px 0 0; padding-top:62px;">
+            <div onClick="{{ nav.experiments }}" style="font-size:13px; color:#8FA89A; margin-bottom:12px; cursor:pointer;">‹ Experiments</div>
+            <div style="font-family:'Geist Mono',monospace; font-size:10px; color:#8FA89A; letter-spacing:0.1em; margin-bottom:10px;">DID IT WORK? · CUT CAFFEINE AFTER 14:00 · FEB–JUN</div>
+            <div style="font-family:'Instrument Serif',serif; font-size:38px; line-height:1.05; margin-bottom:14px; color:#7FD3AE;">It worked.</div>
+            <div style="background:rgba(255,255,255,0.06); border-radius:15px; padding:4px 16px; margin-bottom:10px;">
+              <div style="display:flex; justify-content:space-between; padding:11px 0; border-bottom:1px solid rgba(255,255,255,0.07);"><span style="font-size:13px; font-weight:600;">Deep sleep</span><span style="font-family:'Geist Mono',monospace; font-size:12.5px; color:#7FD3AE;">+22 min avg</span></div>
+              <div style="display:flex; justify-content:space-between; padding:11px 0; border-bottom:1px solid rgba(255,255,255,0.07);"><span style="font-size:13px; font-weight:600;">Time to fall asleep</span><span style="font-family:'Geist Mono',monospace; font-size:12.5px; color:#7FD3AE;">−18 min</span></div>
+              <div style="display:flex; justify-content:space-between; padding:11px 0;"><span style="font-size:13px; font-weight:600;">Resting heart rate</span><span style="font-family:'Geist Mono',monospace; font-size:12.5px; color:#7FD3AE;">−2 bpm</span></div>
+            </div>
+            <div style="background:rgba(255,255,255,0.06); border-radius:15px; padding:13px 15px; margin-bottom:14px;">
+              <div style="font-family:'Geist Mono',monospace; font-size:9px; color:#8FA89A; letter-spacing:0.1em; margin-bottom:6px;">THE HONEST PART</div>
+              <div style="font-size:12.5px; line-height:1.55; color:#CFD6CF;">CRP didn't move — this one was about sleep, not inflammation. Measured over 14 weeks against your own baseline, not a study average.</div>
+            </div>
+            <div onClick="{{ nav.experiments }}" style="background:#F4F1EA; color:#1C2620; text-align:center; padding:13px; border-radius:100px; font-weight:600; font-size:13.5px; margin-top:auto; cursor:pointer;">Keep the habit — start the next one</div>
+          </div>
+          </sc-if>
+
+          <!-- ===== FUSION TIMELINE ===== -->
+          <sc-if value="{{ is.fusion }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Fusion timeline" style="flex:1; display:flex; flex-direction:column; padding:14px 24px 20px; overflow-y:auto; background:#1C2620; color:#F4F1EA; margin:-48px 0 0; padding-top:62px;">
+            <div style="font-family:'Geist Mono',monospace; font-size:10px; color:#8FA89A; letter-spacing:0.1em; margin-bottom:6px;">FUSION TIMELINE · BLOOD × WATCH</div>
+            <div style="font-family:'Instrument Serif',serif; font-size:21px; line-height:1.15; margin-bottom:14px;">{{ fusionHeadline }}</div>
+            <div style="display:flex; gap:7px; margin-bottom:8px;">
+              <sc-for list="{{ fusionMarkerChips }}" as="c" hint-placeholder-count="3">
+                <span onClick="{{ c.pick }}" style="white-space:nowrap; border:{{ c.border }}; background:{{ c.bg }}; color:{{ c.color }}; border-radius:100px; padding:7px 13px; font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.05em; cursor:pointer;">{{ c.label }}</span>
+              </sc-for>
+            </div>
+            <div style="display:flex; gap:7px; align-items:center; margin-bottom:13px;">
+              <span style="font-family:'Geist Mono',monospace; font-size:10px; color:#5E6E64;">×</span>
+              <sc-for list="{{ fusionWearChips }}" as="c" hint-placeholder-count="3">
+                <span onClick="{{ c.pick }}" style="white-space:nowrap; border:{{ c.border }}; background:{{ c.bg }}; color:{{ c.color }}; border-radius:100px; padding:6px 12px; font-family:'Geist Mono',monospace; font-size:9.5px; letter-spacing:0.05em; cursor:pointer;">{{ c.label }}</span>
+              </sc-for>
+            </div>
+            <div style="background:rgba(255,255,255,0.06); border-radius:16px; padding:14px 14px 10px; margin-bottom:9px;">
+              <svg viewBox="0 0 300 92" style="width:100%; height:92px;">
+                <rect x="0" y="{{ fusionBandY }}" width="300" height="26" fill="rgba(52,160,124,0.12)"></rect>
+                <text x="6" y="{{ fusionBandTextY }}" fill="#5E6E64" font-size="8" font-family="monospace">YOUR BASELINE BAND</text>
+                <polyline points="{{ fusionWearLine }}" fill="none" stroke="#D9C9A4" stroke-width="2" opacity="0.85" stroke-linecap="round"></polyline>
+                <sc-for list="{{ fusionPts }}" as="p" hint-placeholder-count="3">
+                  <circle onClick="{{ p.pick }}" cx="{{ p.cx }}" cy="{{ p.cy }}" r="{{ p.r }}" fill="{{ p.fill }}" stroke="#34A07C" stroke-width="2.5" style="cursor:pointer;"></circle>
+                </sc-for>
+              </svg>
+              <div style="display:flex; justify-content:space-between; font-family:'Geist Mono',monospace; font-size:9px; color:#8FA89A; margin-top:2px;"><span>FEB 25</span><span>FEB 26</span><span>JUL 26</span></div>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center; margin-bottom:10px; flex-wrap:wrap;">
+              <span style="width:14px; height:2px; background:#D9C9A4; flex-shrink:0;"></span><span style="font-size:10.5px; color:#8FA89A;">{{ fusionWearLabel }} · continuous</span>
+              <span style="width:9px; height:9px; border-radius:50%; background:#34A07C; margin-left:8px; flex-shrink:0;"></span><span style="font-size:10.5px; color:#8FA89A;">blood draws · tap one</span>
+            </div>
+            <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(52,160,124,0.3); border-radius:15px; padding:13px 15px; margin-bottom:9px;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:6px;"><span style="font-family:'Geist Mono',monospace; font-size:9px; color:#7FD3AE; letter-spacing:0.1em;">{{ fusionPtTag }}</span><span style="font-family:'Geist Mono',monospace; font-size:12.5px;">{{ fusionPtVal }} {{ fusionUnit }}</span></div>
+              <div style="font-size:12.5px; line-height:1.55; color:#CFD6CF;">{{ fusionPtNote }}</div>
+            </div>
+            <div style="background:rgba(217,201,164,0.08); border-radius:15px; padding:12px 15px; margin-bottom:12px;">
+              <div style="font-family:'Geist Mono',monospace; font-size:9px; color:#D9C9A4; letter-spacing:0.1em; margin-bottom:5px;">{{ fusionWearLabel }} · SAME PERIOD</div>
+              <div style="font-size:12px; line-height:1.5; color:#CFD6CF;">{{ fusionWearCap }}</div>
+            </div>
+            <div style="font-size:9.5px; color:#5E6E64; text-align:center; line-height:1.5; margin-top:auto;">Shown against your own baseline · population range off by default<br>Not a medical device. Not a diagnosis.</div>
+          </div>
+          </sc-if>
+
+          <!-- ===== ASK (AI CHAT) ===== -->
+          <sc-if value="{{ is.chat }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Ask Arcaevo" style="flex:1; display:flex; flex-direction:column; padding:14px 24px 14px; overflow:hidden; background:#1C2620; color:#F4F1EA; margin:-48px 0 0; padding-top:62px;">
+            <div style="font-family:'Geist Mono',monospace; font-size:10px; color:#8FA89A; letter-spacing:0.1em; margin-bottom:10px;">ASK ARCAEVO · GROUNDED IN YOUR DATA</div>
+            <div style="flex:1; overflow-y:auto; display:flex; flex-direction:column; min-height:0;">
+              <sc-if value="{{ chatEmpty }}" hint-placeholder-val="{{ true }}">
+                <div style="margin:auto 0; text-align:center; padding:0 12px;">
+                  <div style="font-family:'Instrument Serif',serif; font-size:24px; line-height:1.15; margin-bottom:8px;">Ask about your own numbers.</div>
+                  <div style="font-size:12.5px; color:#8FA89A; line-height:1.55;">Answers come from your results and your Watch. The AI writes the words — your data does the maths.</div>
+                </div>
+              </sc-if>
+              <sc-for list="{{ chatMsgs }}" as="m" hint-placeholder-count="1">
+                <div style="align-self:{{ m.align }}; background:{{ m.bg }}; color:{{ m.color }}; border:{{ m.border }}; border-radius:16px; padding:11px 14px; font-size:12.5px; line-height:1.55; max-width:86%; margin-bottom:9px;">{{ m.text }}</div>
+              </sc-for>
+            </div>
+            <div style="display:flex; gap:7px; flex-wrap:wrap; padding:10px 0;">
+              <sc-for list="{{ chatPrompts }}" as="p" hint-placeholder-count="3">
+                <span onClick="{{ p.ask }}" style="border:1px solid rgba(255,255,255,0.2); color:#CFD6CF; border-radius:100px; padding:8px 13px; font-size:11.5px; cursor:pointer;" style-hover="border-color:#34A07C; color:#7FD3AE">{{ p.label }}</span>
+              </sc-for>
+            </div>
+            <div style="display:flex; gap:9px; align-items:center;">
+              <div style="flex:1; border:1px solid rgba(255,255,255,0.15); border-radius:100px; padding:12px 16px; font-size:13px; color:#5E6E64;">Ask about your data…</div>
+              <div style="width:42px; height:42px; border-radius:50%; background:#34A07C; color:#04130D; font-size:16px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">↑</div>
+            </div>
+            <div style="font-size:9.5px; color:#5E6E64; text-align:center; margin-top:8px;">Narrates your numbers — never diagnoses. Flagged values go to a clinician, not a chatbot.</div>
+          </div>
+          </sc-if>
+
+          <!-- ===== START EXPERIMENT ===== -->
+          <sc-if value="{{ is.expstart }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Start experiment" style="flex:1; display:flex; flex-direction:column; padding:14px 24px 20px; overflow-y:auto; background:#1C2620; color:#F4F1EA; margin:-48px 0 0; padding-top:62px;">
+            <div onClick="{{ nav.experiments }}" style="font-size:13px; color:#8FA89A; margin-bottom:12px; cursor:pointer;">‹ Experiments</div>
+            <div style="font-family:'Geist Mono',monospace; font-size:10px; color:#8FA89A; letter-spacing:0.1em; margin-bottom:6px;">START AN EXPERIMENT</div>
+            <div style="font-family:'Instrument Serif',serif; font-size:25px; line-height:1.12; margin-bottom:16px;">Change one thing. We'll measure it.</div>
+            <div style="font-family:'Geist Mono',monospace; font-size:9px; color:#8FA89A; letter-spacing:0.1em; margin-bottom:8px;">WHAT WILL YOU CHANGE?</div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;">
+              <sc-for list="{{ expWhatChips }}" as="c" hint-placeholder-count="5">
+                <span onClick="{{ c.pick }}" style="white-space:nowrap; border:{{ c.border }}; background:{{ c.bg }}; color:{{ c.color }}; border-radius:100px; padding:9px 14px; font-size:12.5px; font-weight:600; cursor:pointer;">{{ c.label }}</span>
+              </sc-for>
+            </div>
+            <div style="font-family:'Geist Mono',monospace; font-size:9px; color:#8FA89A; letter-spacing:0.1em; margin-bottom:8px;">FOR HOW LONG?</div>
+            <div style="display:flex; gap:8px; margin-bottom:16px;">
+              <sc-for list="{{ expDurChips }}" as="c" hint-placeholder-count="3">
+                <span onClick="{{ c.pick }}" style="flex:1; text-align:center; border:{{ c.border }}; background:{{ c.bg }}; color:{{ c.color }}; border-radius:100px; padding:10px 6px; font-size:12.5px; font-weight:600; cursor:pointer;">{{ c.label }}</span>
+              </sc-for>
+            </div>
+            <div style="font-family:'Geist Mono',monospace; font-size:9px; color:#8FA89A; letter-spacing:0.1em; margin-bottom:8px;">WATCHING · SUGGESTED FROM YOUR JULY PANEL</div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px;">
+              <sc-for list="{{ expWatchChips }}" as="c" hint-placeholder-count="4">
+                <span onClick="{{ c.pick }}" style="white-space:nowrap; border:{{ c.border }}; background:{{ c.bg }}; color:{{ c.color }}; border-radius:100px; padding:8px 13px; font-size:12px; cursor:pointer;">{{ c.label }}</span>
+              </sc-for>
+            </div>
+            <sc-if value="{{ expStartedNo }}" hint-placeholder-val="{{ true }}">
+              <div onClick="{{ startExperiment }}" style="background:#34A07C; color:#04130D; text-align:center; padding:14px; border-radius:100px; font-weight:700; font-size:14px; cursor:pointer; margin-top:auto; opacity:{{ expStartOpacity }};">{{ expStartCta }}</div>
+            </sc-if>
+            <sc-if value="{{ expStartedYes }}" hint-placeholder-val="{{ false }}">
+              <div style="background:rgba(52,160,124,0.1); border:1px solid rgba(52,160,124,0.35); border-radius:15px; padding:15px; text-align:center; margin-top:auto; margin-bottom:10px;">
+                <div style="font-size:13.5px; font-weight:700; color:#7FD3AE; margin-bottom:3px;">✓ Running — {{ expStartSummary }}</div>
+                <div style="font-size:11.5px; color:#8FA89A;">Adherence reads from your Watch where it can. Verdict lands at the end.</div>
+              </div>
+              <div onClick="{{ nav.experiments }}" style="border:1px solid rgba(255,255,255,0.25); text-align:center; padding:13px; border-radius:100px; font-weight:600; font-size:13px; cursor:pointer;">See it on Experiments</div>
+            </sc-if>
+            <div style="font-size:10px; color:#5E6E64; text-align:center; margin-top:12px;">One at a time — otherwise nothing is learnable.</div>
+          </div>
+          </sc-if>
+
+          <!-- ===== MANUAL ENTRY ===== -->
+          <sc-if value="{{ is.manual }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Type values" style="flex:1; display:flex; flex-direction:column; padding:14px 26px 26px; overflow-y:auto;">
+            <div onClick="{{ nav.upload }}" style="font-size:14px; color:#7C887F; margin-bottom:14px; cursor:pointer;">‹ Add bloodwork</div>
+            <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#1E5C45; margin-bottom:12px;">TYPE VALUES BY HAND</div>
+            <div style="font-family:'Instrument Serif',serif; font-size:25px; line-height:1.12; margin-bottom:16px;">A few markers is plenty.</div>
+            <div style="border:1.5px solid #34A07C; border-radius:12px; padding:12px 16px; font-size:14px; background:#fff; margin-bottom:8px; display:flex; justify-content:space-between;"><span>ferri<span style="border-right:1.5px solid #1E5C45;">&nbsp;</span></span><span style="color:#7C887F;">⌕</span></div>
+            <div style="background:#fff; border:1px solid rgba(28,38,32,0.12); border-radius:12px; padding:4px 6px; margin-bottom:14px;">
+              <div style="padding:9px 10px; border-radius:8px; background:rgba(52,160,124,0.1); font-size:13.5px; font-weight:600; color:#1E5C45;">Ferritin <span style="font-weight:400; color:#7C887F; font-size:11.5px;">· iron stores</span></div>
+              <div style="padding:9px 10px; font-size:13.5px; color:#7C887F;">Transferrin saturation</div>
+            </div>
+            <div style="display:flex; gap:9px; margin-bottom:12px;">
+              <div style="flex:1;"><div style="font-size:12px; font-weight:600; margin-bottom:6px;">Value</div><div style="border:1px solid rgba(28,38,32,0.16); border-radius:12px; padding:12px 14px; font-family:'Geist Mono',monospace; font-size:15px; background:#fff;">29</div></div>
+              <div style="flex:1;"><div style="font-size:12px; font-weight:600; margin-bottom:6px;">Unit</div><div style="display:flex; gap:6px;"><span style="flex:1; border:1.5px solid #1E5C45; background:rgba(52,160,124,0.08); color:#1E5C45; border-radius:12px; padding:12px 4px; text-align:center; font-size:12.5px; font-weight:600;">µg/L</span><span style="flex:1; border:1px solid rgba(28,38,32,0.16); border-radius:12px; padding:12px 4px; text-align:center; font-size:12.5px; color:#7C887F;">ng/mL</span></div></div>
+            </div>
+            <div style="font-size:12px; font-weight:600; margin-bottom:6px;">Date of draw <span style="font-family:'Geist Mono',monospace; font-size:8.5px; color:#B3543A; letter-spacing:0.06em;">REQUIRED</span></div>
+            <div style="border:1px solid rgba(28,38,32,0.16); border-radius:12px; padding:12px 14px; font-size:14px; background:#fff; margin-bottom:16px;">14 / 02 / 2026</div>
+            <sc-if value="{{ manualAddedNo }}" hint-placeholder-val="{{ true }}">
+              <div onClick="{{ addManual }}" style="background:#1E5C45; color:#fff; text-align:center; padding:14px; border-radius:100px; font-weight:600; font-size:14px; cursor:pointer; margin-top:auto;">Add ferritin · 29 µg/L</div>
+            </sc-if>
+            <sc-if value="{{ manualAddedYes }}" hint-placeholder-val="{{ false }}">
+              <div style="background:rgba(52,160,124,0.1); border:1px solid rgba(52,160,124,0.35); border-radius:14px; padding:13px 16px; margin-top:auto; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:13px; font-weight:700; color:#1E5C45;">✓ Ferritin · 29 µg/L · 14 Feb 2026</span>
+                <span style="font-size:12px; color:#7C887F;">Edit</span>
+              </div>
+              <div style="border:1px solid rgba(28,38,32,0.2); text-align:center; padding:12px; border-radius:100px; font-weight:600; font-size:13px; color:#4A554D; margin-bottom:9px; cursor:pointer;">+ Add another marker</div>
+              <div onClick="{{ nav.timeline }}" style="background:#1E5C45; color:#fff; text-align:center; padding:14px; border-radius:100px; font-weight:600; font-size:14px; cursor:pointer;">Save — see it on your timeline</div>
+            </sc-if>
+            <div style="font-size:11px; color:#7C887F; text-align:center; margin-top:12px;">The date matters — the whole product is time-based fusion.</div>
+          </div>
+          </sc-if>
+
+          <!-- member tab bar -->
+          <sc-if value="{{ memberTabs }}" hint-placeholder-val="{{ false }}">
+          <div style="flex-shrink:0; display:flex; background:#141B17; border-top:1px solid rgba(255,255,255,0.08); padding:9px 6px 4px;">
+            <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+              <div onClick="{{ t.go }}" style="flex:1; text-align:center; cursor:pointer; padding:3px 0;">
+                <div style="font-size:16px; line-height:1.2; color:{{ t.color }};">{{ t.glyph }}</div>
+                <div style="font-size:9.5px; font-weight:{{ t.weight }}; color:{{ t.color }}; letter-spacing:0.03em;">{{ t.label }}</div>
+              </div>
+            </sc-for>
+          </div>
+          </sc-if>
+
+          <!-- home indicator -->
+          <div style="flex-shrink:0; height:22px; display:flex; align-items:center; justify-content:center;"><div style="width:130px; height:5px; border-radius:100px; background:{{ indicatorColor }};"></div></div>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- WATCH -->
+      <sc-if value="{{ watchVisible }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex; flex-direction:column; align-items:center; gap:18px;">
+        <div style="position:relative; width:232px;">
+          <div style="position:absolute; right:-7px; top:66px; width:10px; height:36px; border-radius:5px; background:#0E1512;"></div>
+          <div style="position:absolute; right:-6px; top:114px; width:8px; height:22px; border-radius:4px; background:#0E1512;"></div>
+          <div style="width:232px; height:282px; background:#0E1512; border-radius:66px; padding:11px; box-shadow:0 32px 70px -30px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.07);">
+            <div style="width:100%; height:100%; background:#000; border-radius:56px; overflow:hidden; color:#F4F1EA; font-family:'Hanken Grotesk',sans-serif; position:relative;">
+
+              <sc-if value="{{ is.wface }}" hint-placeholder-val="{{ true }}">
+              <div data-screen-label="Watch face" style="height:100%; display:flex; flex-direction:column; padding:28px 26px 26px;">
+                <div style="text-align:right; font-family:'Geist Mono',monospace; font-size:36px; color:#7FD3AE; line-height:1;">9:41</div>
+                <div style="text-align:right; font-family:'Geist Mono',monospace; font-size:9px; color:#8FA89A; letter-spacing:0.1em; margin-top:5px;">WED 2 JUL</div>
+                <div style="margin-top:auto; display:flex; justify-content:space-between; align-items:flex-end;">
+                  <div onClick="{{ nav.wtoday }}" style="text-align:center; cursor:pointer;">
+                    <div style="position:relative; width:52px; height:52px; margin:0 auto 5px;">
+                      <svg viewBox="0 0 60 60" style="width:52px; height:52px;"><circle cx="30" cy="30" r="24" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="6"></circle><circle cx="30" cy="30" r="24" fill="none" stroke="#34A07C" stroke-width="6" stroke-linecap="round" stroke-dasharray="151" stroke-dashoffset="39" transform="rotate(-90 30 30)"></circle></svg>
+                      <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'Geist Mono',monospace; font-size:15px;">74</div>
+                    </div>
+                    <div style="font-family:'Geist Mono',monospace; font-size:7.5px; color:#8FA89A; letter-spacing:0.1em;">BASELINE</div>
+                  </div>
+                  <div style="text-align:center;">
+                    <div style="font-family:'Geist Mono',monospace; font-size:22px; color:#D9C9A4;">T−12</div>
+                    <div style="font-family:'Geist Mono',monospace; font-size:7.5px; color:#8FA89A; letter-spacing:0.1em; margin-top:4px;">NEXT TEST</div>
+                  </div>
+                </div>
+              </div>
+              </sc-if>
+
+              <sc-if value="{{ is.wtoday }}" hint-placeholder-val="{{ false }}">
+              <div data-screen-label="Watch today" style="height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px 22px; text-align:center;">
+                <div style="position:relative; width:92px; height:92px;">
+                  <svg viewBox="0 0 100 100" style="width:92px; height:92px;"><circle cx="50" cy="50" r="41" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="9"></circle><circle cx="50" cy="50" r="41" fill="none" stroke="#34A07C" stroke-width="9" stroke-linecap="round" stroke-dasharray="258" stroke-dashoffset="67" transform="rotate(-90 50 50)"></circle></svg>
+                  <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'Geist Mono',monospace; font-size:25px;">74</div>
+                </div>
+                <div style="font-family:'Instrument Serif',serif; font-size:25px; margin-top:11px;">Steady</div>
+                <div style="font-size:11px; color:#8FA89A; line-height:1.45; margin-top:4px;">Within your baseline band. Nothing needs you today.</div>
+              </div>
+              </sc-if>
+
+              <sc-if value="{{ is.wglance }}" hint-placeholder-val="{{ false }}">
+              <div data-screen-label="Watch glance" style="height:100%; display:flex; flex-direction:column; padding:28px 24px 22px;">
+                <div style="font-family:'Geist Mono',monospace; font-size:8px; color:#D9C9A4; letter-spacing:0.1em;">INFLAMMATION · HRV PROXY</div>
+                <div style="font-family:'Geist Mono',monospace; font-size:28px; margin:10px 0 4px;">52 <span style="font-size:12px; color:#8FA89A;">ms</span></div>
+                <svg viewBox="0 0 160 30" style="width:100%; height:28px;"><polyline points="0,22 20,18 40,20 60,14 80,15 100,11 120,12 140,8 160,9" fill="none" stroke="#D9C9A4" stroke-width="2" stroke-linecap="round"></polyline></svg>
+                <div style="font-size:11px; color:#CFD6CF; line-height:1.5; margin-top:auto;">hs-CRP was low in July. HRV steady since — likely still quiet.</div>
+              </div>
+              </sc-if>
+
+              <sc-if value="{{ is.wlog }}" hint-placeholder-val="{{ false }}">
+              <div data-screen-label="Watch quick-log" style="height:100%; display:flex; flex-direction:column; padding:26px 20px 18px;">
+                <div style="font-family:'Geist Mono',monospace; font-size:8px; color:#8FA89A; letter-spacing:0.1em; margin-bottom:10px;">QUICK-LOG · ONE TAP</div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:7px;">
+                  <sc-for list="{{ wlogTags }}" as="t" hint-placeholder-count="6">
+                    <div onClick="{{ t.tap }}" style="border:{{ t.border }}; background:{{ t.bg }}; color:{{ t.color }}; border-radius:12px; padding:11px 4px; text-align:center; font-size:10.5px; font-weight:600; cursor:pointer;">{{ t.label }}</div>
+                  </sc-for>
+                </div>
+                <div style="font-size:9px; color:#5E6E64; text-align:center; margin-top:auto; line-height:1.4;">{{ wlogCap }}</div>
+              </div>
+              </sc-if>
+
+              <sc-if value="{{ is.wexp }}" hint-placeholder-val="{{ false }}">
+              <div data-screen-label="Watch experiment" style="height:100%; display:flex; flex-direction:column; padding:28px 24px 20px;">
+                <div style="font-family:'Geist Mono',monospace; font-size:8px; color:#7FD3AE; letter-spacing:0.1em;">ACTIVE · EVENING WALKS</div>
+                <div style="font-family:'Instrument Serif',serif; font-size:23px; margin:8px 0 10px;">Day 51 of 60</div>
+                <div style="height:6px; border-radius:100px; background:rgba(255,255,255,0.12); margin-bottom:9px;"><div style="width:85%; height:100%; border-radius:100px; background:#34A07C;"></div></div>
+                <div style="font-size:10.5px; color:#8FA89A; line-height:1.45;">Adherence 87% — read from your Watch.</div>
+                <sc-if value="{{ wexpLoggedNo }}" hint-placeholder-val="{{ true }}">
+                  <div onClick="{{ wexpLog }}" style="background:#34A07C; color:#04130D; text-align:center; padding:11px; border-radius:100px; font-size:12px; font-weight:700; cursor:pointer; margin-top:auto;">Log today's walk</div>
+                </sc-if>
+                <sc-if value="{{ wexpLoggedYes }}" hint-placeholder-val="{{ false }}">
+                  <div style="border:1px solid rgba(52,160,124,0.5); color:#7FD3AE; text-align:center; padding:11px; border-radius:100px; font-size:12px; font-weight:700; margin-top:auto;">✓ Logged — 52 of 60</div>
+                </sc-if>
+              </div>
+              </sc-if>
+
+              <sc-if value="{{ is.wresult }}" hint-placeholder-val="{{ false }}">
+              <div data-screen-label="Watch result" style="height:100%; display:flex; flex-direction:column; justify-content:center; padding:24px 24px;">
+                <div style="display:flex; align-items:center; gap:7px; margin-bottom:11px;"><span style="width:8px; height:8px; border-radius:50%; background:#34A07C;"></span><span style="font-family:'Geist Mono',monospace; font-size:8px; color:#7FD3AE; letter-spacing:0.1em;">ARCAEVO · NOW</span></div>
+                <div style="font-family:'Instrument Serif',serif; font-size:24px; line-height:1.1; margin-bottom:7px;">Results in.</div>
+                <div style="font-size:11.5px; color:#CFD6CF; line-height:1.5; margin-bottom:15px;">Vitamin D is up since winter. One marker worth a look — no red numbers here.</div>
+                <div onClick="{{ nav.results }}" style="background:#F4F1EA; color:#1C2620; text-align:center; padding:10px; border-radius:100px; font-size:11.5px; font-weight:600; cursor:pointer;">Read on iPhone</div>
+              </div>
+              </sc-if>
+
+            </div>
+          </div>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <span onClick="{{ watchPrev }}" style="border:1px solid rgba(255,255,255,0.2); color:#CFD6CF; border-radius:100px; padding:7px 15px; font-size:13px; cursor:pointer;" style-hover="border-color:#34A07C">‹</span>
+          <span style="font-family:'Geist Mono',monospace; font-size:10px; color:#8FA89A; letter-spacing:0.08em;">SWIPE</span>
+          <span onClick="{{ watchNext }}" style="border:1px solid rgba(255,255,255,0.2); color:#CFD6CF; border-radius:100px; padding:7px 15px; font-size:13px; cursor:pointer;" style-hover="border-color:#34A07C">›</span>
+        </div>
+      </div>
+      </sc-if>
+
+      <div style="font-family:'Geist Mono',monospace; font-size:11px; letter-spacing:0.08em; color:#8FA89A;">{{ screenCaption }}</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showRail&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Prototype&quot;}, &quot;startScreen&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;default&quot;: &quot;welcome&quot;, &quot;options&quot;: [&quot;welcome&quot;, &quot;signup&quot;, &quot;verify&quot;, &quot;consent&quot;, &quot;healthkit&quot;, &quot;about&quot;, &quot;notify&quot;, &quot;home&quot;, &quot;plans&quot;, &quot;gate&quot;, &quot;waitlist&quot;, &quot;checkout&quot;, &quot;success&quot;, &quot;activate&quot;, &quot;booking&quot;, &quot;journey&quot;, &quot;critical&quot;, &quot;dashboard&quot;, &quot;fusion&quot;, &quot;results&quot;, &quot;marker&quot;, &quot;insights&quot;, &quot;experiments&quot;, &quot;expstart&quot;, &quot;verdict&quot;, &quot;chat&quot;, &quot;upload&quot;, &quot;confirmupload&quot;, &quot;manual&quot;, &quot;timeline&quot;, &quot;gpshare&quot;, &quot;account&quot;, &quot;security&quot;, &quot;privacy&quot;, &quot;deleteacct&quot;, &quot;invite&quot;, &quot;connections&quot;, &quot;wface&quot;, &quot;wtoday&quot;, &quot;wglance&quot;, &quot;wlog&quot;, &quot;wexp&quot;, &quot;wresult&quot;], &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Prototype&quot;}}">
+class Component extends DCLogic {
+  state = {
+    screen: "welcome",
+    plan: "essential",
+    code: null,          // null | 'dublin' | 'cork'
+    research: false,
+    waitJoined: false,
+    notifs: { results: true, reminders: true, focus: false, faceid: true },
+    book: { day: "Wed 8", slot: "08:15", booked: false },
+    ferritin: null,
+    gpCreated: false,
+    passkey: false,
+    twofa: false,
+    sessEnded: false,
+    exportReq: false,
+    delArmed: false,
+    delDone: false,
+    inviteCopied: false,
+    conns: { oura: false, whoop: false, garmin: false },
+    expPicked: null,
+    fusionMarker: "apob", fusionWear: "rhr", fusionPt: 2,
+    chat: [],
+    expSel: { what: null, dur: "4 weeks", watch: "Ferritin" },
+    expStarted: false,
+    manualAdded: false,
+    wlogged: {},
+    wexpLogged: false,
+  };
+
+  go(name) {
+    const patch = { screen: name };
+    if (name === "gate") patch.code = null;
+    this.setState(patch);
+  }
+
+  renderVals() {
+    const s = this.state;
+    const order = [
+      ["welcome", "Welcome"],
+      ["signup", "Create account"],
+      ["verify", "Check inbox"],
+      ["consent", "Health-data consent"],
+      ["healthkit", "Apple Health"],
+      ["about", "About you"],
+      ["notify", "Notifications"],
+      ["home", "Home — free tier"],
+      ["plans", "Plans"],
+      ["gate", "Eircode check"],
+      ["waitlist", "Early access"],
+      ["checkout", "Checkout"],
+      ["success", "Member"],
+      ["activate", "Activate kit"],
+      ["booking", "Nurse booking"],
+      ["journey", "Sample journey"],
+      ["critical", "Critical value"],
+      ["dashboard", "Member home"],
+      ["fusion", "Fusion timeline"],
+      ["results", "Results"],
+      ["marker", "Marker detail"],
+      ["insights", "Insights"],
+      ["experiments", "Experiments"],
+      ["expstart", "Start experiment"],
+      ["verdict", "\u201cDid it work?\u201d"],
+      ["chat", "Ask Arcaevo"],
+      ["upload", "Add bloodwork"],
+      ["confirmupload", "Confirm reading"],
+      ["manual", "Type values by hand"],
+      ["timeline", "Timeline"],
+      ["gpshare", "Share with GP"],
+      ["account", "Account"],
+      ["security", "Sign-in & security"],
+      ["privacy", "Data & privacy"],
+      ["deleteacct", "Delete account"],
+      ["invite", "Invite someone"],
+      ["connections", "Connected sources"],
+      ["wface", "Watch face"],
+      ["wtoday", "Today — baseline"],
+      ["wglance", "Biomarker glance"],
+      ["wlog", "Quick-log"],
+      ["wexp", "Active experiment"],
+      ["wresult", "Result ready"],
+    ];
+
+    const is = {};
+    order.forEach(([k]) => { is[k] = s.screen === k; });
+
+    const nav = {};
+    order.forEach(([k]) => { nav[k] = () => this.go(k); });
+
+    const groupAt = { welcome: "ONBOARDING", home: "FREE TIER", gate: "PURCHASE", activate: "TESTING", dashboard: "MEMBER APP", upload: "YOUR DATA", account: "ACCOUNT", wface: "APPLE WATCH" };
+    const steps = [];
+    let n = 0;
+    order.forEach(([k, label]) => {
+      if (groupAt[k]) steps.push({
+        label: groupAt[k], num: "", go: () => {},
+        bg: "transparent", color: "#5E6E64", numColor: "transparent", weight: "500",
+        size: "9.5px", ls: "0.14em", font: "'Geist Mono',monospace", pad: "16px 10px 4px", cursor: "default",
+      });
+      n += 1;
+      steps.push({
+        label, num: String(n).padStart(2, "0"),
+        go: () => this.go(k),
+        bg: s.screen === k ? "rgba(52,160,124,0.16)" : "transparent",
+        color: s.screen === k ? "#7FD3AE" : "#CFD6CF",
+        numColor: s.screen === k ? "#7FD3AE" : "#5E6E64",
+        weight: s.screen === k ? "700" : "500",
+        size: "12.5px", ls: "0", font: "'Hanken Grotesk',sans-serif", pad: "6px 10px", cursor: "pointer",
+      });
+    });
+
+    const plans = {
+      fusion: { name: "Fusion", price: "€119.00", label: "FUSION — €119/YR", includes: "Watch fusion, uploads, insights", step1: "You're live now. Upload any past bloodwork to start your baseline today.", cta: "Upload past bloodwork now", goKey: "upload" },
+      essential: { name: "Essential", price: "€329.00", label: "ESSENTIAL — €329/YR", includes: "Kits, postage, lab & clinician review", step1: "Your kit ships today. Track it here — typically 1–2 working days.", cta: "My kit arrived — activate it", goKey: "activate" },
+      performance: { name: "Performance", price: "€399.00", label: "PERFORMANCE — €399/YR", includes: "Nurse visit, venous panel, priority review", step1: "Book your nurse visit — morning slots, we come to you.", cta: "Book my nurse visit", goKey: "booking" },
+    };
+    const plan = plans[s.plan];
+
+    const notifDefs = [
+      ["results", "Results & clinician notes", "The reason the app exists"],
+      ["reminders", "Test & fasting reminders", "The night before, and the morning of"],
+      ["focus", "Weekly focus", "One nudge a week, never streaks"],
+      ["faceid", "Lock app with Face ID", "It's health data — on by default"],
+    ];
+    const notifRows = notifDefs.map(([key, label, sub]) => ({
+      label, sub,
+      bg: s.notifs[key] ? "#34A07C" : "rgba(28,38,32,0.18)",
+      knobLeft: s.notifs[key] ? "19px" : "2px",
+      toggle: () => this.setState(prev => ({ notifs: Object.assign({}, prev.notifs, { [key]: !prev.notifs[key] }) })),
+    }));
+
+    const memberScreens = ["dashboard", "fusion", "results", "marker", "insights", "experiments", "expstart", "verdict", "chat"];
+    const dark = s.screen === "home" || s.screen === "journey" || s.screen === "timeline" || memberScreens.indexOf(s.screen) >= 0;
+    const tabDefs = [
+      ["dashboard", "Today", "☉", ["dashboard", "insights"]],
+      ["fusion", "Fusion", "∿", ["fusion"]],
+      ["results", "Results", "▤", ["results", "marker"]],
+      ["experiments", "Experiments", "⟳", ["experiments", "verdict", "expstart"]],
+      ["chat", "Ask", "✳", ["chat"]],
+    ];
+    const cur = order.find(([k]) => k === s.screen);
+
+    // ---- fusion timeline ----
+    const fusionDB = {
+      apob: { title: "APOB", unit: "g/L", bandY: 40, headline: "ApoB is falling as your resting heart rate falls.",
+        points: [
+          { x: 34, y: 24, tag: "FEB 25 · SELF-REPORTED", val: "1.21", note: "Your first draw on file. Resting HR averaged 61 that month — before the walks started." },
+          { x: 150, y: 44, tag: "FEB 26 · ARCAEVO LAB", val: "1.12", note: "Down 7% over a year of steady training. The watch line was already moving first." },
+          { x: 266, y: 58, tag: "JUL 26 · ARCAEVO LAB", val: "0.94", note: "The walks block. ApoB fell almost week for week with your resting HR — this is the experiment working." },
+        ] },
+      ferritin: { title: "FERRITIN", unit: "µg/L", bandY: 34, headline: "Ferritin drifted down as training load rose.",
+        points: [
+          { x: 34, y: 42, tag: "FEB 25 · SELF-REPORTED", val: "44", note: "Comfortably mid-band. Nothing to do." },
+          { x: 150, y: 46, tag: "FEB 26 · ARCAEVO LAB", val: "41", note: "Steady, while weekly training hours crept up." },
+          { x: 266, y: 70, tag: "JUL 26 · ARCAEVO LAB", val: "29", note: "Just under your band. Food first — iron-rich meals 3×/week, recheck in January before supplementing." },
+        ] },
+      crp: { title: "HS-CRP", unit: "mg/L", bandY: 32, headline: "Inflammation is quiet — and your HRV agrees.",
+        points: [
+          { x: 34, y: 44, tag: "FEB 25 · SELF-REPORTED", val: "1.1", note: "Low. A quiet marker is good news you get to keep." },
+          { x: 150, y: 40, tag: "FEB 26 · ARCAEVO LAB", val: "0.9", note: "Still low, with HRV steady across the winter." },
+          { x: 266, y: 38, tag: "JUL 26 · ARCAEVO LAB", val: "0.8", note: "Low and steady all spring — matches the calm HRV line exactly." },
+        ] },
+    };
+    const wearDB = {
+      rhr: { label: "RESTING HR", cap: "61 → 54 bpm over the same 17 months. The continuous line often moves before the blood does.", line: "0,24 28,28 56,26 84,32 112,36 140,34 168,42 196,46 224,50 252,54 280,56 300,58" },
+      hrv: { label: "HRV", cap: "38 → 52 ms over the same period — recovery improving alongside the blood trend.", line: "0,64 28,58 56,60 84,52 112,50 140,46 168,44 196,40 224,38 252,34 280,32 300,30" },
+      sleep: { label: "SLEEP", cap: "6h 40m → 7h 15m average. Sleep lifted first; the markers followed.", line: "0,56 28,52 56,58 84,50 112,48 140,52 168,46 196,44 224,46 252,42 280,40 300,38" },
+    };
+    const fm = fusionDB[s.fusionMarker];
+    const fw = wearDB[s.fusionWear];
+    const fpt = fm.points[Math.min(s.fusionPt, fm.points.length - 1)];
+
+    // ---- AI chat ----
+    const chatQA = {
+      focus: { q: "What should I focus on?", a: "Keep the evening walks — ApoB is answering them, down 16% since February. The one thing to nudge is ferritin: iron-rich food three times a week, recheck in January.", flag: false },
+      ferritin: { q: "Explain my ferritin", a: "Ferritin is your iron store. Yours is 29 µg/L — just under your usual band of 38–52. It drifted down while training load rose. Food first; if January's recheck hasn't moved it, we'll talk supplements.", flag: false },
+      caffeine: { q: "Did my caffeine experiment work?", a: "Yes. Over 14 weeks your deep sleep rose 22 minutes a night and you fell asleep 18 minutes faster. CRP didn't move — that one was about sleep, not inflammation.", flag: false },
+      flagged: { q: "What about my flagged value?", a: "That one is with Dr. Nolan — she'll call today between 14:00 and 17:00. I don't coach on flagged results; a person reads them with you first.", flag: true },
+    };
+    const chatMsgs = [];
+    s.chat.forEach((key) => {
+      const qa = chatQA[key];
+      chatMsgs.push({ text: qa.q, align: "flex-end", bg: "#1E5C45", color: "#fff", border: "1px solid transparent" });
+      chatMsgs.push({ text: qa.a, align: "flex-start", bg: "rgba(255,255,255,0.06)", color: "#E8E4DA", border: qa.flag ? "1px solid rgba(217,154,78,0.5)" : "1px solid transparent" });
+    });
+
+    // ---- start experiment ----
+    const chipOn = { border: "1px solid rgba(52,160,124,0.7)", bg: "rgba(52,160,124,0.16)", color: "#7FD3AE" };
+    const chipOff = { border: "1px solid rgba(255,255,255,0.16)", bg: "transparent", color: "#CFD6CF" };
+    const expChip = (label, on, pick) => Object.assign({ label, pick }, on ? chipOn : chipOff);
+
+    // ---- watch ----
+    const watchScreens = ["wface", "wtoday", "wglance", "wlog", "wexp", "wresult"];
+    const onWatch = watchScreens.indexOf(s.screen) >= 0;
+    const wIdx = Math.max(0, watchScreens.indexOf(s.screen));
+    const wlogDefs = ["Supplement", "Alcohol", "Cold plunge", "Late meal", "Workout", "Stress"];
+    const wlogCount = wlogDefs.filter(t => s.wlogged[t]).length;
+
+    return {
+      is, nav, steps, notifRows,
+      phoneVisible: !onWatch,
+      watchVisible: onWatch,
+      watchPrev: () => this.go(watchScreens[(wIdx + watchScreens.length - 1) % watchScreens.length]),
+      watchNext: () => this.go(watchScreens[(wIdx + 1) % watchScreens.length]),
+      wlogTags: wlogDefs.map(t => ({
+        label: s.wlogged[t] ? t + " ✓" : t,
+        tap: () => this.setState(p => ({ wlogged: Object.assign({}, p.wlogged, { [t]: !p.wlogged[t] }) })),
+        border: s.wlogged[t] ? "1px solid rgba(52,160,124,0.6)" : "1px solid rgba(255,255,255,0.16)",
+        bg: s.wlogged[t] ? "rgba(52,160,124,0.18)" : "transparent",
+        color: s.wlogged[t] ? "#7FD3AE" : "#E8E4DA",
+      })),
+      wlogCap: wlogCount ? wlogCount + " tagged today → feeds your experiments" : "One tap. It lands in your experiments on iPhone.",
+      wexpLog: () => this.setState({ wexpLogged: true }),
+      wexpLoggedNo: !s.wexpLogged, wexpLoggedYes: s.wexpLogged,
+
+      // fusion timeline
+      fusionHeadline: fm.headline,
+      fusionUnit: fm.unit,
+      fusionBandY: fm.bandY,
+      fusionBandTextY: fm.bandY + 17,
+      fusionWearLine: fw.line,
+      fusionWearLabel: fw.label,
+      fusionWearCap: fw.cap,
+      fusionPtTag: fpt.tag, fusionPtVal: fpt.val, fusionPtNote: fpt.note,
+      fusionMarkerChips: [["apob", "APOB"], ["ferritin", "FERRITIN"], ["crp", "HS-CRP"]].map(([k, label]) => ({
+        label,
+        pick: () => this.setState({ fusionMarker: k, fusionPt: 2 }),
+        border: s.fusionMarker === k ? "1px solid rgba(52,160,124,0.7)" : "1px solid rgba(255,255,255,0.16)",
+        bg: s.fusionMarker === k ? "rgba(52,160,124,0.16)" : "transparent",
+        color: s.fusionMarker === k ? "#7FD3AE" : "#8FA89A",
+      })),
+      fusionWearChips: [["rhr", "RESTING HR"], ["hrv", "HRV"], ["sleep", "SLEEP"]].map(([k, label]) => ({
+        label,
+        pick: () => this.setState({ fusionWear: k }),
+        border: s.fusionWear === k ? "1px solid rgba(217,201,164,0.7)" : "1px solid rgba(255,255,255,0.16)",
+        bg: s.fusionWear === k ? "rgba(217,201,164,0.14)" : "transparent",
+        color: s.fusionWear === k ? "#D9C9A4" : "#8FA89A",
+      })),
+      fusionPts: fm.points.map((p, i) => ({
+        cx: p.x, cy: p.y,
+        r: s.fusionPt === i ? 7 : 5,
+        fill: s.fusionPt === i ? "#34A07C" : "#1C2620",
+        pick: () => this.setState({ fusionPt: i }),
+      })),
+
+      // AI chat
+      chatEmpty: chatMsgs.length === 0,
+      chatMsgs,
+      chatPrompts: Object.keys(chatQA).filter(k => s.chat.indexOf(k) < 0).map(k => ({
+        label: chatQA[k].q,
+        ask: () => this.setState(p => ({ chat: p.chat.concat(k) })),
+      })),
+
+      // start experiment
+      expWhatChips: ["Iron-rich breakfasts", "Screens off by 23:00", "Creatine 5g daily", "No alcohol", "More zone-2"].map(w =>
+        expChip(w, s.expSel.what === w, () => this.setState(p => ({ expSel: Object.assign({}, p.expSel, { what: w }), expStarted: false })))),
+      expDurChips: ["2 weeks", "4 weeks", "6 weeks"].map(d =>
+        expChip(d, s.expSel.dur === d, () => this.setState(p => ({ expSel: Object.assign({}, p.expSel, { dur: d }), expStarted: false })))),
+      expWatchChips: ["Ferritin", "Deep sleep", "ApoB", "HRV"].map(w =>
+        expChip(w, s.expSel.watch === w, () => this.setState(p => ({ expSel: Object.assign({}, p.expSel, { watch: w }), expStarted: false })))),
+      expStartCta: s.expSel.what ? "Start — " + s.expSel.what + ", " + s.expSel.dur : "Pick a change to start",
+      expStartOpacity: s.expSel.what ? "1" : "0.45",
+      startExperiment: () => { if (this.state.expSel.what) this.setState({ expStarted: true }); },
+      expStartedNo: !s.expStarted, expStartedYes: s.expStarted,
+      expStartSummary: (s.expSel.what || "") + " · " + s.expSel.dur + " · watching " + s.expSel.watch,
+
+      // manual entry
+      addManual: () => this.setState({ manualAdded: true }),
+      manualAddedNo: !s.manualAdded, manualAddedYes: s.manualAdded,
+      railVisible: this.props.showRail ?? true,
+      screenCaption: (cur ? cur[1] : "").toUpperCase(),
+      statusColor: dark ? "#F4F1EA" : "#1C2620",
+      indicatorColor: dark ? "rgba(255,255,255,0.4)" : "rgba(28,38,32,0.3)",
+
+      planLabel: plan.label, planName: plan.name, planPrice: plan.price,
+      planIncludes: plan.includes, successStep1: plan.step1,
+      successCtaLabel: plan.cta,
+      successCtaGo: () => this.go(plan.goKey),
+      pickFusion: () => this.setState({ plan: "fusion", screen: "checkout" }),
+      pickEssential: () => this.setState({ plan: "essential", screen: "gate", code: null }),
+      pickPerformance: () => this.setState({ plan: "performance", screen: "gate", code: null }),
+      pickFusionFromWaitlist: () => this.setState({ plan: "fusion", screen: "checkout" }),
+
+      tryDublin: () => this.setState({ code: "dublin" }),
+      tryCork: () => this.setState({ code: "cork" }),
+      gatePass: s.code === "dublin",
+      gateFail: s.code === "cork",
+      dubBorder: s.code === "dublin" ? "1.5px solid #34A07C" : "1px solid rgba(28,38,32,0.16)",
+      dubBg: s.code === "dublin" ? "rgba(52,160,124,0.08)" : "#fff",
+      corkBorder: s.code === "cork" ? "1.5px solid #D99A4E" : "1px solid rgba(28,38,32,0.16)",
+      corkBg: s.code === "cork" ? "rgba(217,154,78,0.08)" : "#fff",
+
+      waitJoinedNo: !s.waitJoined,
+      waitJoinedYes: s.waitJoined,
+      joinWaitlist: () => this.setState({ waitJoined: true }),
+
+      toggleResearch: () => this.setState(prev => ({ research: !prev.research })),
+      researchBg: s.research ? "#1E5C45" : "#fff",
+      researchBorder: s.research ? "#1E5C45" : "rgba(28,38,32,0.3)",
+      researchTick: s.research ? "✓" : "",
+
+      // member app
+      memberTabs: memberScreens.indexOf(s.screen) >= 0,
+      tabs: tabDefs.map(([k, label, glyph, actives]) => ({
+        label, glyph,
+        go: () => this.go(k),
+        color: actives.indexOf(s.screen) >= 0 ? "#7FD3AE" : "#5E6E64",
+        weight: actives.indexOf(s.screen) >= 0 ? "700" : "500",
+      })),
+      expSuggestions: [
+        ["Iron-rich breakfasts, 3×/week", "Ferritin 29 — food first, recheck in January"],
+        ["Screens off by 23:00, two weeks", "Deep sleep drops 31 min on late nights"],
+      ].map(([name, why]) => ({
+        name, why,
+        pick: () => this.setState({ expPicked: name }),
+        border: s.expPicked === name ? "1px solid rgba(52,160,124,0.5)" : "1px solid transparent",
+        tag: s.expPicked === name ? "✓ QUEUED" : "PICK",
+        tagColor: s.expPicked === name ? "#7FD3AE" : "#5E6E64",
+      })),
+
+      // nurse booking
+      bookDayVal: s.book.day, bookSlotVal: s.book.slot,
+      bookDays: ["Tue 7", "Wed 8", "Thu 9"].map(d => ({
+        label: d,
+        pick: () => this.setState(p => ({ book: Object.assign({}, p.book, { day: d, booked: false }) })),
+        border: s.book.day === d ? "1.5px solid #1E5C45" : "1px solid rgba(28,38,32,0.14)",
+        bg: s.book.day === d ? "rgba(52,160,124,0.08)" : "#fff",
+        color: s.book.day === d ? "#1E5C45" : "#1C2620",
+      })),
+      bookSlots: ["07:30", "08:15", "09:00", "09:45"].map(t => ({
+        label: t,
+        pick: () => this.setState(p => ({ book: Object.assign({}, p.book, { slot: t, booked: false }) })),
+        border: s.book.slot === t ? "1.5px solid #1E5C45" : "1px solid rgba(28,38,32,0.14)",
+        bg: s.book.slot === t ? "rgba(52,160,124,0.08)" : "#fff",
+        color: s.book.slot === t ? "#1E5C45" : "#1C2620",
+      })),
+      bookCta: "Confirm — " + s.book.day + " July, " + s.book.slot,
+      confirmBooking: () => this.setState(p => ({ book: Object.assign({}, p.book, { booked: true }) })),
+      bookedNo: !s.book.booked, bookedYes: s.book.booked,
+
+      // bloodwork upload confirm
+      pick41: () => this.setState({ ferritin: "41" }),
+      pick47: () => this.setState({ ferritin: "47" }),
+      fer41Border: s.ferritin === "41" ? "1.5px solid #1E5C45" : "1px solid rgba(28,38,32,0.2)",
+      fer41Bg: s.ferritin === "41" ? "rgba(52,160,124,0.1)" : "#fff",
+      fer47Border: s.ferritin === "47" ? "1.5px solid #1E5C45" : "1px solid rgba(28,38,32,0.2)",
+      fer47Bg: s.ferritin === "47" ? "rgba(52,160,124,0.1)" : "#fff",
+      ferValue: s.ferritin ? s.ferritin : "4_",
+      ferResolved: !!s.ferritin,
+      ferPending: !s.ferritin,
+
+      // GP share
+      createGpLink: () => this.setState({ gpCreated: true }),
+      gpNo: !s.gpCreated, gpYes: s.gpCreated,
+
+      // security
+      addPasskey: () => this.setState({ passkey: true }),
+      passkeyNo: !s.passkey, passkeyYes: s.passkey,
+      toggle2fa: () => this.setState(p => ({ twofa: !p.twofa })),
+      twofaBg: s.twofa ? "#34A07C" : "rgba(28,38,32,0.18)",
+      twofaKnob: s.twofa ? "19px" : "2px",
+      endSession: () => this.setState({ sessEnded: true }),
+      sessLabel: s.sessEnded ? "Ended ✓" : "End session",
+      sessColor: s.sessEnded ? "#7C887F" : "#B3543A",
+
+      // privacy
+      requestExport: () => this.setState({ exportReq: true }),
+      exportLabel: s.exportReq ? "Requested ✓ — arriving by email" : "Request export",
+      researchSwBg: s.research ? "#34A07C" : "rgba(28,38,32,0.18)",
+      researchSwKnob: s.research ? "19px" : "2px",
+
+      // delete account
+      armDelete: () => this.setState({ delArmed: true }),
+      delTyped: s.delArmed ? "DELETE" : "Tap to type DELETE",
+      delTypedColor: s.delArmed ? "#B3543A" : "#7C887F",
+      delOpacity: s.delArmed ? "1" : "0.4",
+      doDelete: () => { if (this.state.delArmed) this.setState({ delDone: true }); },
+      delDoneNo: !s.delDone, delDoneYes: s.delDone,
+      restartProto: () => this.setState({
+        screen: "welcome", plan: "essential", code: null, waitJoined: false,
+        book: { day: "Wed 8", slot: "08:15", booked: false }, ferritin: null,
+        gpCreated: false, passkey: false, twofa: false, sessEnded: false,
+        exportReq: false, delArmed: false, delDone: false, inviteCopied: false,
+        conns: { oura: false, whoop: false, garmin: false },
+        fusionMarker: "apob", fusionWear: "rhr", fusionPt: 2, chat: [],
+        expSel: { what: null, dur: "4 weeks", watch: "Ferritin" }, expStarted: false,
+        manualAdded: false, wlogged: {}, wexpLogged: false,
+      }),
+
+      // invite
+      copyInvite: () => this.setState({ inviteCopied: true }),
+      inviteLabel: s.inviteCopied ? "Link copied ✓" : "Share invite link",
+
+      // connections
+      connRows: [["oura", "Oura", "Sleep & readiness via Oura API"], ["whoop", "WHOOP", "Strain & recovery via WHOOP API"], ["garmin", "Garmin", "Training load via Garmin Connect"]].map(([key, name, sub]) => ({
+        name, sub,
+        label: s.conns[key] ? "Connected ✓" : "Connect",
+        toggle: () => this.setState(p => ({ conns: Object.assign({}, p.conns, { [key]: !p.conns[key] }) })),
+        border: s.conns[key] ? "1px solid rgba(52,160,124,0.35)" : "1px solid rgba(28,38,32,0.1)",
+        btnBorder: s.conns[key] ? "1px solid rgba(52,160,124,0.5)" : "1px solid #1C2620",
+        btnColor: s.conns[key] ? "#1E5C45" : "#1C2620",
+      })),
+    };
+  }
+
+  componentDidMount() {
+    if (this.props.startScreen && this.props.startScreen !== this.state.screen) {
+      this.setState({ screen: this.props.startScreen });
+    }
+  }
+}
+</script>
+</body>
+</html>

@@ -69,7 +69,7 @@ Every loop iteration: read this file first, do the next unchecked work, update t
 - [x] HealthKit integration layer (real reads where possible; mock data source fallback)
 - [x] watchOS companion: today ring + latest insight
 - [x] API client pointing at web /api/v1
-- [ ] Builds with xcodebuild (verify) — blocked on this machine: Xcode 16.4 system content missing (`IDESimulatorFoundation` plugin fails to load; `xcodebuild -runFirstLaunch` needs admin auth). `xcodegen generate` succeeds; all sources fully compile per-target via `xcrun swiftc -emit-object` against iphonesimulator + watchsimulator SDKs.
+- [x] Builds with xcodebuild — unblocked 2026-07-03: -runFirstLaunch installed missing system content without sudo; BUILD SUCCEEDED locally.
 
 ### Phase 8 — Infra (infra/cdk)
 - [x] CDK app: eu-west-1; stacks documented (Atlas is external — document connection via secrets)
@@ -115,6 +115,34 @@ Non-negotiables: email + magic-link auth only (no social, no SIWA at launch); Ei
 ### Phase 14 — v2 verification
 - [x] e2e: join→verify→consent flow (magic link via outbox), eircode pass (D08) / fail (T12) → waitlist, checkout mock, account pages, pricing CTA targets — 6 new specs / 16 tests (auth-flow, checkout, share, account, pricing-cta, admin-v2 + e2e/v2-helpers.ts)
 - [x] Full regression: 40/40 Playwright e2e (24 v1 + 16 v2) green, 122/122 vitest green, tsc clean; docker stack rebuilt on the v2 image, seeded, /join + /s/k7f2demo verified live
+
+## V3 — iOS + Watch rebuild (handoff: design_handoff_ios_watch/, started 2026-07-03)
+
+Spec: `design_handoff_ios_watch/README.md` + `designs/Prototype.dc.html` (42 screens, 8 groups, `data-screen-label` sections; prototype logic class = state spec). Repo now on GitHub: origin = https://github.com/NiallJoeMaher/arcaevo.git — push after verified milestones.
+
+Non-negotiables: email + magic-link auth only (universal links open the app); payments ALWAYS link out to web checkout, no IAP; GDPR consent screen (3 purposes, research off); results never in email/push — critical values = "Dr. Nolan would like a word first", never a red number; HealthKit read-only with primer-before-sheet; honest delete; wellness not diagnosis; AI narrates, rules decide. Watch: status + deltas only, never raw alarming values; hit targets ≥44px.
+
+### Phase 15 — iOS foundation v3
+- [ ] Fonts: bundle Instrument Serif / Hanken Grotesk / Geist Mono (OFL) into targets, Theme v2 with prototype tokens; system-font fallback documented if bundling fails
+- [ ] ArcaevoKit v2 API client: magic-link request/verify, consents, eligibility, waitlist, uploads/bloodwork(+confirm), share, checkout link-out URLs; session-token auth alongside demo token
+- [ ] App state machine per prototype logic: plan (fusion/essential/performance), onboarding progress, eircode gate state, notification prefs (4 toggles, Face ID on), experiments state
+- [ ] Navigation shell: onboarding flow → free tier → member app tab bar (Today/Results/Experiments/Account)
+
+### Phase 16 — iOS screens (36)
+- [ ] ONBOARDING (7): welcome, signup, verify, consent, healthkit primer+sheet, about-you, notifications
+- [ ] FREE TIER (2) + PURCHASE (4): free home, plans, eircode gate, waitlist, checkout link-out, success (plan-aware)
+- [ ] TESTING (4): activate kit, nurse booking, sample journey, critical value ("needs a word")
+- [ ] MEMBER APP (9): dashboard, fusion timeline (marker × signal pickers, scrubbable), results, marker detail (ApoB), insights, experiments, start experiment, verdict, ask Arcaevo chat
+- [ ] YOUR DATA (5): add bloodwork, confirm reading (low-confidence blocks), type by hand, timeline, GP share
+- [ ] ACCOUNT (6): hub, security, privacy, delete, invite, connected sources
+
+### Phase 17 — Watch app (6)
+- [ ] complication/watch-face entry, today baseline, biomarker glance, quick-log, active experiment, result ready (pushes to phone)
+
+### Phase 18 — native verification
+- [x] xcodebuild local: -runFirstLaunch succeeded (no sudo needed), BUILD SUCCEEDED for Arcaevo scheme incl. embedded watch app (iPhone 15 Pro sim, iOS 17.2 runtime)
+- [x] App running in simulator: installed + launched co.arcaevo.app on booted iPhone 15 Pro
+- [ ] Push to GitHub after green
 
 ## Wanted deps (agents append here instead of installing)
 

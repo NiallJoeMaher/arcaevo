@@ -26,12 +26,21 @@ targets:
       # ArcaevoKit is a shared sources group compiled into both the
       # iOS and watchOS targets (models + API client + demo data).
       - path: ArcaevoKit
+      # Bundled OFL fonts (Instrument Serif, Hanken Grotesk, Geist Mono) —
+      # copied as loose resources so UIAppFonts finds them by file name.
+      - path: Fonts
+        buildPhase: resources
     dependencies:
       - target: ArcaevoWatch
     entitlements:
       path: Arcaevo/Arcaevo.entitlements
       properties:
         com.apple.developer.healthkit: true
+        # TODO(universal links): needs a real Apple Developer team +
+        # apple-app-site-association hosted at https://arcaevo.com before
+        # this can be enabled. Uncomment when signing with a real team:
+        # com.apple.developer.associated-domains:
+        #   - applinks:arcaevo.com
     info:
       path: Arcaevo/Info.plist
       properties:
@@ -40,6 +49,24 @@ targets:
           UIColorName: ""
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
+        # Custom URL scheme fallback for magic-link verification while the
+        # associated-domains entitlement (universal links) is unavailable:
+        # arcaevo://verify?token=…
+        CFBundleURLTypes:
+          - CFBundleURLName: co.arcaevo.app
+            CFBundleURLSchemes:
+              - arcaevo
+        UIAppFonts:
+          - InstrumentSerif-Regular.ttf
+          - InstrumentSerif-Italic.ttf
+          - HankenGrotesk-Light.ttf
+          - HankenGrotesk-Regular.ttf
+          - HankenGrotesk-Medium.ttf
+          - HankenGrotesk-SemiBold.ttf
+          - HankenGrotesk-Bold.ttf
+          - HankenGrotesk-ExtraBold.ttf
+          - GeistMono-Regular.ttf
+          - GeistMono-Medium.ttf
         NSHealthShareUsageDescription: >-
           Arcaevo reads your heart rate variability, resting heart rate,
           sleep and VO2 max from Apple Health to build your personal
@@ -63,12 +90,25 @@ targets:
     sources:
       - path: ArcaevoWatch
       - path: ArcaevoKit
+      - path: Fonts
+        buildPhase: resources
     info:
       path: ArcaevoWatch/Info.plist
       properties:
         CFBundleDisplayName: Arcaevo
         WKApplication: true
         WKCompanionAppBundleIdentifier: co.arcaevo.app
+        UIAppFonts:
+          - InstrumentSerif-Regular.ttf
+          - InstrumentSerif-Italic.ttf
+          - HankenGrotesk-Light.ttf
+          - HankenGrotesk-Regular.ttf
+          - HankenGrotesk-Medium.ttf
+          - HankenGrotesk-SemiBold.ttf
+          - HankenGrotesk-Bold.ttf
+          - HankenGrotesk-ExtraBold.ttf
+          - GeistMono-Regular.ttf
+          - GeistMono-Medium.ttf
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
         ITSAppUsesNonExemptEncryption: false

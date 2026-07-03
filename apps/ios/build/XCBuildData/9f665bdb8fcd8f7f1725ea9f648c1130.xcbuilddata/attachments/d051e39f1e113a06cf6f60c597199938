@@ -1,0 +1,118 @@
+{
+  "" : {
+    "diagnostics" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/ArcaevoWatch-master.dia",
+    "emit-module-dependencies" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/ArcaevoWatch-master-emit-module.d",
+    "emit-module-diagnostics" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/ArcaevoWatch-master-emit-module.dia",
+    "swift-dependencies" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/ArcaevoWatch-master.swiftdeps"
+  },
+  "/Users/niallmaher/Projects/arcaevo/apps/ios/ArcaevoKit/APIClient.swift" : {
+    "const-values" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/APIClient.swiftconstvalues",
+    "dependencies" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/APIClient.d",
+    "diagnostics" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/APIClient.dia",
+    "index-unit-output-path" : "/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/APIClient.o",
+    "llvm-bc" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/APIClient.bc",
+    "object" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/APIClient.o",
+    "swift-dependencies" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/APIClient.swiftdeps",
+    "swiftmodule" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/APIClient~partial.swiftmodule"
+  },
+  "/Users/niallmaher/Projects/arcaevo/apps/ios/ArcaevoKit/DemoDataProvider.swift" : {
+    "const-values" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/DemoDataProvider.swiftconstvalues",
+    "dependencies" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/DemoDataProvider.d",
+    "diagnostics" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/DemoDataProvider.dia",
+    "index-unit-output-path" : "/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/DemoDataProvider.o",
+    "llvm-bc" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/DemoDataProvider.bc",
+    "object" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/DemoDataProvider.o",
+    "swift-dependencies" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/DemoDataProvider.swiftdeps",
+    "swiftmodule" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/DemoDataProvider~partial.swiftmodule"
+  },
+  "/Users/niallmaher/Projects/arcaevo/apps/ios/ArcaevoKit/DemoDataV2.swift" : {
+    "const-values" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/DemoDataV2.swiftconstvalues",
+    "dependencies" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/DemoDataV2.d",
+    "diagnostics" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/DemoDataV2.dia",
+    "index-unit-output-path" : "/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/DemoDataV2.o",
+    "llvm-bc" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/DemoDataV2.bc",
+    "object" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/DemoDataV2.o",
+    "swift-dependencies" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/DemoDataV2.swiftdeps",
+    "swiftmodule" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/DemoDataV2~partial.swiftmodule"
+  },
+  "/Users/niallmaher/Projects/arcaevo/apps/ios/ArcaevoKit/KeychainHelper.swift" : {
+    "const-values" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/KeychainHelper.swiftconstvalues",
+    "dependencies" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/KeychainHelper.d",
+    "diagnostics" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/KeychainHelper.dia",
+    "index-unit-output-path" : "/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/KeychainHelper.o",
+    "llvm-bc" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/KeychainHelper.bc",
+    "object" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/KeychainHelper.o",
+    "swift-dependencies" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/KeychainHelper.swiftdeps",
+    "swiftmodule" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/KeychainHelper~partial.swiftmodule"
+  },
+  "/Users/niallmaher/Projects/arcaevo/apps/ios/ArcaevoKit/Models.swift" : {
+    "const-values" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/Models.swiftconstvalues",
+    "dependencies" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/Models.d",
+    "diagnostics" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/Models.dia",
+    "index-unit-output-path" : "/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/Models.o",
+    "llvm-bc" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/Models.bc",
+    "object" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/Models.o",
+    "swift-dependencies" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/Models.swiftdeps",
+    "swiftmodule" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/Models~partial.swiftmodule"
+  },
+  "/Users/niallmaher/Projects/arcaevo/apps/ios/ArcaevoKit/ModelsV2.swift" : {
+    "const-values" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/ModelsV2.swiftconstvalues",
+    "dependencies" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/ModelsV2.d",
+    "diagnostics" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/ModelsV2.dia",
+    "index-unit-output-path" : "/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/ModelsV2.o",
+    "llvm-bc" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/ModelsV2.bc",
+    "object" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/ModelsV2.o",
+    "swift-dependencies" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/ModelsV2.swiftdeps",
+    "swiftmodule" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/ModelsV2~partial.swiftmodule"
+  },
+  "/Users/niallmaher/Projects/arcaevo/apps/ios/ArcaevoKit/ReadinessRing.swift" : {
+    "const-values" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/ReadinessRing.swiftconstvalues",
+    "dependencies" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/ReadinessRing.d",
+    "diagnostics" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/ReadinessRing.dia",
+    "index-unit-output-path" : "/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/ReadinessRing.o",
+    "llvm-bc" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/ReadinessRing.bc",
+    "object" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/ReadinessRing.o",
+    "swift-dependencies" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/ReadinessRing.swiftdeps",
+    "swiftmodule" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/ReadinessRing~partial.swiftmodule"
+  },
+  "/Users/niallmaher/Projects/arcaevo/apps/ios/ArcaevoKit/Theme.swift" : {
+    "const-values" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/Theme.swiftconstvalues",
+    "dependencies" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/Theme.d",
+    "diagnostics" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/Theme.dia",
+    "index-unit-output-path" : "/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/Theme.o",
+    "llvm-bc" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/Theme.bc",
+    "object" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/Theme.o",
+    "swift-dependencies" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/Theme.swiftdeps",
+    "swiftmodule" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/Theme~partial.swiftmodule"
+  },
+  "/Users/niallmaher/Projects/arcaevo/apps/ios/ArcaevoKit/Typography.swift" : {
+    "const-values" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/Typography.swiftconstvalues",
+    "dependencies" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/Typography.d",
+    "diagnostics" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/Typography.dia",
+    "index-unit-output-path" : "/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/Typography.o",
+    "llvm-bc" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/Typography.bc",
+    "object" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/Typography.o",
+    "swift-dependencies" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/Typography.swiftdeps",
+    "swiftmodule" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/Typography~partial.swiftmodule"
+  },
+  "/Users/niallmaher/Projects/arcaevo/apps/ios/ArcaevoWatch/ArcaevoWatchApp.swift" : {
+    "const-values" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/ArcaevoWatchApp.swiftconstvalues",
+    "dependencies" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/ArcaevoWatchApp.d",
+    "diagnostics" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/ArcaevoWatchApp.dia",
+    "index-unit-output-path" : "/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/ArcaevoWatchApp.o",
+    "llvm-bc" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/ArcaevoWatchApp.bc",
+    "object" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/ArcaevoWatchApp.o",
+    "swift-dependencies" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/ArcaevoWatchApp.swiftdeps",
+    "swiftmodule" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/ArcaevoWatchApp~partial.swiftmodule"
+  },
+  "/Users/niallmaher/Projects/arcaevo/apps/ios/ArcaevoWatch/WatchTodayView.swift" : {
+    "const-values" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/WatchTodayView.swiftconstvalues",
+    "dependencies" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/WatchTodayView.d",
+    "diagnostics" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/WatchTodayView.dia",
+    "index-unit-output-path" : "/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/WatchTodayView.o",
+    "llvm-bc" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/WatchTodayView.bc",
+    "object" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/WatchTodayView.o",
+    "swift-dependencies" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/WatchTodayView.swiftdeps",
+    "swiftmodule" : "/Users/niallmaher/Projects/arcaevo/apps/ios/build/Arcaevo.build/Debug-watchsimulator/ArcaevoWatch.build/Objects-normal/x86_64/WatchTodayView~partial.swiftmodule"
+  }
+}

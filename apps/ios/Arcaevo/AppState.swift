@@ -289,6 +289,23 @@ final class AppState {
         }
     }
 
+    #if DEBUG
+    /// DEBUG-only: flip the runtime demo flag and re-resolve app state cleanly.
+    ///
+    /// Turning demo OFF while in a demo session drops to the real
+    /// unauthenticated state (onboarding) — the demo session/token is cleared
+    /// so no fabricated data leaks into a real session. Turning it ON resets to
+    /// the same clean slate so no stale real data lingers before the demo flow.
+    /// Callers reload `AppModel` afterwards so the tab screens re-fetch.
+    func setDemoMode(_ enabled: Bool) {
+        guard enabled != DemoMode.isEnabled else { return }
+        DemoMode.isEnabled = enabled
+        // Clear any existing session (demo or real) and return to the top of
+        // onboarding so demo and real data can never mix.
+        signOut()
+    }
+    #endif
+
     func signOut() {
         // Revoke + clear the watch token first so the wrist logs out too.
         PhoneWatchConnectivity.shared.signOutWatch()

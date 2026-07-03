@@ -1,9 +1,11 @@
 import Foundation
 import Observation
 
-/// App-wide state. Tries the local API first (`http://localhost:3000/api/v1`,
-/// demo bearer token); falls back to `DemoDataProvider` when unreachable so
-/// the app always demos.
+/// App-wide state. Fetches real data from the API (`/api/v1`) using the
+/// signed-in session token. When the DEBUG-only `DemoMode` toggle is ON it
+/// falls back to `DemoDataProvider` if the backend is unreachable; with demo
+/// OFF (the default) an unreachable/unauthenticated backend leaves the screens
+/// empty rather than fabricating data.
 @MainActor
 @Observable
 final class AppModel {

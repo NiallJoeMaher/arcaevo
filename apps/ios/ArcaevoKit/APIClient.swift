@@ -1,15 +1,23 @@
 import Foundation
 
-/// Compile-time gate for the offline/demo experience.
+/// Runtime, DEBUG-only gate for the offline/demo experience.
 ///
-/// Enabled ONLY in DEBUG builds. In a Release (production) build this is
-/// `false`, so no demo bearer token, demo session, or fabricated
-/// member/health data can ever be sent to — or shown against — a real
-/// backend. See docs/MOCKED_APIS.md §4 (demo token / ATS / base-URL prod
-/// requirements). The full simulator/DEBUG demo experience is unaffected.
+/// DEFAULT **false**: the app runs the REAL end-to-end flow — real magic-link
+/// sign-in, real `/api/v1` data, real phone→watch handoff. Demo is an OPT-IN
+/// runtime toggle (Account → "Demo mode", DEBUG only) backed by UserDefaults,
+/// so flipping it re-routes every demo-fallback site without a rebuild.
+///
+/// In a Release (production) build this is a compile-time `false`, so no demo
+/// bearer token, demo session, or fabricated member/health data can ever be
+/// sent to — or shown against — a real backend, and there is no toggle. See
+/// docs/MOCKED_APIS.md §4 (demo token / ATS / base-URL prod requirements).
 enum DemoMode {
     #if DEBUG
-    static let isEnabled = true
+    static let defaultsKey = "arcaevo.demoMode"
+    static var isEnabled: Bool {
+        get { UserDefaults.standard.object(forKey: defaultsKey) as? Bool ?? false }
+        set { UserDefaults.standard.set(newValue, forKey: defaultsKey) }
+    }
     #else
     static let isEnabled = false
     #endif

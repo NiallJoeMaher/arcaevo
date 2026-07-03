@@ -9,12 +9,17 @@ struct WatchRootView: View {
 
     var body: some View {
         Group {
-            if auth.showsAuthenticatedExperience {
+            switch auth.presentation {
+            case .authenticated:
                 authenticatedScreens
-            } else {
+            case .setup:
                 // No live session → calm "open your iPhone" state. Never a
                 // login field on the wrist.
                 WatchSetupView()
+            case .loading:
+                // Transient: before the first token refresh resolves. Avoids
+                // flashing the setup screen at an already-authenticated watch.
+                WatchLoadingView()
             }
         }
         .onChange(of: scenePhase) { _, phase in
@@ -68,6 +73,21 @@ struct WatchRootView: View {
                 .allowsHitTesting(false)
         }
         #endif
+    }
+}
+
+// MARK: Loading (brief, before the first token refresh resolves)
+
+/// Shown only in the transient `.unknown` window on the real path. A calm
+/// spinner on the brand background — never demo data, never a login field.
+struct WatchLoadingView: View {
+    var body: some View {
+        VStack {
+            ProgressView()
+                .tint(Color.arcPrimaryGreen)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.black)
     }
 }
 

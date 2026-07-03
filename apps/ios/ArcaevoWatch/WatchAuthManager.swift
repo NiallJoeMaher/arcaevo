@@ -26,22 +26,25 @@ final class WatchAuthManager {
     /// callers fall back to seeded demo data.
     private(set) var isLive = false
 
-    /// Drives the root view: show the 6 authenticated screens, or the
-    /// "Finish setup on your iPhone" screen?
-    /// - `.authenticated` → real (or DEBUG-demo) screens.
+    /// What the root view should present.
+    enum Presentation {
+        case loading        // transient, before the first refresh resolves
+        case authenticated  // the 6 watch screens (real data, or demo when on)
+        case setup          // "Finish setup on your iPhone"
+    }
+
+    /// Drives the root view:
+    /// - `.authenticated` → real (or demo, when `WatchDemoMode` is on) screens.
     /// - `.signedOut` → setup screen.
-    /// - `.unknown` (transient, before first refresh): DEBUG shows demo
-    ///   screens; Release shows setup until the refresh resolves.
-    var showsAuthenticatedExperience: Bool {
+    /// - `.unknown` (before first refresh): demo mode shows the seeded screens;
+    ///   otherwise a brief loading state (never demo) until `refresh()` flips
+    ///   us to authenticated or setup.
+    var presentation: Presentation {
         switch state {
-        case .authenticated: return true
-        case .signedOut: return false
+        case .authenticated: return .authenticated
+        case .signedOut: return .setup
         case .unknown:
-            #if DEBUG
-            return true
-            #else
-            return false
-            #endif
+            return WatchDemoMode.isEnabled ? .authenticated : .loading
         }
     }
 
@@ -58,13 +61,13 @@ final class WatchAuthManager {
     func refresh() async {
         guard WatchSessionStore.hasToken else {
             // No token yet — the phone hasn't handed one over.
-            #if DEBUG
-            state = .authenticated(name: WatchSessionStore.memberName) // demo
+            if WatchDemoMode.isEnabled {
+                state = .authenticated(name: WatchSessionStore.memberName) // demo
+            } else {
+                // Real path: nothing to sign in with → finish setup on iPhone.
+                state = .signedOut
+            }
             isLive = false
-            #else
-            state = .signedOut
-            isLive = false
-            #endif
             return
         }
 
@@ -136,14 +139,14 @@ final class WatchAuthManager {
         } catch {
             if Self.isUnauthorized(error) {
                 markSignedOut()
-            }
-            #if DEBUG
-            // Offline dev with a token present: don't bounce to setup — demo.
-            if !Self.isUnauthorized(error) {
+            } else if WatchDemoMode.isEnabled {
+                // Offline dev in demo mode with a token present: don't bounce to
+                // setup — keep the seeded screens up. (On the real path a
+                // transient failure is handled by `refresh()`, which stays
+                // authenticated optimistically off the still-present token.)
                 state = .authenticated(name: WatchSessionStore.memberName)
                 isLive = false
             }
-            #endif
             return false
         }
     }

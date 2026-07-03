@@ -83,12 +83,17 @@ targets:
         CFBundleDisplayName: Arcaevo
         WKApplication: true
         WKCompanionAppBundleIdentifier: co.arcaevo.app
-        # API base URL from the per-config build setting below. No ATS
-        # exception ships: full App Transport Security is enforced (HTTPS
-        # only) in both configs. The watch's backend calls are best-effort
-        # and it demos from seeded data regardless, so it needs no localhost
-        # HTTP exception.
+        # API base URL from the per-config build setting below (Debug →
+        # http://localhost:3000, Release → https://arcaevo.com).
         ARCAEVO_API_BASE_URL: $(ARCAEVO_API_BASE_URL)
+        # ATS: allow LOCAL networking only, so the Debug build's real golden-
+        # watch-login calls can reach the dev backend at http://localhost:3000
+        # from the watch simulator (localhost resolves to the host). This key
+        # exempts ONLY loopback / link-local / *.local hosts — public HTTPS
+        # (the Release base URL) stays fully ATS-enforced, so Release behaviour
+        # is unchanged. A single Info.plist is shared across configs.
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
         UIAppFonts:
           - InstrumentSerif-Regular.ttf
           - InstrumentSerif-Italic.ttf

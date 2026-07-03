@@ -63,16 +63,19 @@ final class PhoneWatchConnectivity: NSObject, WCSessionDelegate {
                 "memberName": memberName ?? "",
             ])
         } catch {
-            #if DEBUG
-            // Lone simulator / offline dev: no backend to mint against. Push a
-            // demo token so a paired debug watch can still exercise the handoff.
-            // (In Release this branch doesn't exist — no token is fabricated.)
-            pushContext([
-                "watchSessionToken": DemoDataProvider.demoWatchSessionToken,
-                "expiresAt": Self.iso.string(from: Date().addingTimeInterval(3600)),
-                "memberName": memberName ?? "",
-            ])
-            #endif
+            // Lone simulator / offline dev WITH demo mode on: no backend to mint
+            // against, so push a demo token so a paired debug watch can still
+            // exercise the handoff. With demo OFF (the default) we never
+            // fabricate a token — a mint failure simply leaves the watch on its
+            // setup screen until the real backend is reachable. In Release
+            // `DemoMode.isEnabled` is a compile-time false.
+            if DemoMode.isEnabled {
+                pushContext([
+                    "watchSessionToken": DemoDataProvider.demoWatchSessionToken,
+                    "expiresAt": Self.iso.string(from: Date().addingTimeInterval(3600)),
+                    "memberName": memberName ?? "",
+                ])
+            }
         }
     }
 

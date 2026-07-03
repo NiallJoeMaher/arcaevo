@@ -17,7 +17,11 @@ enum AccountV3Route: Hashable {
 
 struct AccountV3View: View {
     @Environment(AppState.self) private var appState
+    @Environment(AppModel.self) private var model
     @State private var user: User?
+    #if DEBUG
+    @State private var demoMode = DemoMode.isEnabled
+    #endif
 
     var body: some View {
         NavigationStack {
@@ -47,6 +51,11 @@ struct AccountV3View: View {
                 navRow("Invite someone — give a month", route: .invite)
                 navRow("Notifications", route: .notifications)
                 staticRow("Help & support")
+
+                #if DEBUG
+                demoModeRow
+                    .padding(.top, 8)
+                #endif
 
                 Text(Brand.disclaimer)
                     .font(.arcSans(11))
@@ -113,6 +122,38 @@ struct AccountV3View: View {
         if let testsLine { return "\(renews) · \(testsLine) · \(billing)" }
         return "\(renews) · \(billing)"
     }
+
+    // MARK: Demo toggle (DEBUG only — opt-in seeded offline experience)
+
+    #if DEBUG
+    /// Flipping this sets the runtime `DemoMode` flag and re-resolves app
+    /// state: OFF drops any demo session to the real onboarding/unauthenticated
+    /// state; ON restores the seeded demo flow. Never compiled into Release.
+    private var demoModeRow: some View {
+        Toggle(isOn: Binding(
+            get: { demoMode },
+            set: { newValue in
+                demoMode = newValue
+                appState.setDemoMode(newValue)
+                Task { await model.loadAll() }
+            }
+        )) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Demo mode")
+                    .font(.arcSans(14, weight: .semibold))
+                    .foregroundStyle(Color.ink)
+                Text("DEBUG only · seeded offline data (default off)")
+                    .font(.arcSans(11))
+                    .foregroundStyle(Color.arcSecondaryLight)
+            }
+        }
+        .tint(Color.arcPrimaryGreen)
+        .padding(.vertical, 8)
+        .padding(.horizontal, 16)
+        .frame(minHeight: 44)
+        .dataV3Card(radius: 14, border: Color.arcDarkSurface.opacity(0.1))
+    }
+    #endif
 
     // MARK: Rows
 

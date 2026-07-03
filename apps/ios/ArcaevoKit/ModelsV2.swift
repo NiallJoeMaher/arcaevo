@@ -201,3 +201,31 @@ struct ShareLinkRevoked: Codable, Hashable {
     var revoked: Bool
     var token: String
 }
+
+// MARK: Watch session (golden-watch-login handoff)
+
+/// `POST /auth/watch-session` — PHONE-authed (the member session bearer).
+/// Mints a device-scoped, INDEPENDENTLY REVOCABLE watch token. The phone
+/// hands `watchSessionToken` to the watch over WatchConnectivity
+/// (`updateApplicationContext`); the watch then uses it as its own Bearer.
+struct WatchSessionMinted: Codable, Hashable {
+    var watchSessionToken: String
+    var expiresAt: Date
+    var device: String
+}
+
+/// `POST /auth/session/refresh` — WATCH-authed (the watch token bearer).
+/// 200 slides expiry and returns the member (so the wrist works over
+/// LTE/Wi-Fi with the phone away); 401 `{error:"session_invalid"}` when the
+/// token is dead → the watch clears it and shows the "open iPhone" state.
+struct WatchSessionRefreshed: Codable, Hashable {
+    struct Member: Codable, Hashable {
+        var id: String
+        var name: String?
+        var email: String?
+    }
+
+    var member: Member
+    var device: String?
+    var expiresAt: Date
+}

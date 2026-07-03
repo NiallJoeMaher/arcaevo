@@ -39,6 +39,12 @@ export default defineConfig({
   timeout: 60_000,
   expect: { timeout: 10_000 },
   forbidOnly: !!process.env.CI,
+  // Serial execution: the suite shares ONE seeded Mongo, and several specs
+  // mutate it (consent withdrawal, session revoke, checkout, research toggle).
+  // Parallel workers would race on that shared state, causing intermittent
+  // cross-test failures. One worker + no parallelism keeps runs deterministic.
+  fullyParallel: false,
+  workers: 1,
   retries: 0,
   reporter: [["list"]],
   use: {

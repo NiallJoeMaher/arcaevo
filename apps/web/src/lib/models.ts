@@ -363,7 +363,16 @@ export const MagicLinkTokenSchema = z.object({
 });
 export type MagicLinkToken = z.infer<typeof MagicLinkTokenSchema>;
 
-/** Member session — random 256-bit token stored SHA-256-hashed. */
+/** Default session lifetime (days). Web sessions predating device scoping
+ * carry NO expiresAt and are treated as non-expiring (backward compat). */
+export const SESSION_TTL_DAYS = 30;
+
+/** Member session — random 256-bit token stored SHA-256-hashed.
+ *
+ * `device` scopes a session to a surface (Web/iPhone/Apple Watch) so the phone
+ * and watch authenticate independently and each is individually revocable.
+ * Legacy rows have no `device` (read as "web") and no `expiresAt` (never
+ * expire) — both fields are optional-compatible so existing data/tests hold. */
 export const SessionSchema = z.object({
   _id: z.string(), // e.g. "sess_<hash prefix>"
   tokenHash: z.string(),
@@ -371,8 +380,12 @@ export const SessionSchema = z.object({
   createdAt: z.date(),
   lastSeen: z.date(),
   userAgent: z.string(),
+  device: z.enum(["web", "ios", "watch"]).default("web"),
+  expiresAt: z.date().optional(),
+  label: z.string().optional(),
 });
 export type Session = z.infer<typeof SessionSchema>;
+export type SessionDevice = z.infer<typeof SessionSchema>["device"];
 
 /** Eircode routing-key allowlist — config, not code (design §06). */
 export const EligibilityConfigSchema = z.object({

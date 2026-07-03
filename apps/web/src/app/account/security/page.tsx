@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { collections } from "@/lib/db";
-import { sha256Hex } from "@/lib/member-auth";
+import { deviceLabel, isSessionExpired, sha256Hex } from "@/lib/member-auth";
 import {
   currentMember,
   sessionTokenFromCookies,
@@ -87,12 +87,16 @@ export default async function SecurityPage() {
       </div>
 
       <SessionList
-        sessions={sessions.map((s) => ({
-          id: s._id,
-          userAgent: s.userAgent,
-          lastSeen: s.lastSeen.toISOString(),
-          current: s.tokenHash === currentHash,
-        }))}
+        sessions={sessions
+          .filter((s) => !isSessionExpired(s))
+          .map((s) => ({
+            id: s._id,
+            label: s.label ?? deviceLabel(s.device),
+            device: s.device ?? "web",
+            userAgent: s.userAgent,
+            lastSeen: s.lastSeen.toISOString(),
+            current: s.tokenHash === currentHash,
+          }))}
       />
     </div>
   );

@@ -31,6 +31,12 @@ targets:
       - path: Fonts
         buildPhase: resources
     dependencies:
+      # Embedding the watch app is what pairs the two for WatchConnectivity —
+      # the golden-watch-login token handoff (WCSession.updateApplicationContext,
+      # PhoneWatchConnectivity ↔ WatchConnectivityManager). WCSession needs NO
+      # special entitlement; it only requires the watch app to be embedded/paired,
+      # which this dependency provides. The `WatchConnectivity.framework` is
+      # linked automatically via Swift's `import WatchConnectivity` autolinking.
       - target: ArcaevoWatch
     entitlements:
       path: Arcaevo/Arcaevo.entitlements

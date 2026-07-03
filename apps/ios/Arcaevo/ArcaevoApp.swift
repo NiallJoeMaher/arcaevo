@@ -12,6 +12,10 @@ struct ArcaevoApp: App {
                 .environment(appState)
                 .tint(.forest)
                 .task {
+                    // Activate WatchConnectivity so the golden-watch-login
+                    // token can be handed to the paired watch (re-pushes the
+                    // current token on activation if already signed in).
+                    PhoneWatchConnectivity.shared.activate()
                     await model.loadAll()
                 }
                 // Magic-link entry points:

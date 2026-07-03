@@ -4,10 +4,32 @@ import SwiftUI
 /// matching the prototype's swipe order. Every hit target ≥ 44pt.
 struct WatchRootView: View {
     @Environment(WatchModel.self) private var model
+    @Environment(WatchAuthManager.self) private var auth
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
+        Group {
+            if auth.showsAuthenticatedExperience {
+                authenticatedScreens
+            } else {
+                // No live session → calm "open your iPhone" state. Never a
+                // login field on the wrist.
+                WatchSetupView()
+            }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            // Revalidate the token every time the watch comes to the front —
+            // this is the wake-up refresh that keeps the wrist working
+            // independently of the phone.
+            if phase == .active {
+                Task { await auth.refresh() }
+            }
+        }
+    }
+
+    private var authenticatedScreens: some View {
         @Bindable var model = model
-        TabView(selection: $model.screen) {
+        return TabView(selection: $model.screen) {
             WatchFaceEntryView()
                 .tag(WatchModel.Screen.face)
             WatchTodayBaselineView()
@@ -23,7 +45,7 @@ struct WatchRootView: View {
         }
         .tabViewStyle(.verticalPage)
         .background(Color.black)
-        .task { await model.load() }
+        .task { await model.load(auth: auth) }
     }
 }
 
@@ -58,5 +80,6 @@ struct WatchBaselineRing: View {
 #Preview("Watch root") {
     WatchRootView()
         .environment(WatchModel())
+        .environment(WatchAuthManager())
 }
 #endif

@@ -7,11 +7,21 @@ import SwiftUI
 @main
 struct ArcaevoWatchApp: App {
     @State private var model = WatchModel()
+    @State private var auth = WatchAuthManager()
 
     var body: some Scene {
         WindowGroup {
             WatchRootView()
                 .environment(model)
+                .environment(auth)
+                .task {
+                    // Golden watch login: activate WatchConnectivity to receive
+                    // the token the iPhone hands over, then validate whatever we
+                    // already have on disk.
+                    WatchConnectivityManager.shared.auth = auth
+                    WatchConnectivityManager.shared.activate()
+                    await auth.refresh()
+                }
         }
     }
 }

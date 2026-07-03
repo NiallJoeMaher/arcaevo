@@ -148,6 +148,9 @@ final class AppState {
     var signupEmail: String = "" { didSet { save() } }
     /// True when the session came from the demo fallback, not a real verify.
     var isDemoSession = false
+    /// Signed-in member's display name (from magic-link verify). Used to seed
+    /// the watch handoff context; cleared on sign-out.
+    var memberName: String?
     var authBusy = false
     var authError: String?
     /// The 202 copy from POST /auth/magic-link, shown on the verify screen.
@@ -172,6 +175,10 @@ final class AppState {
 
     init() {
         restore()
+        // Let the watch-connectivity manager read the current member name when
+        // it needs to (re)push the golden-watch-login token on activation or
+        // reachability changes.
+        PhoneWatchConnectivity.shared.currentMemberName = { [weak self] in self?.memberName }
     }
 
     // MARK: - Onboarding flow
@@ -241,13 +248,21 @@ final class AppState {
         }
 
         SessionStore.store(session.sessionToken)
+        memberName = session.member.name
+        // Golden watch login: now that the phone is authenticated, mint a
+        // device-scoped watch token and hand it to the watch. The watch signs
+        // in silently — no login field ever appears on the wrist.
+        PhoneWatchConnectivity.shared.syncWatchSession(memberName: session.member.name)
         if case .onboarding = phase {
             phase = .onboarding(session.needsConsent ? .consent : .healthkit)
         }
     }
 
     func signOut() {
+        // Revoke + clear the watch token first so the wrist logs out too.
+        PhoneWatchConnectivity.shared.signOutWatch()
         SessionStore.clear()
+        memberName = nil
         isDemoSession = false
         plan = nil
         phase = .onboarding(.welcome)

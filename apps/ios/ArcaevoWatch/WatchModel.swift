@@ -76,16 +76,31 @@ final class WatchModel {
         WKInterfaceDevice.current().play(.success) // haptic confirm
     }
 
+    // MARK: Real member (via the watch token) + demo fallback
+
+    /// The signed-in member's name once we've confirmed the watch token.
+    var memberName: String?
+
     // MARK: Loading
 
-    func load() async {
-        // Readiness from the deterministic wearable series (API optional —
-        // the same series the phone syncs).
+    func load(auth: WatchAuthManager) async {
+        // The deterministic wearable series (shared with the phone's synced
+        // data) always renders the rings/sparklines instantly, so every screen
+        // is populated even before any network call returns.
         let hrv = DemoDataProvider.wearableSeries(metric: .hrv)
         let rhr = DemoDataProvider.wearableSeries(metric: .restingHeartRate)
         let sleep = DemoDataProvider.wearableSeries(metric: .sleepHours)
         score = Readiness.score(hrv: hrv, restingHeartRate: rhr, sleep: sleep)
         hrvSeries = hrv.suffix(9).map(\.value)
         hrvLatest = Int((hrv.last?.value ?? 52).rounded())
+
+        // When there's a live watch token, fetch the REAL member via the token
+        // (Bearer = watch token; one silent refresh on 401). This both backs
+        // the screens with the real member and proves the token end-to-end.
+        // In DEBUG demo mode (no token) this is a no-op and the demo series
+        // above stands in.
+        if let user = await auth.authedDataCall({ try await $0.me() }) {
+            memberName = user.name
+        }
     }
 }

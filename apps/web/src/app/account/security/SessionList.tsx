@@ -8,7 +8,8 @@
 import { useTransition } from "react";
 import { endSession, signOutEverywhereElse } from "./actions";
 
-function deviceLabel(userAgent: string): string {
+/** Fallback label from the user-agent for legacy rows without a device label. */
+function userAgentLabel(userAgent: string): string {
   if (/iphone/i.test(userAgent)) return "iPhone · Arcaevo app";
   if (/safari/i.test(userAgent) && /mac os x/i.test(userAgent))
     return "Safari · Mac";
@@ -30,7 +31,14 @@ function relative(iso: string): string {
 export default function SessionList({
   sessions,
 }: {
-  sessions: { id: string; userAgent: string; lastSeen: string; current: boolean }[];
+  sessions: {
+    id: string;
+    label?: string;
+    device?: "web" | "ios" | "watch";
+    userAgent: string;
+    lastSeen: string;
+    current: boolean;
+  }[];
 }) {
   const [pending, startTransition] = useTransition();
 
@@ -46,7 +54,7 @@ export default function SessionList({
             className="flex items-center justify-between border-b border-hairline-soft py-2"
           >
             <span className="text-[12.5px]">
-              <strong>{deviceLabel(s.userAgent)}</strong>
+              <strong>{s.label ?? userAgentLabel(s.userAgent)}</strong>
               <span className="text-caption">
                 {s.current ? " — this device" : ` — ${relative(s.lastSeen)}`}
               </span>

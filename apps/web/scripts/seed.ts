@@ -10,12 +10,13 @@
  * wearable signals for the demo member, support tickets, outbox emails, and
  * one complete "did it work?" story (baseline → change → recheck → improved).
  */
-import { scryptSync } from "node:crypto";
+import { createHash, scryptSync } from "node:crypto";
 import { closeClient, collections, type LgcMockOrder } from "../src/lib/db";
 import {
   TIER_PRICE_EUR,
   ADDON_PRICE_EUR,
   CONSENT_VERSION,
+  SESSION_TTL_DAYS,
   type BiomarkerReading,
   type BiomarkerRule,
   type Consent,
@@ -25,6 +26,7 @@ import {
   type MembershipTier,
   type OutboxEmail,
   type ReferralCode,
+  type Session,
   type ShareLink,
   type SupportTicket,
   type TestOrder,
@@ -573,6 +575,53 @@ async function seed() {
   };
   await cols.referralCodes.insertOne(referralCode);
 
+  // --- device-scoped sessions for the demo member (golden watch login) ----------
+  // Deterministic raw tokens so the account/security list + admin show device
+  // variety and e2e/manual curl can exercise refresh directly. DEV-ONLY, like
+  // the demo bearer token — never a pattern for production credentials.
+  const ttlMs = SESSION_TTL_DAYS * 24 * 60 * 60 * 1000;
+  const seedSession = (
+    rawToken: string,
+    device: Session["device"],
+    label: string,
+    userAgent: string,
+    createdAgo: number,
+    lastSeenAgo: number
+  ): Session => {
+    const tokenHash = createHash("sha256").update(rawToken).digest("hex");
+    const createdAt = daysAgo(createdAgo);
+    return {
+      _id: `sess_${tokenHash.slice(0, 16)}`,
+      tokenHash,
+      userId: "mem_0001",
+      createdAt,
+      lastSeen: daysAgo(lastSeenAgo),
+      userAgent,
+      device,
+      label,
+      expiresAt: new Date(createdAt.getTime() + ttlMs),
+    };
+  };
+  const seedSessions: Session[] = [
+    seedSession(
+      "seed-watch-token-aoife",
+      "watch",
+      "Apple Watch",
+      "Arcaevo Watch",
+      3,
+      0
+    ),
+    seedSession(
+      "seed-ios-token-aoife",
+      "ios",
+      "iPhone",
+      "Arcaevo/1.0 (iPhone; iOS 17.4)",
+      12,
+      1
+    ),
+  ];
+  await cols.sessions.insertMany(seedSessions);
+
   // Summary -------------------------------------------------------------------
   console.log(`  users:              ${users.length} (demo: mem_0001 · Aoife Byrne · token "demo-member-token")`);
   console.log(`  memberships:        ${memberships.length} (essential ${memberships.filter((m) => m.tier === "essential").length} · performance ${memberships.filter((m) => m.tier === "performance").length} · fusion ${memberships.filter((m) => m.tier === "fusion").length})`);
@@ -587,6 +636,7 @@ async function seed() {
   console.log(`  v2 · consents:      ${consentDocs.length} grants (mem_0001 + ${passwordMember._id}, version ${CONSENT_VERSION})`);
   console.log(`  v2 · share link:    /s/${shareLink.token} (mem_0001, active, 1 open logged)`);
   console.log(`  v2 · gift code:     ${giftCode._id} (unredeemed) · referral ${referralCode._id}`);
+  console.log(`  v2 · sessions:      ${seedSessions.length} device-scoped (mem_0001: watch + iOS; tokens "seed-watch-token-aoife" / "seed-ios-token-aoife")`);
   console.log(`  v2 · password user: ${passwordMember.email} / "demo-password-123" (${passwordMember._id}, no membership)`);
   console.log("Seed complete.");
 }

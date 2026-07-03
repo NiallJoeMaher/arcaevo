@@ -113,14 +113,19 @@ import {
   clearFailedAttempts,
   consumeMagicLink,
   createSession,
+  createWatchSession,
   evaluateMagicLink,
   hashPassword,
   isInCooloff,
+  isSessionExpired,
   issueMagicLink,
   memberFromSessionToken,
+  refreshSession,
   revokeSessions,
+  revokeWatchSessions,
   verifyPassword,
 } from "@/lib/member-auth";
+import { SESSION_TTL_DAYS } from "@/lib/models";
 
 const NOW = new Date("2026-07-02T09:00:00.000Z");
 
@@ -297,5 +302,125 @@ describe("sessions — opaque tokens stored hashed, individually revocable", () 
     expect(await memberFromSessionToken(a.token)).toBeNull();
     // b survives; mem_0002 untouched.
     expect((fake.sessions as FakeCollection).docs).toHaveLength(2);
+  });
+
+  it("createSession stamps device, label and a sliding expiresAt", async () => {
+    const { session } = await createSession("mem_0001", "vitest", NOW);
+    expect(session.device).toBe("web"); // default surface
+    expect(session.label).toBe("Web");
+    expect(session.expiresAt?.getTime()).toBe(
+      NOW.getTime() + SESSION_TTL_DAYS * 86_400_000
+    );
+  });
+});
+
+// --- device-scoped watch sessions + silent refresh -------------------------------
+
+describe("golden watch login — device-scoped sessions", () => {
+  beforeEach(async () => {
+    await (fake.users as FakeCollection).insertOne({
+      _id: "mem_0001",
+      name: "Aoife Byrne",
+      email: "aoife@example.ie",
+    });
+  });
+
+  it("createWatchSession mints a DISTINCT token, device:'watch', expiresAt set", async () => {
+    const phone = await createSession("mem_0001", "iPhone", NOW, { device: "ios" });
+    const watch = await createWatchSession("mem_0001", NOW);
+
+    // A freshly generated token — NOT a copy of the phone token.
+    expect(watch.token).not.toBe(phone.token);
+    expect(watch.session.device).toBe("watch");
+    expect(watch.session.label).toBe("Apple Watch");
+    expect(watch.expiresAt.getTime()).toBe(NOW.getTime() + SESSION_TTL_DAYS * 86_400_000);
+    // Its own row, independently resolvable.
+    expect((await memberFromSessionToken(watch.token))?._id).toBe("mem_0001");
+  });
+
+  it("one active watch session per user — a new one revokes the prior watch", async () => {
+    const first = await createWatchSession("mem_0001", NOW);
+    const second = await createWatchSession("mem_0001", NOW);
+    expect(second.token).not.toBe(first.token);
+    // The replaced watch token no longer resolves; the new one does.
+    expect(await memberFromSessionToken(first.token)).toBeNull();
+    expect((await memberFromSessionToken(second.token))?._id).toBe("mem_0001");
+    // Exactly one watch row remains.
+    const watchRows = (fake.sessions as FakeCollection).docs.filter(
+      (d) => d.device === "watch"
+    );
+    expect(watchRows).toHaveLength(1);
+  });
+
+  it("revokeWatchSessions deletes only the watch device rows", async () => {
+    await createSession("mem_0001", "iPhone", NOW, { device: "ios" });
+    await createWatchSession("mem_0001", NOW);
+    const revoked = await revokeWatchSessions("mem_0001");
+    expect(revoked).toBe(1);
+    expect(
+      (fake.sessions as FakeCollection).docs.filter((d) => d.device === "watch")
+    ).toHaveLength(0);
+    // The iOS session survives.
+    expect(
+      (fake.sessions as FakeCollection).docs.filter((d) => d.device === "ios")
+    ).toHaveLength(1);
+  });
+
+  it("refreshSession slides expiry + lastSeen and returns the member", async () => {
+    const { token } = await createWatchSession("mem_0001", NOW);
+    const later = new Date(NOW.getTime() + 5 * 86_400_000);
+    const refreshed = await refreshSession(token, later);
+    expect(refreshed?.user._id).toBe("mem_0001");
+    expect(refreshed?.session.device).toBe("watch");
+    expect(refreshed?.expiresAt.getTime()).toBe(
+      later.getTime() + SESSION_TTL_DAYS * 86_400_000
+    );
+    // The slide is persisted.
+    const stored = (fake.sessions as FakeCollection).docs.find(
+      (d) => d.device === "watch"
+    );
+    expect((stored?.expiresAt as Date).getTime()).toBe(
+      later.getTime() + SESSION_TTL_DAYS * 86_400_000
+    );
+    expect((stored?.lastSeen as Date).getTime()).toBe(later.getTime());
+  });
+
+  it("refreshSession rejects a revoked (missing) token", async () => {
+    const { token } = await createWatchSession("mem_0001", NOW);
+    await revokeWatchSessions("mem_0001");
+    expect(await refreshSession(token, NOW)).toBeNull();
+  });
+
+  it("refreshSession rejects an expired session", async () => {
+    // A watch session created far in the past is already expired.
+    const past = new Date("2020-01-01T00:00:00.000Z");
+    const { token } = await createWatchSession("mem_0001", past);
+    expect(await refreshSession(token, NOW)).toBeNull();
+  });
+
+  it("memberFromSessionToken treats an expired session as invalid", async () => {
+    const past = new Date("2020-01-01T00:00:00.000Z");
+    const { token } = await createSession("mem_0001", "old", past, { device: "web" });
+    expect(isSessionExpired({ expiresAt: new Date(past.getTime() + 86_400_000) })).toBe(true);
+    expect(await memberFromSessionToken(token)).toBeNull();
+  });
+
+  it("a legacy session with NO expiresAt stays valid (backward compat)", async () => {
+    // Simulate a pre-device-scoping row: no device, no expiresAt.
+    const rawToken = "legacy-web-token";
+    const tokenHash = (await import("node:crypto"))
+      .createHash("sha256")
+      .update(rawToken)
+      .digest("hex");
+    await (fake.sessions as FakeCollection).insertOne({
+      _id: `sess_${tokenHash.slice(0, 16)}`,
+      tokenHash,
+      userId: "mem_0001",
+      createdAt: NOW,
+      lastSeen: NOW,
+      userAgent: "legacy",
+    });
+    expect(isSessionExpired({ expiresAt: undefined })).toBe(false);
+    expect((await memberFromSessionToken(rawToken))?._id).toBe("mem_0001");
   });
 });

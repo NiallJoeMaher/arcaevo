@@ -11,6 +11,18 @@ extension DemoDataProvider {
 
     static let demoSessionToken = "demo-session-token"
 
+    /// DEBUG-only stand-in watch token, pushed to a paired debug watch when the
+    /// backend can't be reached to mint a real one (golden-watch-login handoff).
+    static let demoWatchSessionToken = "demo-watch-session-token"
+
+    static func watchSessionRefreshed(name: String? = "Aoife Byrne") -> WatchSessionRefreshed {
+        WatchSessionRefreshed(
+            member: .init(id: "demo-member-1", name: name, email: "aoife@example.com"),
+            device: "watch",
+            expiresAt: Date().addingTimeInterval(60 * 60 * 24 * 30)
+        )
+    }
+
     static func session(needsConsent: Bool = true) -> Session {
         Session(
             ok: true,

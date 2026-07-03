@@ -33,7 +33,13 @@ import {
 import { cookies } from "next/headers";
 import { collections } from "@/lib/db";
 import { newId } from "@/lib/ids";
-import type { MagicLinkPurpose, Session, User } from "@/lib/models";
+import {
+  SESSION_TTL_DAYS,
+  type MagicLinkPurpose,
+  type Session,
+  type SessionDevice,
+  type User,
+} from "@/lib/models";
 
 export const MEMBER_COOKIE_NAME = "arcaevo_member_session";
 
@@ -207,12 +213,46 @@ export async function consumeMagicLink(
 
 // --- sessions -------------------------------------------------------------------
 
-/** Create a session; returns the RAW token (only its hash is stored). */
+/** Human labels for the §17 session list + admin device view. */
+const DEVICE_LABELS: Record<SessionDevice, string> = {
+  web: "Web",
+  ios: "iPhone",
+  watch: "Apple Watch",
+};
+
+/** Human label for a session's device (legacy no-device rows read as "web"). */
+export function deviceLabel(device: SessionDevice | undefined): string {
+  return DEVICE_LABELS[device ?? "web"];
+}
+
+/** True once a session carries an expiresAt in the past. Rows with NO
+ * expiresAt (legacy/web) never expire — backward compat. */
+export function isSessionExpired(
+  session: Pick<Session, "expiresAt">,
+  now: Date = new Date()
+): boolean {
+  return session.expiresAt != null && session.expiresAt.getTime() < now.getTime();
+}
+
+export interface CreateSessionOptions {
+  /** Surface this session belongs to (default "web"). */
+  device?: SessionDevice;
+  /** Session lifetime in days (default SESSION_TTL_DAYS = 30). */
+  ttlDays?: number;
+  /** Human label for the session list (default derived from device). */
+  label?: string;
+}
+
+/** Create a session; returns the RAW token (only its hash is stored).
+ * Sets `device`, `label` and a sliding `expiresAt` (now + ttlDays). */
 export async function createSession(
   userId: string,
   userAgent: string,
-  now: Date = new Date()
+  now: Date = new Date(),
+  options: CreateSessionOptions = {}
 ): Promise<{ token: string; session: Session }> {
+  const device = options.device ?? "web";
+  const ttlDays = options.ttlDays ?? SESSION_TTL_DAYS;
   const token = randomBytes(32).toString("base64url");
   const tokenHash = sha256Hex(token);
   const session: Session = {
@@ -222,12 +262,16 @@ export async function createSession(
     createdAt: now,
     lastSeen: now,
     userAgent: userAgent.slice(0, 256),
+    device,
+    expiresAt: new Date(now.getTime() + ttlDays * 24 * 60 * 60 * 1000),
+    label: options.label ?? deviceLabel(device),
   };
   await collections.sessions().then((c) => c.insertOne(session));
   return { token, session };
 }
 
-/** Resolve a member from a raw session token; touches lastSeen. */
+/** Resolve a member from a raw session token; touches lastSeen. An expired
+ * session (expiresAt < now) resolves to null — a revoked row (deleted) too. */
 export async function memberFromSessionToken(
   rawToken: string
 ): Promise<User | null> {
@@ -235,11 +279,65 @@ export async function memberFromSessionToken(
   const sessions = await collections.sessions();
   const session = await sessions.findOne({ tokenHash: sha256Hex(rawToken) });
   if (!session) return null;
+  if (isSessionExpired(session)) return null;
   await sessions.updateOne(
     { _id: session._id },
     { $set: { lastSeen: new Date() } }
   );
   return collections.users().then((c) => c.findOne({ _id: session.userId }));
+}
+
+// --- device-scoped sessions (golden watch login) --------------------------------
+
+/**
+ * Mint a fresh device:"watch" session for a member — a NEW token with its own
+ * row, never a copy of the phone token. One active watch session per user:
+ * any prior watch session is revoked first (replace policy) so a lost watch
+ * can't accumulate live credentials. Returns the raw token + expiry.
+ */
+export async function createWatchSession(
+  userId: string,
+  now: Date = new Date()
+): Promise<{ token: string; expiresAt: Date; session: Session }> {
+  await revokeWatchSessions(userId);
+  const { token, session } = await createSession(userId, "Apple Watch", now, {
+    device: "watch",
+    label: "Apple Watch",
+  });
+  return { token, expiresAt: session.expiresAt!, session };
+}
+
+/** Delete every watch-device session for a user (phone's "sign out watch").
+ * Returns how many were revoked. */
+export async function revokeWatchSessions(userId: string): Promise<number> {
+  const sessions = await collections.sessions();
+  const result = await sessions.deleteMany({ userId, device: "watch" });
+  return result.deletedCount;
+}
+
+/**
+ * Silent refresh: revalidate a raw session token and SLIDE its expiry to
+ * now + TTL (also touches lastSeen). Returns the member + session on success,
+ * or null when the session is missing / revoked / already expired. In this
+ * opaque long-lived-token model the session token IS the refresh token.
+ */
+export async function refreshSession(
+  rawToken: string,
+  now: Date = new Date()
+): Promise<{ user: User; session: Session; expiresAt: Date } | null> {
+  if (!rawToken) return null;
+  const sessions = await collections.sessions();
+  const session = await sessions.findOne({ tokenHash: sha256Hex(rawToken) });
+  if (!session) return null;
+  if (isSessionExpired(session, now)) return null;
+  const expiresAt = new Date(now.getTime() + SESSION_TTL_DAYS * 24 * 60 * 60 * 1000);
+  await sessions.updateOne(
+    { _id: session._id },
+    { $set: { lastSeen: now, expiresAt } }
+  );
+  const user = await collections.users().then((c) => c.findOne({ _id: session.userId }));
+  if (!user) return null;
+  return { user, session: { ...session, expiresAt, lastSeen: now }, expiresAt };
 }
 
 export async function destroySessionByToken(rawToken: string): Promise<void> {

@@ -256,6 +256,30 @@ struct APIClient {
         return comps.url ?? webBaseURL
     }
 
+    // MARK: - v3 endpoints — golden watch login (device-scoped watch session)
+
+    /// `POST /auth/watch-session` — PHONE-authed (this client resolves the
+    /// member session token). Mints a device-scoped, independently-revocable
+    /// watch token; the phone hands it to the watch over WatchConnectivity.
+    func mintWatchSession() async throws -> WatchSessionMinted {
+        try await post("auth/watch-session", body: EmptyRequestBody())
+    }
+
+    /// `POST /auth/session/refresh` — WATCH-authed. Construct this client with
+    /// the watch token (`APIClient(token:)`) so the Bearer is the watch's own
+    /// credential. 200 slides expiry; 401 → the token is dead.
+    func refreshWatchSession() async throws -> WatchSessionRefreshed {
+        try await post("auth/session/refresh", body: EmptyRequestBody())
+    }
+
+    /// `POST /auth/watch-session/revoke` — PHONE-authed. Logs the watch out on
+    /// sign-out. Best-effort; the response body (if any) is ignored.
+    func revokeWatchSession() async throws {
+        try await postNoContent("auth/watch-session/revoke", body: EmptyRequestBody())
+    }
+
+    private struct EmptyRequestBody: Encodable {}
+
     // MARK: - Plumbing
 
     private func get<T: Decodable>(_ path: String) async throws -> T {
@@ -271,6 +295,22 @@ struct APIClient {
 
     private func delete<T: Decodable>(_ path: String) async throws -> T {
         try await send(request(for: path, method: "DELETE"))
+    }
+
+    /// POST that ignores the response body — for endpoints whose success shape
+    /// is empty or irrelevant (e.g. watch-session revoke). Still surfaces the
+    /// backend's structured error on a non-2xx.
+    private func postNoContent<Body: Encodable>(_ path: String, body: Body) async throws {
+        var req = request(for: path, method: "POST")
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.httpBody = try Self.encoder.encode(body)
+        let (data, response) = try await session.data(for: req)
+        if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
+            if let bodyErr = try? JSONDecoder().decode(ServerErrorBody.self, from: data) {
+                throw APIError.server(status: http.statusCode, code: bodyErr.error, message: bodyErr.message)
+            }
+            throw APIError.badStatus(http.statusCode)
+        }
     }
 
     private func request(for path: String, method: String) -> URLRequest {

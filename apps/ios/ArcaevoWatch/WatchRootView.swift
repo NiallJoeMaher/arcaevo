@@ -46,6 +46,28 @@ struct WatchRootView: View {
         .tabViewStyle(.verticalPage)
         .background(Color.black)
         .task { await model.load(auth: auth) }
+        .overlay(alignment: .top) { demoBadge }
+    }
+
+    /// DEBUG-only marker so a demo-fallback session (seeded data, no real
+    /// phone→watch handoff) is never mistaken for a real login while testing.
+    /// `isLive` is true only after a real server refresh; in Release this
+    /// state can't occur (no token → the setup screen), so the badge is
+    /// compiled out entirely.
+    @ViewBuilder private var demoBadge: some View {
+        #if DEBUG
+        if !auth.isLive {
+            Text("DEMO")
+                .font(.arcMono(9))
+                .tracking(0.14)
+                .foregroundStyle(Color.black)
+                .padding(.horizontal, 7)
+                .padding(.vertical, 2)
+                .background(Capsule().fill(Color.arcAmber))
+                .padding(.top, 2)
+                .allowsHitTesting(false)
+        }
+        #endif
     }
 }
 

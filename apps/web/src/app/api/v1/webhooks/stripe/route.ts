@@ -268,6 +268,19 @@ async function handleRealEvent(event: StripeEvent): Promise<Response> {
 
   switch (event.type) {
     case "checkout.session.completed": {
+      // Only grant access once funds have actually settled. With dynamic
+      // payment methods an async method (e.g. SEPA/bank debit) can fire
+      // `completed` while still `unpaid`; activating then would give a paid
+      // membership before payment clears. `paid` = settled; `no_payment_required`
+      // = €0/trial. `unpaid` → ack (200 so Stripe stops retrying) but do NOT
+      // activate — subscriptions settle via `invoice.paid` (handled below); if
+      // async one-off methods are ever enabled, add
+      // `checkout.session.async_payment_succeeded` handling here.
+      const paymentStatus = str(obj, "payment_status");
+      if (paymentStatus && paymentStatus === "unpaid") {
+        return Response.json({ ok: true, type: event.type, deferred: "unpaid" });
+      }
+
       const orderId = meta(obj, "orderId");
       const memberId = meta(obj, "memberId");
       const subscriptionId =

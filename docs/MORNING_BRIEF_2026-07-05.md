@@ -82,10 +82,22 @@ The good: consent is genuinely enforced server-side, withdrawal instantly kills 
 
 ---
 
+## 7. Round 2 (later the same night) — Stripe + email, both done
+
+You re-launched the loop, so I kept going on the biggest gaps to production. All on the same `phase-22-daily-engagement` branch, all verified (224/224 tests, tsc clean, build green):
+
+- **Stripe is wired for real — in TEST mode** (no real money, fully reversible). Real Checkout Sessions (subscription mode for the €119/€329/€399 memberships, one-time for the add-ons/recheck), real webhook signature verification (replaced the stub), Stripe Tax for IE VAT, and — following Stripe's own guidance — it never hardcodes payment methods, so **Apple Pay and Link appear automatically on web**, exactly as the design wants. I ran the setup script against your test account and it **created all 8 prices**, and I confirmed the live vendor returns a real `checkout.stripe.com` session URL. The mock stays the default for dev/CI so nothing broke. Because the repo forbids `npm install`, I implemented it against Stripe's REST API directly (no SDK dependency) — noted `stripe` as a wanted dep if you'd rather swap to the SDK later.
+- **Email adapter is now EU-ESP-ready** — optional SMTP auth + TLS via env, so pointing at Scaleway TEM / Postmark EU is a config change, not a code change. MailHog still works locally.
+
+**What Stripe still needs from you to go live** (full detail in the new `docs/STRIPE_SETUP.md`): the webhook signing secret (`stripe listen` for dev, or a Dashboard endpoint for prod), swapping the test keys for live ones (use a restricted `rk_live_` key), enabling Stripe Tax + your Irish VAT registration, Apple Pay domain verification, and a small Customer-Portal route for self-service upgrade/cancel. **A CEO judgement call to confirm:** with a live `sk_test` key now in `.env.local`, local `npm run dev` uses the real (test-mode) Stripe vendor — I pinned the e2e suite to the mock so a real key can never leak into a Playwright run. Set `STRIPE_FORCE_MOCK=true` if you want dev back on the mock too.
+
 ## Where things stand
 
-- ✅ Phase 22 built, integrated, verified, pushed to `phase-22-daily-engagement`
-- ✅ `docs/STRATEGY.md`, `docs/LAUNCH_READINESS.md`, `docs/DEVICE_TESTING_AND_RELEASE.md`, this brief
-- 🔄 Production hardening (erasure cron, rate-limit, non-fabricating upload) — committing to the same branch
-- ⏭️ Next phase (your steer): **Stripe wiring** (test keys stored), then the basic-tier launch checklist above
+- ✅ Phase 22 built, integrated, verified
+- ✅ Production hardening (erasure cron, magic-link rate-limit, non-fabricating upload)
+- ✅ **Stripe real test-mode integration** (8 prices created, session URL verified) + **go-live doc**
+- ✅ **Email adapter** EU-ESP-ready
+- ✅ Docs: `STRATEGY.md`, `LAUNCH_READINESS.md`, `DEVICE_TESTING_AND_RELEASE.md`, `STRIPE_SETUP.md`, this brief
+- ✅ All pushed to `phase-22-daily-engagement` (open one PR: it now contains daily-engagement + hardening + Stripe + email — review as a set, or I can split into separate PRs if you prefer)
+- ⏭️ Next: your go-live decisions above + the basic-tier launch checklist (§4)
 - 🧑‍⚕️ Your track: bloodwork partnership + named clinician (unblocks paid tiers; basic tier proceeds without it)

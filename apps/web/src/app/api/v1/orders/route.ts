@@ -16,7 +16,8 @@ import {
   type TestOrderType,
 } from "@/lib/models";
 import { bloodTestVendor } from "@/lib/vendors/letsgetchecked.mock";
-import { paymentsVendor } from "@/lib/vendors/stripe.mock";
+import { getPaymentsVendor } from "@/lib/vendors/stripe";
+import { skuForPanel } from "@/lib/vendors/stripe-config";
 import { emailVendor } from "@/lib/vendors/email.mock";
 
 /** Panels each order type can carry. */
@@ -124,13 +125,17 @@ export async function POST(req: Request) {
   };
   await ordersCol.insertOne(order);
 
-  // --- payment: only add-ons are charged (MOCK Stripe checkout session) ---
+  // --- payment: only add-ons are charged (Stripe one-off Checkout session) ---
   const checkout =
     priceEur > 0
-      ? await paymentsVendor.createCheckoutSession({
+      ? await getPaymentsVendor().createCheckoutSession({
           memberId: auth.member._id,
           description: `Add-on ${panel} (${type}) — order ${order._id}`,
           amountEur: priceEur,
+          mode: "payment",
+          lookupKeys: [skuForPanel(panel).lookupKey],
+          email: auth.member.email,
+          metadata: { orderId: order._id, panel, orderType: type },
         })
       : null;
 

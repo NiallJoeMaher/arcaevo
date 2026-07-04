@@ -28,7 +28,8 @@ import {
   TIER_PRICE_EUR,
   type Membership,
 } from "@/lib/models";
-import { paymentsVendor } from "@/lib/vendors/stripe.mock";
+import { getPaymentsVendor } from "@/lib/vendors/stripe";
+import { STRIPE_SKUS, skuForTier } from "@/lib/vendors/stripe-config";
 
 export async function POST(req: Request) {
   const parsed = await parseJsonBody(req, CheckoutInput);
@@ -161,11 +162,20 @@ export async function POST(req: Request) {
   );
   const savedMembership = stored ?? membership;
 
-  // --- MOCK Stripe checkout session (card + Apple Pay on web) -----------------
-  const checkout = await paymentsVendor.createCheckoutSession({
+  // --- Stripe checkout session (subscription; card + Apple Pay on web) --------
+  // Memberships are subscriptions: one Billing Price per tier, plus the
+  // quarterly-cadence upgrade as a second recurring line item when chosen.
+  // (LIVE resolves these lookup_keys → price ids; the MOCK ignores them.)
+  const lookupKeys = [skuForTier(tier).lookupKey];
+  if (cadenceUpgrade) lookupKeys.push(STRIPE_SKUS.quarterly_upgrade.lookupKey);
+  const checkout = await getPaymentsVendor().createCheckoutSession({
     memberId: member._id,
     description: `${tier} membership · 1 year${cadenceUpgrade ? " + quarterly cadence" : ""}`,
     amountEur: priceEur,
+    mode: "subscription",
+    lookupKeys,
+    email: member.email,
+    metadata: { tier, membershipId: savedMembership._id },
   });
 
   return Response.json(

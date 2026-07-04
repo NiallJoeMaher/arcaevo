@@ -10,6 +10,7 @@
     "seed": "tsx scripts/seed.ts",
     "seed:user": "tsx scripts/seed-user.ts",
     "erase:run": "tsx scripts/run-erasure.ts",
+    "stripe:setup": "tsx scripts/stripe-setup.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "e2e": "playwright test",

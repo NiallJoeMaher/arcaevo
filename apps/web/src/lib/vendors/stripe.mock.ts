@@ -9,6 +9,7 @@
 // inputs — identical inputs always produce identical ids. No randomness.
 import type { TestOrderStatus } from "@/lib/models";
 import type {
+  CreateCheckoutSessionParams,
   PaymentsVendor,
   VendorCheckoutSession,
   VendorRefundResult,
@@ -31,12 +32,12 @@ export function isRefundable(orderStatus: TestOrderStatus): boolean {
 }
 
 class StripeMock implements PaymentsVendor {
-  // MOCK: returns a fake checkout URL — nothing is hosted there.
-  async createCheckoutSession(params: {
-    memberId: string;
-    description: string;
-    amountEur: number;
-  }): Promise<VendorCheckoutSession> {
+  // MOCK: returns a fake checkout URL — nothing is hosted there. Ignores the
+  // live-only fields (mode/lookupKeys/…) so ids stay deterministic on the core
+  // three inputs, exactly as the existing tests assert.
+  async createCheckoutSession(
+    params: CreateCheckoutSessionParams
+  ): Promise<VendorCheckoutSession> {
     const sessionId = `cs_mock_${fnv1aHex(
       `${params.memberId}:${params.description}:${params.amountEur}`
     )}`;

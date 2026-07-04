@@ -156,6 +156,13 @@ export const UserSchema = z.object({
   /** Lifecycle: undefined/"active" normally, "closing" after a delete request,
    * "closed" once the erasure job has hard-deleted the data. */
   status: z.enum(["active", "closing", "closed"]).optional(),
+  /**
+   * Real Stripe customer id (`cus_…`) — created/looked up by the LIVE payments
+   * vendor and reused across checkouts so tax/portal/dunning stay tied to one
+   * customer. Null for members who never reached a live Stripe checkout (all of
+   * dev/e2e, which uses the MOCK vendor). See src/lib/vendors/stripe.live.ts.
+   */
+  stripeCustomerId: z.string().nullable().optional(),
 });
 export type User = z.infer<typeof UserSchema>;
 
@@ -174,8 +181,13 @@ export const MembershipSchema = z.object({
     .enum(["active", "past_due", "canceled", "pending"])
     .default("active"),
   priceEur: z.number(),
-  /** MOCK: fake Stripe subscription id from stripe.mock.ts */
+  /** Stripe subscription id: MOCK `sub_mock_…` (stripe.mock.ts) or a real
+   * `sub_…` set by the LIVE webhook on checkout.session.completed. */
   stripeSubscriptionId: z.string().nullable().default(null),
+  /** Real Stripe `cancel_at_period_end` — set by the LIVE
+   * customer.subscription.updated webhook (the "cancel renewal" flow). The
+   * membership stays `active` until period end; this drives the UI copy. */
+  cancelAtPeriodEnd: z.boolean().optional(),
   // --- v2 dunning (0/3/10/14 days → read-only pause, nothing deleted) --------
   dunningStage: DunningStage.default("none"),
   /** When the first failed renewal charge happened (null when not dunning). */
@@ -302,6 +314,13 @@ export const TestOrderSchema = z.object({
    * yet; the results payload then carries `clinicianNote: null`).
    */
   clinicianNote: ClinicianNoteSchema.nullable().optional(),
+  /**
+   * Set by the LIVE Stripe webhook (checkout.session.completed, mode=payment)
+   * when a paid add-on / recheck order settles. Null/absent for included
+   * (€0) orders and for MOCK-vendor flows (dev/e2e), which don't round-trip a
+   * real payment. Optional so pre-existing documents stay valid.
+   */
+  paidAt: z.date().nullable().optional(),
 });
 export type TestOrder = z.infer<typeof TestOrderSchema>;
 

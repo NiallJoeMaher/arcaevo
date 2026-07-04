@@ -23,6 +23,11 @@ export const E2E_ENV = {
   // on. Real production sets neither of these and stays locked down.
   ALLOW_DEMO_TOKEN: "true",
   ALLOW_OPEN_WEBHOOKS: "true",
+  // Pin the deterministic MOCK payments vendor for the suite even though a dev's
+  // .env.local may carry a real sk_test key (which `next start` would otherwise
+  // load ⇒ live checkout). The specs rely on the mock's fake URL + the
+  // client-fired checkout.session.completed webhook. Real prod leaves this unset.
+  STRIPE_FORCE_MOCK: "true",
   // Keep the MOCK AI bloodwork extraction ON for the prod-build e2e (the
   // upload/confirm specs + the "41 or 47?" demo drive it). Real prod leaves
   // this unset, so the photo/PDF path returns a manual-entry state instead.

@@ -53,13 +53,34 @@ export interface VendorRefundResult {
   reason: string;
 }
 
+/** Stripe Checkout mode: memberships are subscriptions, add-ons are one-off. */
+export type VendorCheckoutMode = "subscription" | "payment";
+
+export interface CreateCheckoutSessionParams {
+  memberId: string;
+  description: string;
+  amountEur: number;
+  // --- fields below are used ONLY by the LIVE vendor; the MOCK ignores them
+  //     (so all existing callers/tests keep their 3-field behaviour) ----------
+  /** subscription (annual tiers) | payment (add-ons/recheck). Live default: payment. */
+  mode?: VendorCheckoutMode;
+  /** Billing Price lookup_keys to bill (resolved to price ids at runtime). When
+   *  omitted the live vendor falls back to an inline price for `amountEur`. */
+  lookupKeys?: string[];
+  /** Prefill / attach the customer email (guests). */
+  email?: string | null;
+  /** Extra metadata copied onto the session + (for subscriptions) the sub. */
+  metadata?: Record<string, string>;
+  /** Overrides for the post-checkout redirects. */
+  successUrl?: string;
+  cancelUrl?: string;
+}
+
 export interface PaymentsVendor {
   /** Create a checkout session for a membership or add-on purchase. */
-  createCheckoutSession(params: {
-    memberId: string;
-    description: string;
-    amountEur: number;
-  }): Promise<VendorCheckoutSession>;
+  createCheckoutSession(
+    params: CreateCheckoutSessionParams
+  ): Promise<VendorCheckoutSession>;
   getSubscription(subscriptionId: string): Promise<VendorSubscription | null>;
   /**
    * Refund policy (enforced in OUR code, not Stripe): full refund before the

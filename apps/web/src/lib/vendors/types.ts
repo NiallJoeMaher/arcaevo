@@ -47,6 +47,11 @@ export interface VendorSubscription {
   priceEur: number;
 }
 
+export interface VendorBillingPortalSession {
+  /** Hosted Stripe Customer Portal URL. MOCK: a fake URL — nothing is hosted. */
+  url: string;
+}
+
 export interface VendorRefundResult {
   refunded: boolean;
   amountEur: number;
@@ -82,6 +87,16 @@ export interface PaymentsVendor {
     params: CreateCheckoutSessionParams
   ): Promise<VendorCheckoutSession>;
   getSubscription(subscriptionId: string): Promise<VendorSubscription | null>;
+  /**
+   * Create a hosted Customer Portal session for self-service billing (update
+   * card, view invoices, switch plan, cancel renewal). The member must already
+   * be a Stripe Customer (`user.stripeCustomerId`). `returnUrl` is where Stripe
+   * sends the member when they leave the portal (back to /account).
+   */
+  createBillingPortalSession(
+    customerId: string,
+    returnUrl: string
+  ): Promise<VendorBillingPortalSession>;
   /**
    * Refund policy (enforced in OUR code, not Stripe): full refund before the
    * kit ships / draw is booked; none once the sample is processed.

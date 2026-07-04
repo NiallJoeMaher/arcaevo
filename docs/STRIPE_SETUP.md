@@ -114,11 +114,22 @@ skill, or stripe.com/docs/testing.)
    for Apple Pay **verify your production domain** (Settings → Payment methods →
    Apple Pay → add domain). Code passes no `payment_method_types`, so enabled
    methods appear automatically.
-5. **Customer Portal** — configure it in the Dashboard (allow plan
-   upgrade/downgrade + cancel) to power Arcaevo's +€130 quarterly upgrade and the
-   cancel-renewal flow as self-service. (A `/api/v1/account/portal` route that
-   calls `POST /billing_portal/sessions` for the member's `stripeCustomerId` is
-   the small remaining wiring.)
+5. **Customer Portal** — the route is **wired**: `POST /api/v1/account/portal`
+   (member-auth + consent-guarded) looks up the member's `stripeCustomerId`,
+   calls `POST /v1/billing_portal/sessions` with a `return_url` back to
+   `/account`, and returns `{ url }`. The account membership card (`Update card`
+   / `Invoices` / `Cancel renewal` / `Manage billing`) opens that URL **when the
+   LIVE vendor is active**; on the mock it keeps the interim pills + webhook
+   cancel path. A member with no `stripeCustomerId` yet (never checked out via
+   live Stripe) gets a clean **409** (`no_stripe_customer`), not a crash.
+   **You must still CONFIGURE the portal in the Dashboard** — Settings → Billing
+   → **Customer portal** — or the call 400s (`No configuration provided…`). Turn
+   on: **payment method update**, **cancellation** (cancel at period end — keeps
+   access to year-end, matching the cancel-renewal copy), and **plan switching**
+   among the Arcaevo Billing Prices (so the +€130 quarterly upgrade and
+   tier changes are self-service). Set the return URL / business info to taste.
+   Until it is configured the LIVE route surfaces a **502** (`portal_unavailable`)
+   to the UI rather than a raw Stripe error.
 6. **Webhook endpoint** — add the production endpoint + set its
    `STRIPE_WEBHOOK_SECRET` (step 2).
 7. **Optional** — swap the REST calls for the official `stripe` SDK once the dep

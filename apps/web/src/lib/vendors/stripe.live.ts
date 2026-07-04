@@ -25,6 +25,7 @@ import { priceIdEnvVar } from "@/lib/vendors/stripe-config";
 import type {
   CreateCheckoutSessionParams,
   PaymentsVendor,
+  VendorBillingPortalSession,
   VendorCheckoutSession,
   VendorRefundResult,
   VendorSubscription,
@@ -240,6 +241,25 @@ class StripeLive implements PaymentsVendor {
     } catch {
       return null;
     }
+  }
+
+  /**
+   * Create a Stripe Customer Portal session. The portal is where the member
+   * self-serves card updates, invoices, plan switches (the +€130 quarterly
+   * upgrade) and cancellations — all handled natively by Stripe once the
+   * portal is CONFIGURED in the Dashboard (Settings → Billing → Customer
+   * portal). See docs/STRIPE_SETUP.md. Returns 400 from Stripe until then.
+   */
+  async createBillingPortalSession(
+    customerId: string,
+    returnUrl: string
+  ): Promise<VendorBillingPortalSession> {
+    const session = await stripeRequest<{ id: string; url: string }>(
+      "POST",
+      "/billing_portal/sessions",
+      { customer: customerId, return_url: returnUrl }
+    );
+    return { url: session.url };
   }
 
   /**

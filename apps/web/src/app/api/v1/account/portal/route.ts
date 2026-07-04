@@ -2,10 +2,12 @@
  * POST /api/v1/account/portal — open the Stripe Customer Portal (design §10
  * W10 billing management: update card, invoices, plan switch, cancel renewal).
  *
- * Member-auth + consent-guarded like the other member endpoints. Looks up the
- * member's cached `stripeCustomerId` (created by the LIVE Stripe vendor on
- * first checkout) and mints a portal session that returns the member to
- * /account when they leave.
+ * Member-auth only (NOT consent-guarded): billing management — especially
+ * cancelling — must never be conditioned on health-data (Art. 9) consent, or a
+ * member who withdraws consent could be trapped paying. Same posture as
+ * /account/delete. Looks up the member's cached `stripeCustomerId` (created by
+ * the LIVE Stripe vendor on first checkout) and mints a portal session that
+ * returns the member to /account when they leave.
  *
  * If the member has no `stripeCustomerId` yet (never checked out via live
  * Stripe — e.g. a mock-seeded membership, or a free account), there is nothing
@@ -14,11 +16,11 @@
  * dev/e2e keep exercising the same UI path.
  */
 import { siteUrl } from "@/lib/api";
-import { requireConsentedMember } from "@/lib/consent-guard";
+import { requireMember } from "@/lib/auth";
 import { getPaymentsVendor } from "@/lib/vendors/stripe";
 
 export async function POST(req: Request) {
-  const auth = await requireConsentedMember(req);
+  const auth = await requireMember(req);
   if (auth.denied) return auth.denied;
   const member = auth.member;
 

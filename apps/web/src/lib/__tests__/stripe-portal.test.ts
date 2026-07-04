@@ -52,13 +52,13 @@ const authState = vi.hoisted(() => ({
   member: null as { _id: string; stripeCustomerId?: string | null } | null,
 }));
 
-vi.mock("@/lib/consent-guard", () => ({
-  requireConsentedMember: async () =>
+vi.mock("@/lib/auth", () => ({
+  requireMember: async () =>
     authState.member
       ? { member: authState.member, denied: null }
       : {
           member: null,
-          denied: Response.json({ error: "consent_required" }, { status: 403 }),
+          denied: Response.json({ error: "unauthorized" }, { status: 401 }),
         },
 }));
 
@@ -105,10 +105,10 @@ describe("POST /api/v1/account/portal", () => {
     expect(portalSpy.fn).not.toHaveBeenCalled();
   });
 
-  it("propagates the guard's denial when consent/auth fails", async () => {
+  it("propagates the guard's denial when auth fails", async () => {
     authState.member = null; // guard denies
     const res = await post();
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(401);
     expect(portalSpy.fn).not.toHaveBeenCalled();
   });
 

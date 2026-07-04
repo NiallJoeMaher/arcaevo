@@ -183,6 +183,104 @@ export const MembershipSchema = z.object({
 });
 export type Membership = z.infer<typeof MembershipSchema>;
 
+// --- Clinician note (Phase 22 — daily-engagement handoff, ALGORITHM.md §5) ---
+
+/**
+ * MOCK PERSONA (docs/MOCKED_APIS.md §15): the reviewing clinician is the
+ * fictional "Dr. S. Nolan, IMC 412887" from the designs until the medical-ops
+ * partner is real. Reused verbatim on GP shares + E6/E7 emails.
+ */
+export const CLINICIAN_NAME = "Dr. S. Nolan";
+export const CLINICIAN_IMC_NUMBER = "412887";
+
+/**
+ * A short human note on EVERY reviewed panel (a panel = one TestOrder's
+ * result set) — the review flow extends from critical-values-only to a
+ * template-assisted note a human signs (name + IMC number + read date shown).
+ *
+ * Field names are LOCKED by the Phase 22 shared contract — iOS decodes
+ * `clinicianNote { text, clinicianName, imcNumber, readAt }` off the results
+ * payload. Do not rename.
+ */
+export const ClinicianNoteSchema = z.object({
+  text: z.string(),
+  clinicianName: z.string(),
+  imcNumber: z.string(),
+  readAt: z.date(),
+});
+export type ClinicianNote = z.infer<typeof ClinicianNoteSchema>;
+
+/** "a", "a and b", "a, b and c" — for the note's watch-marker list. */
+function listNames(names: string[]): string {
+  if (names.length <= 1) return names[0] ?? "";
+  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+}
+
+/**
+ * Is a reading one the reviewer would flag as "worth watching"?
+ *
+ * Direction-aware, so a real IMPROVEMENT is never flagged: watch = the
+ * verdict worsened, OR the value sits outside the member's own baseline band
+ * on the HARMFUL side for the marker (e.g. above band for lower-is-better).
+ * Never a diagnosis — just what earns a second look at a recheck.
+ */
+export function isWatchMarker(
+  reading: {
+    value: number;
+    baselineBand: BaselineBand | null | undefined;
+    rcvVerdict: RcvVerdict | null | undefined;
+  },
+  direction: RuleDirection
+): boolean {
+  if (reading.rcvVerdict === "worsened") return true;
+  if (reading.rcvVerdict === "improved") return false; // real change, good way
+  const band = reading.baselineBand;
+  if (!band) return false;
+  return direction === "lower_is_better"
+    ? reading.value > band.high
+    : reading.value < band.low;
+}
+
+/**
+ * Template-assisted default note text — wellness-framed, NEVER diagnostic.
+ * Summarises in-range vs watch markers; when something is worth watching it
+ * points at the €69 recheck (the only sell in the daily layer). A human
+ * reviewer signs it via the clinicianName/imcNumber fields.
+ */
+export function composeClinicianNote(params: {
+  /** Marker count on the panel. */
+  totalMarkers: number;
+  /** Display names of markers outside the member's own band / worsened. */
+  watchMarkerNames: string[];
+  readAt: Date;
+}): ClinicianNote {
+  const { totalMarkers, watchMarkerNames, readAt } = params;
+  const markers = `${totalMarkers} marker${totalMarkers === 1 ? "" : "s"}`;
+  let text: string;
+  if (watchMarkerNames.length === 0) {
+    text =
+      `I've read this panel — all ${markers} sit within your personal range. ` +
+      `Nothing here needs a follow-up conversation; keep doing what you're doing, ` +
+      `and your next test will confirm the trend. ` +
+      `This is a wellness review, not a diagnosis.`;
+  } else {
+    const inRange = totalMarkers - watchMarkerNames.length;
+    const verb = watchMarkerNames.length === 1 ? "is" : "are";
+    text =
+      `I've read this panel. ${inRange} of ${totalMarkers} markers sit within ` +
+      `your personal range; ${listNames(watchMarkerNames)} ${verb} worth watching — ` +
+      `nothing urgent, just where I'd like a second look. A €${ADDON_PRICE_EUR.recheck} ` +
+      `recheck in 8–12 weeks will show whether the change is real. ` +
+      `This is a wellness review, not a diagnosis — talk to your GP about anything that worries you.`;
+  }
+  return {
+    text,
+    clinicianName: CLINICIAN_NAME,
+    imcNumber: CLINICIAN_IMC_NUMBER,
+    readAt,
+  };
+}
+
 export const TestOrderSchema = z.object({
   _id: z.string(), // e.g. "ord_0001"
   memberId: z.string(),
@@ -198,6 +296,12 @@ export const TestOrderSchema = z.object({
   includedInPlan: z.boolean(),
   createdAt: z.date(),
   updatedAt: z.date(),
+  /**
+   * Phase 22: set at clinician sign-off — one note per reviewed panel.
+   * Optional so pre-Phase-22 documents remain valid (absent = not reviewed
+   * yet; the results payload then carries `clinicianNote: null`).
+   */
+  clinicianNote: ClinicianNoteSchema.nullable().optional(),
 });
 export type TestOrder = z.infer<typeof TestOrderSchema>;
 

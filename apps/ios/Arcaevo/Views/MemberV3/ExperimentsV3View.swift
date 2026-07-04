@@ -5,7 +5,10 @@ import SwiftUI
 /// verdicts, data-suggested next experiments, and the start flow.
 struct ExperimentsV3View: View {
     @Environment(AppState.self) private var appState
+    @Environment(AppModel.self) private var model
     @State private var pickedSuggestion: String?
+    @State private var recheckOrdering = false
+    @State private var recheckOrdered = false
 
     init() {}
 
@@ -26,6 +29,9 @@ struct ExperimentsV3View: View {
                             .padding(.bottom, 10)
 
                         completedRows
+                            .padding(.bottom, 16)
+
+                        recheckCard
                             .padding(.bottom, 16)
 
                         Mv3Eyebrow(text: "START NEXT · SUGGESTED BY YOUR DATA", size: 9, kerning: 0.9)
@@ -128,6 +134,58 @@ struct ExperimentsV3View: View {
             "Evening walks — 30 min, 5×/week",
             "Adherence read from your Watch — no logging. Verdict lands with your January recheck."
         )
+    }
+
+    // MARK: Close the loop — the €69 recheck (the ONLY sell, never a supplement)
+
+    private var recheckCard: some View {
+        Button {
+            Task { await placeRecheck() }
+        } label: {
+            VStack(alignment: .leading, spacing: 0) {
+                HStack {
+                    Mv3Eyebrow(
+                        text: recheckOrdered ? "CLOSE THE LOOP · ORDERED" : "CLOSE THE LOOP · JANUARY",
+                        size: 9, color: Color.arcHollowGold, kerning: 0.9
+                    )
+                    Spacer()
+                    Text(recheckOrdered ? "✓ KIT ON ITS WAY" : "€69 KIT")
+                        .font(.arcMono(10, weight: .regular))
+                        .foregroundStyle(Color.arcHollowGold)
+                }
+                .padding(.bottom, 5)
+                Text(recheckOrdered
+                     ? "Ordered — we'll ship the ferritin recheck near January. The verdict is the point, not the kit. Never a supplement."
+                     : "Recheck ferritin when the iron experiment ends — the verdict is the point, not the kit. Never a supplement.")
+                    .font(.arcSans(12))
+                    .lineSpacing(3)
+                    .foregroundStyle(Mv3.bodyOnDark)
+            }
+            .padding(.horizontal, 15)
+            .padding(.vertical, 13)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.arcHollowGold.opacity(0.08),
+                        in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 15, style: .continuous)
+                    .strokeBorder(Color.arcHollowGold.opacity(0.35),
+                                  style: StrokeStyle(lineWidth: 1, dash: [4, 3]))
+            )
+            .contentShape(RoundedRectangle(cornerRadius: 15))
+            .opacity(recheckOrdering ? 0.6 : 1)
+        }
+        .buttonStyle(.plain)
+        .disabled(recheckOrdering || recheckOrdered)
+        .sensoryFeedback(.success, trigger: recheckOrdered)
+        .accessibilityElement(children: .combine)
+        .accessibilityHint(recheckOrdered ? "Recheck kit ordered" : "Double-tap to order the €69 ferritin recheck kit")
+    }
+
+    private func placeRecheck() async {
+        recheckOrdering = true
+        await model.orderRecheck(RecheckOrder(markerId: "ferritin"), markerName: "Ferritin")
+        recheckOrdering = false
+        recheckOrdered = true
     }
 
     // MARK: Completed → verdicts

@@ -37,6 +37,8 @@ import {
   CONSENT_VERSION,
   TIER_PRICE_EUR,
   MembershipTier,
+  composeClinicianNote,
+  isWatchMarker,
   type BiomarkerReading,
   type BiomarkerRule,
   type Consent,
@@ -379,6 +381,31 @@ async function seedUser() {
   }
   await cols.readings.insertMany(readings);
 
+  // Clinician notes (Phase 22): every fully-reviewed panel carries a short,
+  // wellness-framed note from the MOCK reviewer persona (Dr. S. Nolan,
+  // IMC 412887 — docs/MOCKED_APIS.md §15), read the day after results landed.
+  let clinicianNoteCount = 0;
+  for (const order of orders) {
+    const panel = readings.filter((r) => r.orderId === order._id);
+    if (panel.length === 0 || !panel.every((r) => r.clinicianReviewed)) continue;
+    const watchMarkerNames = panel
+      .filter((r) => {
+        const rule = ruleByCode.get(r.code);
+        return rule ? isWatchMarker(r, rule.direction) : false;
+      })
+      .map((r) => ruleByCode.get(r.code)?.name ?? r.code);
+    const note = composeClinicianNote({
+      totalMarkers: panel.length,
+      watchMarkerNames,
+      readAt: new Date(order.updatedAt.getTime() + 24 * 60 * 60 * 1000),
+    });
+    await cols.orders.updateOne(
+      { _id: order._id },
+      { $set: { clinicianNote: note } }
+    );
+    clinicianNoteCount += 1;
+  }
+
   // Wearables: 90 days of Apple Health, trends mirroring the story ---------------
   const wearables: WearableSignal[] = [];
   for (let d = 89; d >= 0; d--) {
@@ -422,6 +449,7 @@ async function seedUser() {
   console.log(`  consents:    3 granted (research ON) · version ${CONSENT_VERSION}`);
   console.log(`  orders:      ${orders.length} (results_ready ×2 + shipped recheck)`);
   console.log(`  readings:    ${readings.length} (${Object.keys(SELF_REPORTED).length} self-reported hollow-gold + 2 lab draws)`);
+  console.log(`  notes:       ${clinicianNoteCount} reviewed panels signed by Dr. S. Nolan, IMC 412887 (MOCK persona)`);
   console.log(`  wearables:   ${wearables.length} (90 days × 4 types)`);
   console.log(`  share link:  /s/${share.token} (active, 1 open logged)`);
   console.log(`  referral:    ${referral._id}`);

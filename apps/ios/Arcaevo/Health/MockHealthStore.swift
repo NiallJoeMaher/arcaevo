@@ -7,7 +7,27 @@ final class MockHealthStore: HealthDataProviding {
         true
     }
 
+    /// The separate cycle ask always "completes" in the mock. The phase is
+    /// still gated on the Data & privacy toggle, like the real provider.
+    func requestCycleAccess() async -> Bool {
+        true
+    }
+
     func dailySeries(for metric: WearableMetric, days: Int) async -> [WearableSignal] {
         DemoDataProvider.wearableSeries(metric: metric, days: days)
+    }
+
+    func workouts(days: Int) async -> [WorkoutSummary] {
+        DemoDataProvider.workouts(days: days)
+    }
+
+    func sleepNights(days: Int) async -> [SleepNight] {
+        DemoDataProvider.sleepNights(days: days)
+    }
+
+    func cyclePhase(now: Date) async -> CyclePhase? {
+        // Only when the member opted in — mirrors the real gate so the
+        // simulator demos the cycle-aware band note honestly.
+        CyclePreferences.isEnabled ? .luteal : nil
     }
 }

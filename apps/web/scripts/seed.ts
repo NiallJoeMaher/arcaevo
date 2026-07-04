@@ -17,6 +17,8 @@ import {
   ADDON_PRICE_EUR,
   CONSENT_VERSION,
   SESSION_TTL_DAYS,
+  composeClinicianNote,
+  isWatchMarker,
   type BiomarkerReading,
   type BiomarkerRule,
   type Consent,
@@ -427,6 +429,33 @@ async function seed() {
   }
   await cols.readings.insertMany(readings);
 
+  // Clinician notes (Phase 22) --------------------------------------------------
+  // Every fully-reviewed panel (= one order's result set) carries a short,
+  // wellness-framed human note from the MOCK reviewer persona (Dr. S. Nolan,
+  // IMC 412887 — docs/MOCKED_APIS.md §15). Deterministic: the clinician
+  // "reads" the panel the day after its results land.
+  let clinicianNoteCount = 0;
+  for (const order of orders) {
+    const panel = readings.filter((r) => r.orderId === order._id);
+    if (panel.length === 0 || !panel.every((r) => r.clinicianReviewed)) continue;
+    const watchMarkerNames = panel
+      .filter((r) => {
+        const rule = ruleByCode.get(r.code);
+        return rule ? isWatchMarker(r, rule.direction) : false;
+      })
+      .map((r) => ruleByCode.get(r.code)?.name ?? r.code);
+    const note = composeClinicianNote({
+      totalMarkers: panel.length,
+      watchMarkerNames,
+      readAt: new Date(order.updatedAt.getTime() + 24 * 60 * 60 * 1000),
+    });
+    await cols.orders.updateOne(
+      { _id: order._id },
+      { $set: { clinicianNote: note } }
+    );
+    clinicianNoteCount += 1;
+  }
+
   // Wearables: 90 days of Apple Health for the demo member -----------------------
   // Trends mirror the story: HRV up, RHR down, sleep steady, VO2max up.
   const wearables: WearableSignal[] = [];
@@ -628,6 +657,7 @@ async function seed() {
   console.log(`  biomarker rules:    ${RULES.length}`);
   console.log(`  test orders:        ${orders.length}`);
   console.log(`  readings:           ${readings.length} (${readings.filter((r) => !r.clinicianReviewed).length} awaiting clinician review)`);
+  console.log(`  clinician notes:    ${clinicianNoteCount} reviewed panels signed by Dr. S. Nolan, IMC 412887 (MOCK persona)`);
   console.log(`  wearable signals:   ${wearables.length} (90 days × 4 types, demo member)`);
   console.log(`  support tickets:    ${tickets.length}`);
   console.log(`  outbox emails:      ${emails.length}`);

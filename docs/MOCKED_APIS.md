@@ -50,6 +50,7 @@ Nothing here is wired to a real vendor yet. Every mock lives behind a small inte
 ## 5. Clinician review — MOCKED
 
 - Results are auto-marked `clinician_reviewed` by the seed/mock pipeline. Real flow needs a clinician portal step in /admin and a medical-ops partner.
+- **Clinician note on every panel (Phase 22, modelled)**: each reviewed panel (= one TestOrder's result set) carries a `clinicianNote { text, clinicianName, imcNumber, readAt }` — field names locked by the Phase 22 shared contract (iOS decodes them off `GET /api/v1/results`, where every reviewed reading carries its panel's note; null while unreviewed). The admin sign-off (`POST /api/v1/admin/results/[id]/review`) writes/refreshes a **template-assisted** note onto the reading's order (`composeClinicianNote` in `src/lib/models.ts`: in-range vs watch markers via the direction-aware `isWatchMarker`, wellness-framed, €69 recheck as the only sell); both seed scripts write deterministic notes. The "human" signing it is still the §15 MOCK persona — productionise together with the clinician portal: a real reviewer edits/approves the template text and their real name + IMC number replace the persona.
 
 ## 6. PostHog EU analytics — STUBBED OFF
 
@@ -107,6 +108,7 @@ Nothing here is wired to a real vendor yet. Every mock lives behind a small inte
 ## 15. Clinician identity on GP shares — MOCK PERSONA
 
 - The share summary (`/api/v1/share/[token]`) and E6/E7 emails name "Dr. S. Nolan, IMC 412887" — a fictional reviewer from the designs. Replace with the real reviewing clinician + IMC number from the medical-ops partner.
+- Phase 22: the same persona now also signs the per-panel clinician notes (§5) — canonical constants `CLINICIAN_NAME` / `CLINICIAN_IMC_NUMBER` in `apps/web/src/lib/models.ts`, used by the admin review sign-off and both seed scripts. Swapping in the real clinician is a constants change + the §5 portal work.
 
 ## 16. GDPR Art.9 consent enforcement — REAL (server-side)
 

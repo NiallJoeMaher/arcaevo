@@ -44,7 +44,7 @@
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>NSHealthShareUsageDescription</key>
-	<string>Arcaevo reads your heart rate variability, resting heart rate, sleep and VO2 max from Apple Health to build your personal baseline and plain-language insights. Wellness only — not a medical device, not a diagnosis.</string>
+	<string>Arcaevo reads your heart rate and heart rate variability, resting heart rate, sleep stages, respiratory rate, blood oxygen, wrist temperature, VO2 max, steps, active energy and workouts from Apple Health. We use them to learn your personal baseline and turn it into a plain-language morning readiness, an all-day energy read and your Vitality Age. If you turn on cycle-aware baselines, we also read your menstrual cycle dates — never otherwise. Wellness only — not a medical device, not a diagnosis.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>InstrumentSerif-Regular.ttf</string>

@@ -39,10 +39,18 @@ struct WatchRootView: View {
                 .tag(WatchModel.Screen.face)
             WatchTodayBaselineView()
                 .tag(WatchModel.Screen.today)
+            WatchEnergyV3View()
+                .tag(WatchModel.Screen.energy)
+            WatchCheckinV3View()
+                .tag(WatchModel.Screen.checkin)
+            WatchVitalityV3View()
+                .tag(WatchModel.Screen.vitality)
             WatchGlanceV3View()
                 .tag(WatchModel.Screen.glance)
             WatchQuickLogV3View()
                 .tag(WatchModel.Screen.quickLog)
+            WatchWorkoutV3View()
+                .tag(WatchModel.Screen.workout)
             WatchExperimentV3View()
                 .tag(WatchModel.Screen.experiment)
             WatchResultReadyV3View()
@@ -98,6 +106,10 @@ struct WatchBaselineRing: View {
     var size: CGFloat
     var lineWidth: CGFloat
     var numberSize: CGFloat
+    /// Decision tone — amber at worst (go-easy/rest), never red. Defaults green.
+    var tint: Color = .arcPrimaryGreen
+    /// Glyph override for degraded states (calibration "d/of", sparse "—").
+    var glyph: String? = nil
 
     var body: some View {
         ZStack {
@@ -106,15 +118,27 @@ struct WatchBaselineRing: View {
             Circle()
                 .trim(from: 0, to: CGFloat(score) / 100)
                 .stroke(
-                    Color.arcPrimaryGreen,
+                    tint,
                     style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)
                 )
                 .rotationEffect(.degrees(-90))
-            Text("\(score)")
+            Text(glyph ?? "\(score)")
                 .font(.arcMono(numberSize))
+                .minimumScaleFactor(0.5)
+                .lineLimit(1)
                 .foregroundStyle(Color.arcCream)
         }
         .frame(width: size, height: size)
+    }
+}
+
+extension ReadinessDecision {
+    /// Ring / accent tone on the wrist — amber at worst, never red.
+    var wristTint: Color {
+        switch self {
+        case .trainHard, .trainAsPlanned: return .arcPrimaryGreen
+        case .goEasy, .rest: return .arcAmber
+        }
     }
 }
 

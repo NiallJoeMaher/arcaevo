@@ -56,6 +56,21 @@ export async function getDb(): Promise<Db> {
   return client.db();
 }
 
+/**
+ * IP/global rate-limit counter (fixed-window). One doc per (scope, identifier,
+ * window). `expiresAt` drives a TTL index so stale counters self-clean; the
+ * window decision is computed in-query, never left to the TTL sweep. Stored in
+ * Mongo (not in-memory) so limits hold across stateless serverless invocations.
+ */
+export interface RateLimitRecord extends Document {
+  _id: string; // `${scope}:${identifier}:${windowStartMs}`
+  scope: string;
+  identifier: string;
+  count: number;
+  windowStart: Date;
+  expiresAt: Date;
+}
+
 /** Mock-vendor internal state (LetsGetChecked fake order machine). */
 export interface LgcMockOrder extends Document {
   _id: string; // vendor order id, e.g. "lgc_mock_0001"
@@ -102,6 +117,8 @@ export const collections = {
   bloodworkUploads: () => collection<BloodworkUpload>("bloodwork_uploads"),
   /** GDPR right-to-erasure queue — drained by scripts/run-erasure.ts. */
   erasureJobs: () => collection<ErasureJob>("erasure_jobs"),
+  /** IP/global rate-limit counters (fixed-window) — see src/lib/rate-limit.ts. */
+  rateLimits: () => collection<RateLimitRecord>("rate_limits"),
 };
 
 /** Close the shared client (used by scripts like seed.ts; not by the app). */

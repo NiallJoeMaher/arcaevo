@@ -23,6 +23,14 @@ export const E2E_ENV = {
   // on. Real production sets neither of these and stays locked down.
   ALLOW_DEMO_TOKEN: "true",
   ALLOW_OPEN_WEBHOOKS: "true",
+  // Keep the MOCK AI bloodwork extraction ON for the prod-build e2e (the
+  // upload/confirm specs + the "41 or 47?" demo drive it). Real prod leaves
+  // this unset, so the photo/PDF path returns a manual-entry state instead.
+  ALLOW_MOCK_EXTRACTION: "true",
+  // Disable IP rate-limiting for the suite: it fires many scripted sign-in /
+  // verify attempts from one host and would otherwise trip the limiter. Real
+  // production leaves this unset (limiter ON).
+  RATE_LIMIT_DISABLED: "true",
   // Emails always land in the Mongo outbox. Locally we ALSO deliver them via
   // SMTP to the compose mailhog container (host :1026, UI :8026) so
   // email.spec.ts can assert real delivery; CI has no mailhog, so it stays

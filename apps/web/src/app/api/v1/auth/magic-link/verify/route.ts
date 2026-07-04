@@ -28,8 +28,14 @@ import {
   type ConsumeMagicLinkByCodeResult,
 } from "@/lib/member-auth";
 import { MagicLinkVerifyInput } from "@/lib/models";
+import { limitByIp, VERIFY_RATE_LIMIT } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
+  // IP rate-limit (audit must-fix #3): the IP layer on top of the per-token
+  // 5-attempt code ceiling. Magic-link verify is the only way in.
+  const limited = await limitByIp(req, "magic-link-verify", VERIFY_RATE_LIMIT);
+  if (limited) return limited;
+
   const parsed = await parseJsonBody(req, MagicLinkVerifyInput);
   if (!parsed.ok) return parsed.response;
 

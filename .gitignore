@@ -6,3 +6,6 @@ cdk.out/
 DerivedData/
 .env.local
 .env
+
+# Track the env template (placeholders only; real secrets live in .env.local)
+!apps/web/.env.example

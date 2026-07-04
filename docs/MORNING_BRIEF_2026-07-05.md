@@ -91,6 +91,17 @@ You re-launched the loop, so I kept going on the biggest gaps to production. All
 
 **What Stripe still needs from you to go live** (full detail in the new `docs/STRIPE_SETUP.md`): the webhook signing secret (`stripe listen` for dev, or a Dashboard endpoint for prod), swapping the test keys for live ones (use a restricted `rk_live_` key), enabling Stripe Tax + your Irish VAT registration, Apple Pay domain verification, and a small Customer-Portal route for self-service upgrade/cancel. **A CEO judgement call to confirm:** with a live `sk_test` key now in `.env.local`, local `npm run dev` uses the real (test-mode) Stripe vendor — I pinned the e2e suite to the mock so a real key can never leak into a Playwright run. Set `STRIPE_FORCE_MOCK=true` if you want dev back on the mock too.
 
+## 8. Round 3 — legal package, security review, self-service billing
+
+You relaunched again, so I closed the remaining *safe, decision-free* gaps and put the whole branch through a security review. All committed + pushed:
+
+- **GDPR legal documentation package** (`docs/legal/`) — seven DPO-ready drafts grounded in the actual code: a **DPIA** (Art. 35, with 9 rated risks), **Records of Processing** (Art. 30), a **sub-processor register + DPA checklist**, a **data-retention schedule**, a **breach-response runbook** (the 72-hour DPC clock), and an **admin-auth options** decision doc. Every one is marked "DRAFT — needs DPO/solicitor review"; they exist to make your legal review fast and cheap, not to replace it.
+- **Security review of the entire branch** — a senior-security pass over all the new server-side surface (Stripe webhook signature verification, the cron auth, the rate limiter, the portal route, vendor key handling, NoSQL-injection paths, the env gates). **Result: clean — no high-confidence vulnerabilities.** The new code held up: constant-time secret compares, fail-closed prod gates, no IDOR on the billing portal, raw-body webhook verification.
+- **One fix the review surfaced** — the Stripe webhook activated membership without checking `payment_status`, so a delayed/async payment method could grant a paid membership before funds settled. Now guarded: `unpaid` sessions are acknowledged but not activated (subscriptions settle via `invoice.paid`).
+- **Stripe Customer Portal** — real self-service billing (update card, invoices, cancel, plan-switch) via `/api/v1/account/portal`, and I corrected its guard so **cancelling never requires health-data consent** (you must always be able to stop paying).
+
+**The single most urgent item the legal review keeps returning to:** the admin dashboard is still one shared password unlocking every member's Article 9 health data. I deliberately did **not** rebuild it autonomously — it's a real decision (self-hosted per-admin accounts vs a managed IdP like WorkOS/Auth0/Cognito), and `docs/legal/ADMIN_AUTH_OPTIONS.md` lays out the trade-offs with a recommendation. This one needs your call before real users, and I'll implement whichever you pick.
+
 ## Where things stand
 
 - ✅ Phase 22 built, integrated, verified
@@ -98,6 +109,18 @@ You re-launched the loop, so I kept going on the biggest gaps to production. All
 - ✅ **Stripe real test-mode integration** (8 prices created, session URL verified) + **go-live doc**
 - ✅ **Email adapter** EU-ESP-ready
 - ✅ Docs: `STRATEGY.md`, `LAUNCH_READINESS.md`, `DEVICE_TESTING_AND_RELEASE.md`, `STRIPE_SETUP.md`, this brief
-- ✅ All pushed to `phase-22-daily-engagement` (open one PR: it now contains daily-engagement + hardening + Stripe + email — review as a set, or I can split into separate PRs if you prefer)
+- ✅ **Stripe Customer Portal** (self-service billing) + payment-settled guard
+- ✅ **GDPR legal package** (`docs/legal/`, 7 drafts) + **clean security review** of the whole branch
+- ✅ All pushed to `phase-22-daily-engagement` (open one PR: it contains daily-engagement + hardening + Stripe + portal + email + legal docs — review as a set, or I can split into separate PRs if you prefer)
 - ⏭️ Next: your go-live decisions above + the basic-tier launch checklist (§4)
 - 🧑‍⚕️ Your track: bloodwork partnership + named clinician (unblocks paid tiers; basic tier proceeds without it)
+
+## The decisions I need to keep going productively
+
+I've now exhausted the work I can safely do without your input — three rounds, all verified, a clean security review. The remaining items each need a specific decision or credential from you. Give me any of these and I'll execute the next round:
+
+1. **Admin auth** — self-hosted per-admin accounts + roles + audit log, or a managed IdP (WorkOS/Auth0/Cognito)? (`docs/legal/ADMIN_AUTH_OPTIONS.md`) This is the #1 residual security risk.
+2. **EU email provider** — pick one (Scaleway TEM / Postmark EU) and I'll wire + document it; it's already a config-shaped change.
+3. **Stripe go-live** — when you've created the webhook endpoint + live keys, I'll do the swap and the Dashboard-config walkthrough.
+4. **Legal entity + DPO** — the registered controller entity (CRO number) and whether you're appointing a DPO, so the legal drafts can be finalised.
+5. **Split the branch into separate PRs?** — say the word and I'll break it into daily-engagement / payments / hardening / legal for cleaner review.

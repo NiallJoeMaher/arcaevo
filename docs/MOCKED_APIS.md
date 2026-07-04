@@ -59,10 +59,15 @@ Nothing here is wired to a real vendor yet. Every mock lives behind a small inte
 ## 7. Email (receipts, kit reminders, results-ready) — MOCK OUTBOX + OPTIONAL REAL SMTP (MailHog)
 
 - **Outbox (always)**: `apps/web/src/lib/vendors/email.mock.ts` writes every send to the console + Mongo `outbox` collection — the e2e suite (`e2e/v2-helpers.ts` token fishing, `e2e/email.spec.ts`) and admin views read it, so this write happens regardless of provider.
-- **SMTP (additional, env-switched)**: with `EMAIL_PROVIDER=mailhog` (or `=smtp`), the same rendered email is ALSO sent via `email.smtp.ts` (nodemailer, from `Arcaevo <hello@arcaevo.com>`, `SMTP_HOST`/`SMTP_PORT` — defaults `localhost:1026`, no auth/TLS for MailHog). Delivery is fire-and-forget with error logging: an SMTP failure never breaks the API request.
+- **SMTP (additional, env-switched)**: with `EMAIL_PROVIDER=mailhog` (or `=smtp`), the same rendered email is ALSO sent via `email.smtp.ts` (nodemailer, from `Arcaevo <hello@arcaevo.com>`, `SMTP_HOST`/`SMTP_PORT` — defaults `localhost:1026`). Delivery is fire-and-forget with error logging: an SMTP failure never breaks the API request (load-bearing invariant).
+- **Auth + TLS (OPTIONAL, env-driven — Phase 22)**: the adapter now reads credentials and TLS from env, so switching to a real ESP is a config change, not a code change. All default to the MailHog no-auth/no-TLS path when unset:
+  - `SMTP_USER` + `SMTP_PASS` — if **both** are set, nodemailer gets `auth: { user, pass }`; if either is unset, no auth (MailHog). Credentials are passed straight to the transport and are **never logged**.
+  - `SMTP_SECURE` — `"true"` uses TLS-on-connect (465-style); any other value (default) leaves it false for MailHog / STARTTLS on 587.
+  - `EMAIL_FROM` — overrides the From address (default `Arcaevo <hello@arcaevo.com>`).
+  - `SMTP_HOST` / `SMTP_PORT` — default `localhost:1026`. `buildSmtpTransportConfig()` is exported and unit-tested (`src/lib/__tests__/email-smtp.test.ts`) without opening a socket.
 - **MailHog**: docker-compose `mailhog` service — SMTP on host **:1026**, web UI at **http://localhost:8026** (the standard 1025/8025 pair is taken by other local projects; inside the compose network the web container uses `mailhog:1025`).
 - **Prefetch-safe sign-in code (Phase 21)**: the E1 (verify) and E2 (magic-link) emails now render BOTH the button/link AND a prominent human-typeable code (`XXX-XXX`) under it, with "Or enter this code at arcaevo.com/signin". This defends against email virus-scanners (Microsoft Safe Links, Mimecast, Proofpoint) that prefetch URLs and could burn a single-use link before the human clicks — a scanner never fills in and submits a code field. See §12 for the auth-side contract.
-- To productionise: point `SMTP_HOST`/`SMTP_PORT` at an EU-friendly ESP (e.g. Scaleway TEM, Postmark EU DPA), add auth + TLS in `email.smtp.ts`, and decide whether the outbox write stays as an audit log.
+- To productionise: point `SMTP_HOST`/`SMTP_PORT`/`SMTP_USER`/`SMTP_PASS`/`SMTP_SECURE` at an EU-friendly ESP — this is now purely a config change (no code edit needed). A signed **DPA** with the ESP is REQUIRED before real users (health-adjacent PII crosses the processor): e.g. **Scaleway TEM** (EU-resident, French processor) or **Postmark EU** (EU data region + DPA). Then decide whether the outbox write stays as an audit log.
 
 ## 8. Apple HealthKit (iOS) — REAL API, MOCK FALLBACK
 

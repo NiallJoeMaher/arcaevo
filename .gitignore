@@ -10,3 +10,4 @@ DerivedData/
 # Track the env template (placeholders only; real secrets live in .env.local)
 !apps/web/.env.example
 !apps/web/.env.preprod.example
+.vercel

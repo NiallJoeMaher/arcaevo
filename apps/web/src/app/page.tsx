@@ -22,34 +22,37 @@ function HeroScoreCard() {
       className="rounded-card-xl bg-ink p-[26px] text-bone-white shadow-hero-card"
     >
       <div className="mb-[22px] flex items-center gap-[18px]">
-        <svg viewBox="0 0 120 120" className="h-24 w-24">
-          <circle
-            cx="60"
-            cy="60"
-            r="50"
-            fill="none"
-            stroke="rgba(255,255,255,0.1)"
-            strokeWidth="10"
-          />
-          <circle
-            cx="60"
-            cy="60"
-            r="50"
-            fill="none"
-            stroke="#34A07C"
-            strokeWidth="10"
-            strokeLinecap="round"
-            strokeDasharray="314"
-            strokeDashoffset="60"
-            transform="rotate(-90 60 60)"
-          />
-        </svg>
-        <div className="-ml-[84px] w-24 text-center">
-          <div className="font-mono text-[30px] font-medium leading-none">
-            81
-          </div>
-          <div className="text-[9px] tracking-[0.08em] text-muted-dark-soft">
-            HEALTH SCORE
+        {/* Handoff's -84px offset undershot the ring; overlay centers for real. */}
+        <div className="relative h-24 w-24 shrink-0">
+          <svg viewBox="0 0 120 120" className="h-24 w-24">
+            <circle
+              cx="60"
+              cy="60"
+              r="50"
+              fill="none"
+              stroke="rgba(255,255,255,0.1)"
+              strokeWidth="10"
+            />
+            <circle
+              cx="60"
+              cy="60"
+              r="50"
+              fill="none"
+              stroke="#34A07C"
+              strokeWidth="10"
+              strokeLinecap="round"
+              strokeDasharray="314"
+              strokeDashoffset="60"
+              transform="rotate(-90 60 60)"
+            />
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+            <div className="font-mono text-[30px] font-medium leading-none">
+              81
+            </div>
+            <div className="text-[9px] tracking-[0.08em] text-muted-dark-soft">
+              HEALTH SCORE
+            </div>
           </div>
         </div>
         <div className="ml-1">

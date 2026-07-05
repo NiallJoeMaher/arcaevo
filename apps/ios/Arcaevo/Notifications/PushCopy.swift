@@ -155,6 +155,33 @@ enum PushCopy {
         static let body = "Open Arcaevo to see where your baseline starts."
     }
 
+    // MARK: Re-engagement copy (NOT one of the twelve)
+    //
+    // The daily check-in reminder + the escalating re-engagement series for
+    // inactive members. Deliberately OUTSIDE the twelve-card daily vocabulary
+    // (like `FirstReading`) so that invariant stays intact. Same calm voice —
+    // never a health value, never a number, never streak guilt. The escalation
+    // BACKS OFF (day 2 → 4 → 7 → stop): warm, low-frequency, never nagging.
+    // Keyed to `EngagementNudgeKind` (ArcaevoKit) — see `EngagementNudge`.
+    enum Engagement {
+        static func card(_ kind: EngagementNudgeKind) -> (title: String, body: String) {
+            switch kind {
+            case .dailyCheckIn:
+                return ("A moment for today",
+                        "Open Arcaevo to see where your baseline sits, and log how you feel.")
+            case .reengageDay2:
+                return ("Your readings are waiting",
+                        "Whenever you're ready — a quick look keeps your baseline current.")
+            case .reengageDay4:
+                return ("Still here when you are",
+                        "No rush at all. Your readings and notes are waiting whenever it suits.")
+            case .reengageDay7:
+                return ("Your baseline is still here",
+                        "Whenever you're ready to pick things back up — no catching up required.")
+            }
+        }
+    }
+
     #if DEBUG
     /// Guards the "whole vocabulary" invariant: 12 cards, one per key, no dupes.
     static let isComplete: Bool =

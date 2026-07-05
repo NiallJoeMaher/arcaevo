@@ -47,8 +47,12 @@ struct ReadinessV3View: View {
         .toolbar(.hidden, for: .navigationBar)
         .task { if model.readinessResult == nil { await model.loadAll() } }
         // Opening the readiness surface counts as viewing the first score —
-        // cancels the one-time first-reading activation nudge.
-        .onAppear { appState.markFirstScoreViewed() }
+        // cancels the one-time first-reading activation nudge — and as today's
+        // check-in, so the daily reminder slides to tomorrow.
+        .onAppear {
+            appState.markFirstScoreViewed()
+            appState.markCheckedInToday()
+        }
     }
 
     // MARK: Score ring + decision

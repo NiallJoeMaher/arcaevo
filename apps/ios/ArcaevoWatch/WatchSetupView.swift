@@ -30,21 +30,17 @@ struct WatchSetupView: View {
         .background(Color.black)
     }
 
-    /// The brand orb: a soft green core with a faint halo.
+    /// The brand mark: the real logo chip inside a faint halo ring.
     private var orb: some View {
         ZStack {
             Circle()
                 .stroke(Color.arcPrimaryGreen.opacity(0.22), lineWidth: 1)
                 .frame(width: 50, height: 50)
-            Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [Color.arcBrightGreen, Color.arcPrimaryGreen],
-                        center: .center,
-                        startRadius: 0,
-                        endRadius: 18
-                    )
-                )
+            // Real brand chip (cream circle + green "A"), sized to the former
+            // 34px orb core; reads cleanly on the black setup background.
+            Image("BrandMark")
+                .resizable()
+                .scaledToFit()
                 .frame(width: 34, height: 34)
         }
         .frame(height: 56)

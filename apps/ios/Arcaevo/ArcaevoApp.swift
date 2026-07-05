@@ -4,6 +4,7 @@ import SwiftUI
 struct ArcaevoApp: App {
     @State private var model = AppModel()
     @State private var appState = AppState()
+    @Environment(\.scenePhase) private var scenePhase
 
     init() {
         // Privacy-first crash/error observability — no-op unless SENTRY_DSN is
@@ -33,6 +34,18 @@ struct ArcaevoApp: App {
                     // Re-arm the one-time first-reading nudge for a member who
                     // onboarded previously but never opened their score.
                     FirstReadingNudge.scheduleIfNeeded(appState: appState)
+                    // Re-engagement: opening the app counts as a check-in (slides
+                    // the daily reminder to tomorrow) and resets the escalating
+                    // inactive-member series. Local only — no APNs.
+                    appState.markAppOpened()
+                    EngagementNudge.refresh(appState: appState, model: model)
+                }
+                // Every return to the foreground reschedules from a fresh "now",
+                // so the daily reminder + escalation always reflect the last open.
+                .onChange(of: scenePhase) { _, phase in
+                    guard phase == .active else { return }
+                    appState.markAppOpened()
+                    EngagementNudge.refresh(appState: appState, model: model)
                 }
                 // Magic-link entry points:
                 //  - https://arcaevo.com/verify?token=…  (universal link —

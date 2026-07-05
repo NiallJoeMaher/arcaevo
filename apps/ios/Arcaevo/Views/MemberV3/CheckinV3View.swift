@@ -9,6 +9,7 @@ import SwiftUI
 struct CheckinV3View: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(AppModel.self) private var model
+    @Environment(AppState.self) private var appState
 
     /// "Awful"…"Great" → feel 1…5.
     private static let feels = ["Awful", "Rough", "OK", "Good", "Great"]
@@ -247,6 +248,9 @@ struct CheckinV3View: View {
             sick: tags.contains(FeltCheckin.sickTag)
         )
         model.saveCheckin(checkin)
+        // Logging a check-in counts as today's check-in — the daily reminder
+        // slides to tomorrow (rescheduled on the next open/foreground).
+        appState.markCheckedInToday()
         saveTick += 1
         withAnimation(.easeInOut(duration: 0.25)) { saved = true }
     }

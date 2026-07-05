@@ -43,6 +43,15 @@ final class NotificationPrefsStore {
     var energyDip: Bool { didSet { write("energy", energyDip) } }
     var faceIDLock: Bool { didSet { write("faceid", faceIDLock) } }
 
+    // Daily check-in reminder (the stickiness driver — ON by default). Its own
+    // toggle governs the whole re-engagement layer (`EngagementNudge`): the
+    // daily nudge AND the escalating series for inactive members. The time is
+    // user-adjustable; until they pick one, we follow their learned wake time.
+    var dailyCheckIn: Bool { didSet { write("dailyCheckIn", dailyCheckIn) } }
+    var checkInHour: Int { didSet { writeInt("checkInHour", checkInHour) } }
+    var checkInMinute: Int { didSet { writeInt("checkInMinute", checkInMinute) } }
+    var checkInTimeCustomized: Bool { didSet { write("checkInCustom", checkInTimeCustomized) } }
+
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private static let keyPrefix = "arcaevo.notify."
 
@@ -50,6 +59,9 @@ final class NotificationPrefsStore {
         self.defaults = defaults
         func load(_ key: String, default fallback: Bool) -> Bool {
             defaults.object(forKey: Self.keyPrefix + key) as? Bool ?? fallback
+        }
+        func loadInt(_ key: String, default fallback: Int) -> Int {
+            defaults.object(forKey: Self.keyPrefix + key) as? Int ?? fallback
         }
         // NB: property observers do NOT fire for assignments in init.
         results = load("results", default: true)
@@ -60,9 +72,17 @@ final class NotificationPrefsStore {
         weeklyFocus = load("focus", default: false)
         energyDip = load("energy", default: false)
         faceIDLock = load("faceid", default: true)
+        dailyCheckIn = load("dailyCheckIn", default: true)
+        checkInHour = loadInt("checkInHour", default: 8)
+        checkInMinute = loadInt("checkInMinute", default: 0)
+        checkInTimeCustomized = load("checkInCustom", default: false)
     }
 
     private func write(_ key: String, _ value: Bool) {
+        defaults.set(value, forKey: Self.keyPrefix + key)
+    }
+
+    private func writeInt(_ key: String, _ value: Int) {
         defaults.set(value, forKey: Self.keyPrefix + key)
     }
 

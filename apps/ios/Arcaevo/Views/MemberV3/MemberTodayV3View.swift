@@ -41,6 +41,7 @@ struct MemberTodayV3View: View {
         .task(id: model.readinessResult?.state.showsScore) {
             if model.readinessResult?.state.showsScore == true {
                 appState.markFirstScoreViewed()
+                appState.markCheckedInToday()
             }
         }
     }

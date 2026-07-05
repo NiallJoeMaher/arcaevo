@@ -62,6 +62,10 @@ struct NotificationsV3View: View {
         // Re-engagement: nudge them to open their first readiness within ~24h
         // (cancelled the moment they view a score). No-op if they didn't grant.
         FirstReadingNudge.scheduleIfNeeded(appState: appState)
+        // Start the daily check-in reminder + escalation from tomorrow — they're
+        // actively finishing onboarding now, so today already counts as a check-in.
+        appState.markCheckedInToday()
+        EngagementNudge.refresh(appState: appState, model: model)
     }
 
     private func prefRow(_ title: String, _ sub: String, _ isOn: Binding<Bool>) -> some View {

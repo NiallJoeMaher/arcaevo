@@ -166,6 +166,12 @@ final class AppState {
     /// surface at least once. Persisted — drives the one-time "unlock your first
     /// reading" nudge (scheduled while false, cancelled on view).
     var hasViewedFirstScore = false { didSet { save() } }
+    /// Re-engagement bookkeeping (drives `EngagementNudge`). `lastOpenedAt`
+    /// resets the escalating inactive-member series; `lastCheckInDay` (start of
+    /// day) tells the daily reminder "already seen today → nudge tomorrow, not
+    /// now". Both persisted so the schedule survives relaunch.
+    var lastOpenedAt: Date? { didSet { save() } }
+    var lastCheckInDay: Date? { didSet { save() } }
     var experiment: ActiveExperiment? { didSet { save() } }
     var uploadConfirm: UploadConfirmState? { didSet { save() } }
     var waitlistPosition: Int?
@@ -210,6 +216,23 @@ final class AppState {
         guard !hasViewedFirstScore else { return }
         hasViewedFirstScore = true
         FirstReadingNudge.cancel()
+    }
+
+    // MARK: - Re-engagement bookkeeping
+
+    /// Record an app open — resets the escalating inactive-member series and
+    /// counts as a check-in for today. Called on launch + foreground; the caller
+    /// reschedules `EngagementNudge` afterwards.
+    func markAppOpened(now: Date = Date()) {
+        lastOpenedAt = now
+        lastCheckInDay = Calendar.current.startOfDay(for: now)
+    }
+
+    /// Record a check-in on a score / check-in surface — the daily reminder
+    /// then slides to tomorrow. State only; the schedule is (re)computed on the
+    /// next open/foreground (opening already counts as a check-in).
+    func markCheckedInToday(now: Date = Date()) {
+        lastCheckInDay = Calendar.current.startOfDay(for: now)
     }
 
     // MARK: - Auth (email + magic link ONLY)
@@ -504,6 +527,8 @@ final class AppState {
         var notificationPrefs: NotificationPrefs
         var researchConsent: Bool
         var hasViewedFirstScore: Bool?
+        var lastOpenedAt: Date?
+        var lastCheckInDay: Date?
         var experiment: ActiveExperiment?
     }
 
@@ -520,6 +545,8 @@ final class AppState {
             notificationPrefs: notificationPrefs,
             researchConsent: researchConsent,
             hasViewedFirstScore: hasViewedFirstScore,
+            lastOpenedAt: lastOpenedAt,
+            lastCheckInDay: lastCheckInDay,
             experiment: experiment
         )
         if let data = try? JSONEncoder().encode(snapshot) {
@@ -539,6 +566,8 @@ final class AppState {
         notificationPrefs = snapshot.notificationPrefs
         researchConsent = snapshot.researchConsent
         hasViewedFirstScore = snapshot.hasViewedFirstScore ?? false
+        lastOpenedAt = snapshot.lastOpenedAt
+        lastCheckInDay = snapshot.lastCheckInDay
         experiment = snapshot.experiment
         restoring = false
     }

@@ -41,7 +41,7 @@ const STEPS = [
 const OUTPUTS = [
   {
     t: "A single Health Score",
-    d: "One number that captures where you stand, with the biological age it implies and what moved it since last time.",
+    d: "One number that captures where you stand, with the Vitality Age (wellness index) it implies and what moved it since last time.",
   },
   {
     t: "Every marker, in its optimal band",

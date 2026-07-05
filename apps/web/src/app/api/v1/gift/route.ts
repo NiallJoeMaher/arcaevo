@@ -7,28 +7,32 @@
  * The buyer gets one email when it's activated and NEVER sees health data.
  * MOCK: payment via the mock Stripe vendor; code delivery via the outbox.
  */
-import { randomInt } from "node:crypto";
+import { randomBytes } from "node:crypto";
 import { parseJsonBody } from "@/lib/api";
 import { collections } from "@/lib/db";
+import { CODE_ALPHABET } from "@/lib/member-auth";
 import { GiftCreateInput, TIER_PRICE_EUR, type GiftCode } from "@/lib/models";
 import { getPaymentsVendor } from "@/lib/vendors/stripe";
 
-/** Human-safe code alphabet (no 0/O/1/I). `seq` supplies random entropy. */
-function giftCode(seq: number, purchaserEmail: string): string {
-  const alphabet = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
-  let h = 0x811c9dc5;
-  const input = `${seq}:${purchaserEmail}`;
-  for (let i = 0; i < input.length; i++) {
-    h ^= input.charCodeAt(i);
-    h = Math.imul(h, 0x01000193);
-  }
+/**
+ * CSPRNG gift code (security audit W-3). Uses the same unambiguous 32-char
+ * alphabet as the magic-link codes (no 0/O/1/I) — 32 is a whole multiple of
+ * 256, so `byte % 32` is bias-free. 16 chars ⇒ 16 × log2(32) = 80 bits of
+ * entropy, replacing the old ~32-bit FNV-1a-derived code that was brute-
+ * forceable regardless of its 8-char rendering.
+ */
+const GIFT_CODE_LENGTH = 16;
+
+function giftCode(): string {
+  const bytes = randomBytes(GIFT_CODE_LENGTH);
   let code = "";
-  let value = h >>> 0;
-  for (let i = 0; i < 8; i++) {
-    code += alphabet[value % alphabet.length];
-    value = Math.floor(value / alphabet.length) || (value ^ (seq + i)) >>> 0;
+  for (let i = 0; i < GIFT_CODE_LENGTH; i++) {
+    code += CODE_ALPHABET[bytes[i]! % CODE_ALPHABET.length];
   }
-  return `GIFT-${code.slice(0, 4)}-${code.slice(4)}`;
+  return `GIFT-${code.slice(0, 4)}-${code.slice(4, 8)}-${code.slice(
+    8,
+    12
+  )}-${code.slice(12, 16)}`;
 }
 
 export async function POST(req: Request) {
@@ -37,10 +41,9 @@ export async function POST(req: Request) {
   const { purchaserEmail, recipientEmail, note, delivery } = parsed.data;
 
   const giftCodes = await collections.giftCodes();
-  // Random entropy (not countDocuments()+1) so concurrent gifts from the same
-  // purchaser can't mint the same code and collide on insert.
-  const seq = randomInt(0, 0x7fffffff);
-  const code = giftCode(seq, purchaserEmail.toLowerCase());
+  // 80-bit CSPRNG code (see giftCode) — no purchaser-derived seed, so concurrent
+  // gifts from the same purchaser can't collide on insert.
+  const code = giftCode();
 
   const gift: GiftCode = {
     _id: code,

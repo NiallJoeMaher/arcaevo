@@ -54,8 +54,11 @@ export const legalDocs: Record<string, LegalDoc> = {
     intro:
       "This policy explains what personal data Arcaevo collects, why, how we protect it, and the rights you have under the EU General Data Protection Regulation (GDPR). Your health data is special-category data and we treat it with the highest level of care.",
     sections: [
+      // TODO(legal): Codú Limited is the interim data controller for the early
+      // trials. Add the registered company number (CRO) once confirmed, and
+      // revisit if/when the controller transfers to the Arcaevo entity.
       S("Who we are", [
-        "Arcaevo Health Ltd is the data controller for the personal data described here. We are based in Dublin, Ireland, and process data in the European Union.",
+        "Codú Limited is the data controller for the personal data described here. We are based in Dublin, Ireland, and process data in the European Union.",
       ]),
       S(
         "What we collect",

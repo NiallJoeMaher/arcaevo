@@ -84,15 +84,19 @@ export async function requireConsentedMember(
 
 /**
  * Consent withdrawal → immediate stop. Flags the user so the guard refuses
- * them and revokes every session so live cookies/bearers stop working at once.
+ * them, revokes every session so live cookies/bearers stop working at once,
+ * AND revokes every public GP share link the member issued — otherwise the
+ * public /s/[token] endpoint would keep serving their Art.9 lab values for up
+ * to the link's 30-day TTL against withdrawn consent (security audit W-1).
  * Owned here (not auth.ts) — the withdrawal→revocation link is consent policy.
  *
- * Idempotent: safe to call again on an already-suspended member.
+ * Idempotent: safe to call again on an already-suspended member (re-flagging
+ * and re-revoking already-revoked links are both no-ops).
  */
 export async function suspendProcessingForWithdrawal(
   userId: string,
   now: Date = new Date()
-): Promise<{ sessionsRevoked: number }> {
+): Promise<{ sessionsRevoked: number; shareLinksRevoked: number }> {
   const users = await collections.users();
   await users.updateOne(
     { _id: userId },
@@ -104,6 +108,14 @@ export async function suspendProcessingForWithdrawal(
       },
     }
   );
+  const shareLinks = await collections.shareLinks();
+  const shareResult = await shareLinks.updateMany(
+    { userId, revoked: { $ne: true } },
+    { $set: { revoked: true } }
+  );
   const sessionsRevoked = await revokeSessions(userId);
-  return { sessionsRevoked };
+  return {
+    sessionsRevoked,
+    shareLinksRevoked: shareResult.modifiedCount ?? 0,
+  };
 }

@@ -15,9 +15,15 @@ import { newId } from "@/lib/ids";
 import { checkEligibility } from "@/lib/eligibility";
 import { renderEmailLayout } from "@/lib/emails";
 import { GiftRedeemInput, type Membership } from "@/lib/models";
+import { GIFT_REDEEM_RATE_LIMIT, limitByIp } from "@/lib/rate-limit";
 import { emailVendor } from "@/lib/vendors/email.mock";
 
 export async function POST(req: Request) {
+  // IP rate-limit BEFORE any lookup (security audit W-3): caps how fast an
+  // authenticated attacker can grind for an unredeemed code.
+  const limited = await limitByIp(req, "gift_redeem", GIFT_REDEEM_RATE_LIMIT);
+  if (limited) return limited;
+
   const auth = await requireMember(req);
   if (auth.denied) return auth.denied;
 

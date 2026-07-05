@@ -198,7 +198,7 @@ const renderers: Renderers = {
       button: { label: "Sign in to Arcaevo", url: signinUrl },
       afterButtonHtml: codeBlock(code, codeUrl),
       footerHtml:
-        "Arcaevo Ltd · Dublin, Ireland<br>You're receiving this because a sign-in was requested for this address.",
+        "Arcaevo — a product of Codú Limited · Dublin, Ireland<br>You're receiving this because a sign-in was requested for this address.",
     }),
   }),
 
@@ -324,7 +324,7 @@ const renderers: Renderers = {
         `Essential and Performance now serve ${params.routingKey} and all ${params.county} routing keys. As one of the first ${params.firstN} on the list, your founding-member price — €${params.foundingPriceEur} for year one — holds for 30 days.`
       ),
       button: { label: "Claim founding-member pricing", url: params.claimUrl },
-      footerHtml: "Arcaevo Ltd · Dublin, Ireland",
+      footerHtml: "Arcaevo — a product of Codú Limited · Dublin, Ireland",
     }),
   }),
 

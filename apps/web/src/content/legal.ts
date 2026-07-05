@@ -1,9 +1,16 @@
 /**
- * Legal / trust document content, extracted verbatim from
- * design_handoff/designs/Legal.dc.html.
+ * Legal / trust document content.
  *
- * All copy is verbatim from the design prototype — do not edit wording or
- * dates here without a matching design change.
+ * Originally extracted from design_handoff/designs/Legal.dc.html, then
+ * HARDENED for the Irish GDPR Art. 9 (special-category health data) launch:
+ * the privacy policy and terms are reconciled to the interim data controller
+ * **Codú Limited** (registered in Ireland; Arcaevo is a product of Codú
+ * Limited) with the role-based contact privacy@arcaevo.com. This is current
+ * best-effort DRAFT copy — comprehensive and grounded in what the app
+ * actually does — pending final review and sign-off by a solicitor / data-
+ * protection professional. See docs/legal/README.md and
+ * docs/PRELAUNCH_CHECKLIST.md. Keep this in sync with docs/legal/* where they
+ * overlap; keep every wellness-not-diagnosis disclaimer intact.
  */
 
 /** A section within a legal document. */
@@ -50,45 +57,120 @@ export const legalDocs: Record<string, LegalDoc> = {
     slug: "privacy",
     kicker: "PRIVACY",
     title: "Privacy policy",
-    updated: "Last updated 1 July 2026",
+    updated: "Last updated 1 July 2026 · Version 2026-07-01",
     intro:
-      "This policy explains what personal data Arcaevo collects, why, how we protect it, and the rights you have under the EU General Data Protection Regulation (GDPR). Your health data is special-category data and we treat it with the highest level of care.",
+      "This policy explains what personal data Arcaevo collects, why, on what legal basis, who we share it with, how long we keep it, how we protect it, and the rights you have under the EU General Data Protection Regulation (GDPR) and the Irish Data Protection Act 2018. Your health data is special-category data under GDPR Article 9 and we treat it with the highest level of care. This is current best-effort copy pending final review by our solicitor; we will update it before it materially changes.",
     sections: [
       // Controller reconciled to the interim controller, Codú Limited, and the
       // data-protection contact set to the durable role-based address
       // privacy@arcaevo.com (deliverable via the SES-verified arcaevo.com
       // domain — see docs/EMAIL_ADDRESSES.md). Add Codú Limited's CRO number
-      // once confirmed, and revisit if/when the controller transfers to a
-      // dedicated Arcaevo entity. No DPO is named: at trial scale none is
-      // appointed yet — see docs/legal/DPO_NOT_REQUIRED_MEMO.md; do NOT label
-      // this contact "DPO". Reconciliation tracked in docs/PRELAUNCH_CHECKLIST.md §1.2/1.6.
-      S("Who we are", [
-        "Codú Limited is the data controller for the personal data described here. We are based in Dublin, Ireland, and process data in the European Union. For any data-protection question or to exercise your rights, contact our privacy team at privacy@arcaevo.com.",
+      // once confirmed ([TODO: CRO number]), and revisit if/when the
+      // controller transfers to a dedicated Arcaevo entity. No DPO is named:
+      // at trial scale none is appointed yet — see
+      // docs/legal/DPO_NOT_REQUIRED_MEMO.md; do NOT label this contact "DPO".
+      // Reconciliation tracked in docs/PRELAUNCH_CHECKLIST.md §1.2/1.6.
+      S("Who we are (data controller)", [
+        "Arcaevo is a product of Codú Limited, a company registered in Ireland (company registration number [TODO: CRO number]), with its registered office in Dublin, Ireland. Codú Limited is the data controller for the personal data described in this policy and decides why and how it is processed.",
+        "We process data in the European Union. For any data-protection question, or to exercise the rights set out below, contact our privacy team at privacy@arcaevo.com. This is a monitored, role-based address, not a named Data Protection Officer — at our current scale we are not required to appoint a DPO, and we will do so if and when that changes.",
       ]),
       S(
-        "What we collect",
-        ["We collect only what we need to provide and improve your health programme:"],
+        "What data we process",
+        ["We collect only what we need to provide and improve your health programme. Depending on which features you use, this includes:"],
         [
-          "Account details: name, email, date of birth and delivery address.",
-          "Health data: your blood test results, the biomarkers measured, and clinician review notes.",
-          "Wearable data: sleep, heart-rate variability, activity and related metrics you choose to connect.",
-          "Usage data: how you use the app, to keep it working and improve it.",
+          "Account and identity data: your name, email address, date of birth (to confirm you are 18+ and to interpret age-relative ranges) and, for physical tests, your delivery address.",
+          "Special-category health data (GDPR Art. 9): blood-test results and the biomarkers measured, the vitals and activity metrics you sync from Apple Watch and Apple Health (a small set of daily aggregates such as sleep, heart-rate variability, resting heart rate and activity), your in-app check-ins, clinician review notes, and — only if you explicitly turn it on — cycle-tracking data.",
+          "Membership and payment data: your plan, order history and billing details. Card numbers are handled directly by our payment processor and are never stored by us.",
+          "Communications and support data: messages you send us and the transactional emails we send you (magic-link sign-in codes, receipts, results-ready and fasting reminders).",
+          "Usage and device data: how you use the app and basic technical logs, to keep the service working, secure and improving. Optional, consent-gated product analytics are covered under Cookies & analytics below.",
         ],
       ),
-      S("Why we process it (lawful basis)", [
-        "We rely on your explicit consent (GDPR Article 9) to process your health and wearable data for interpretation and coaching. We rely on contract to fulfil your tests and membership, and on legitimate interests to keep the service secure. You can withdraw consent at any time.",
+      S("Special-category (health) data", [
+        "Your blood biomarkers, wearable vitals, check-ins and optional cycle data reveal information about your health, so they are special-category personal data under GDPR Article 9. We give them extra protection: they are processed only for your programme, kept within the EU, access-controlled, and never used for advertising, sold, or sent to our product-analytics tools.",
       ]),
-      S("How we protect it", [
-        "Your data is encrypted in transit and at rest, stored within the EU (eu-west-1), and access is restricted to the minimum staff and clinicians who need it. We maintain audit logs of access to health records.",
+      S(
+        "Why we process it (lawful basis)",
+        ["We must have a lawful basis for every use of your data. Ours are:"],
+        [
+          "Your explicit consent under Art. 9(2)(a) — the specific legal basis for processing your special-category health data (bloods, wearables, check-ins, cycle) to build your baseline, trends, insights and coaching. This is separate to, and additional to, our Art. 6 basis.",
+          "Performance of a contract (Art. 6(1)(b)) — to create and run your account, fulfil tests and deliver your membership.",
+          "Legitimate interests (Art. 6(1)(f)) — to keep the service secure, prevent abuse, and understand product usage in an aggregated way, balanced against your rights.",
+          "Legal obligation (Art. 6(1)(c)) — where law requires us to keep certain records.",
+        ],
+      ),
+      S("How consent works, and how to withdraw it", [
+        "We ask for health-data consent as a clear, affirmative action during onboarding — a deliberate toggle, never a pre-ticked box or a buried clause — and we ask separately for processing bloods and for reading wearables so you can grant each independently. Every consent is recorded with a timestamp, the exact wording version you agreed to, and where you gave it, so we can prove what you agreed to and when. If we materially change the wording, we ask you to re-consent to the new version.",
+        "You can withdraw any consent at any time by turning the relevant toggle off in the app; we stop that processing immediately. Withdrawing consent does not affect the lawfulness of processing carried out while the consent was active, and you can still export or delete your data afterwards.",
       ]),
-      S("Who we share it with", [
-        "We never sell your data or use it for advertising. We share it only with the accredited laboratories that process your samples, the clinicians who review your results, and the infrastructure sub-processors listed on our sub-processors page — all under strict data-processing agreements.",
+      S(
+        "What we use your data for (purposes)",
+        ["We use your data to:"],
+        [
+          "Interpret your bloods against your own baseline and optimal ranges, and fuse them with your wearable context.",
+          "Generate your trends, insights and prioritised coaching, and track whether changes are working.",
+          "Have a registered clinician review results and flag any value that crosses a defined threshold.",
+          "Run your membership, take payment, and send you essential service messages.",
+          "Keep the service secure, reliable and — with your optional consent — measurable so we can improve it.",
+        ],
+      ),
+      S(
+        "Who we share it with (recipients & sub-processors)",
+        [
+          "We never sell your data or use it for advertising. We share personal data only with a small number of carefully chosen service providers (sub-processors) that process it strictly on our instructions under a data-processing agreement, and with the clinicians and accredited laboratories needed to deliver your results. Our current and planned infrastructure sub-processors include:",
+        ],
+        [
+          "MongoDB Atlas — encrypted database hosting (EU region).",
+          "Vercel — web and application hosting (EU region).",
+          "Our email provider (e.g. AWS SES) — transactional email delivery. It never receives your health values or result numbers.",
+          "Stripe — payment processing (EU entity). We never store your card number.",
+          "PostHog (EU) — optional, consent-gated product analytics. Health data is never sent to analytics.",
+          "Registered clinicians and ISO-accredited EU laboratories — to review and process your tests, receiving only the data needed for that purpose.",
+        ],
+      ),
+      S("International data transfers", [
+        "We host and process your data in the European Union by design. Some of our providers are EU-hosted but have a US parent company; where a transfer of personal data outside the EEA could occur, we rely on the European Commission's Standard Contractual Clauses (SCCs) and supplementary safeguards. Our up-to-date sub-processor list is on the Sub-processors page.",
       ]),
-      S("Your rights", [
-        "Under GDPR you can access, correct, export (portability) and erase your data, restrict or object to processing, and withdraw consent. Most of these are self-service in the app; the rest we action within one month. To make a request, use the in-app controls or email our privacy team at privacy@arcaevo.com.",
+      S("How long we keep it (retention)", [
+        "We keep your health data while your account is active and for a limited period afterwards to meet clinical-record obligations, unless you ask us to delete it sooner. When you ask us to delete your account, we schedule a permanent erasure that runs after a short grace window; backups are purged on their normal rotation cycle within 30 days. We retain only a minimal record of your consent decisions and of the erasure itself — the evidence that a lawful deletion happened — plus anything a specific law requires us to keep, isolated from any other use.",
       ]),
-      S("Retention", [
-        "We keep your health data while your account is active and for a limited period afterwards to meet clinical-record obligations, unless you ask us to delete it sooner. When you delete your account, we permanently erase your data with no copies kept, except where law requires a minimal record.",
+      S(
+        "Your rights",
+        [
+          "Under the GDPR and the Data Protection Act 2018 you have the right to access, rectify (correct), erase, restrict, and object to the processing of your personal data, the right to data portability, and the right to withdraw consent at any time. Many of these are self-service in the app (Profile → Export my data / Delete all my data, and the consent toggles).",
+        ],
+        [
+          "Access — get a copy of the data we hold about you.",
+          "Rectification — correct data that is wrong or incomplete.",
+          "Erasure — have your data deleted (see Retention above).",
+          "Restriction — ask us to pause certain processing.",
+          "Portability — receive your data in a machine-readable format, or have it sent onward.",
+          "Objection — object to processing based on our legitimate interests.",
+          "Withdraw consent — turn off health-data processing at any time.",
+        ],
+      ),
+      S("How to exercise your rights", [
+        "Use the in-app controls, or email our privacy team at privacy@arcaevo.com from your registered address. We respond within one month, and usually within a few days. We may ask you to confirm your identity before actioning a request. Exercising these rights is free unless a request is manifestly unfounded or excessive.",
+      ]),
+      S("Your right to complain (Data Protection Commission)", [
+        "If you are unhappy with how we handle your data, we would like the chance to put it right — email privacy@arcaevo.com. You also have the right to lodge a complaint with the Irish supervisory authority, the Data Protection Commission (DPC), at 21 Fitzwilliam Square South, Dublin 2, D02 RD28, or online at www.dataprotection.ie, without going through us first.",
+      ]),
+      S("Automated processing & profiling", [
+        "Your Arcaevo scores, trends and insights are generated with rules and are informational — they help you understand your own numbers. They are not decisions that produce legal or similarly significant effects about you within the meaning of GDPR Article 22, and they are not diagnoses. Any result that crosses a defined clinical threshold is reviewed by a registered human clinician rather than acted on automatically. We do not use your data to make solely-automated decisions with a significant effect on you.",
+      ]),
+      S("Cookies & analytics", [
+        "We keep cookies to a minimum and use no advertising or cross-site tracking cookies — see our Cookie policy. Any product analytics (e.g. PostHog, hosted in the EU) are optional, off until you accept, and used only to understand aggregated app usage. Your special-category health data is never sent to analytics tools.",
+      ]),
+      S("How we protect it (security)", [
+        "Your data is encrypted in transit and stored within the EU. Access is restricted to the minimum staff and clinicians who need it, administrative access supports two-factor authentication (TOTP), and sensitive secrets are encrypted at rest. We minimise what we collect by design — for example only a small set of daily wearable aggregates syncs to our servers, cycle data stays on your device unless you enable it, and no health values are ever placed in emails or push notifications. No system is perfectly secure, but we work to protect your data proportionately to its sensitivity and to detect and respond to incidents.",
+      ]),
+      S("Children", [
+        "Arcaevo is for adults aged 18 and over. It is not intended for children, and we do not knowingly collect data from anyone under 18. If you believe a minor has given us data, contact privacy@arcaevo.com and we will delete it.",
+      ]),
+      S("Changes to this policy", [
+        "We may update this policy as the product and our providers evolve. We show the effective date and version at the top, and for material changes — especially to how we use your health data — we will tell you and, where required, ask for fresh consent. Continued use after an update means you have seen the current version.",
+      ]),
+      S("Wellness, not diagnosis", [
+        "Arcaevo is a wellness and optimisation service for healthy adults, not a medical device, diagnosis or treatment, and not a substitute for professional medical care. Always consult your GP about symptoms or concerns, and call 112 in an emergency. See our Clinical safety page for details.",
       ]),
     ],
   },
@@ -194,6 +276,9 @@ export const legalDocs: Record<string, LegalDoc> = {
     intro:
       "These terms govern your use of Arcaevo's app, website and testing service. By creating an account or ordering a test, you agree to them. Please read the wellness disclaimer carefully.",
     sections: [
+      S("Who provides Arcaevo", [
+        "Arcaevo is a product of Codú Limited, a company registered in Ireland (company registration number [TODO: CRO number]), with its registered office in Dublin, Ireland. In these terms, \"Arcaevo\", \"we\", \"us\" and \"our\" mean Codú Limited. You can contact us at privacy@arcaevo.com.",
+      ]),
       S("The service", [
         "Arcaevo provides at-home blood testing, interpretation, wearable fusion and coaching for wellness and optimisation. We are not a medical practice and do not provide diagnosis or treatment.",
       ]),

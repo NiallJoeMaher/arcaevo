@@ -81,9 +81,11 @@ export default function ContactPage() {
               ))}
             </div>
             <div className="mt-[34px] border-t border-hairline pt-6 text-[13.5px] leading-[1.6] text-caption">
-              Codú Limited · Dublin, Ireland
+              Arcaevo is a product of Codú Limited, registered in Ireland
+              (CRO [TODO: CRO number]) · Dublin, Ireland
               <br />
-              Interim data controller for GDPR purposes. See our{" "}
+              Codú Limited is the (interim) data controller for GDPR purposes.
+              See our{" "}
               <Link href="/legal/privacy" className="text-forest no-underline">
                 privacy policy
               </Link>

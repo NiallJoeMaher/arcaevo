@@ -77,6 +77,84 @@ export async function resolveBootstrapOwner(): Promise<AdminIdentity> {
   return { adminId: "bootstrap-owner", role: "owner", email };
 }
 
+/** Outcome of an ensureBootstrapAdmin() pass (safe to log — no secrets). */
+export interface BootstrapAdminResult {
+  created: boolean;
+  email?: string;
+  /** Why nothing was created (only when created === false). */
+  reason?: "env-missing" | "admins-exist" | "concurrent-create";
+}
+
+/** A Mongo duplicate-key error (unique `_id`/`email` collision), code 11000. */
+function isDuplicateKeyError(err: unknown): boolean {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    (err as { code?: number }).code === 11000
+  );
+}
+
+/**
+ * PRODUCTION FIRST-BOOT BOOTSTRAP — auto-seed the initial OWNER admin from env.
+ *
+ * The seed script (npm run seed) wipes data, so it is NEVER run in production;
+ * that leaves the `admins` collection empty and no one able to sign in to
+ * /admin, with no way to create the first admin (chicken-and-egg). This closes
+ * that gap: on a boot where the collection is genuinely EMPTY and both
+ * `ADMIN_EMAIL` and `ADMIN_PASSWORD` are set, it creates exactly ONE real owner
+ * account (scrypt-hashed password, role "owner"). The founder can then sign in
+ * with ADMIN_EMAIL + ADMIN_PASSWORD and is put through the normal mandatory-MFA
+ * enrollment on first login. This COMPLEMENTS the password-only bootstrap-owner
+ * break-glass (auth.ts) — the point is that a real DB owner exists so the
+ * admin-management UI, roles and MFA all work against a real record.
+ *
+ * Idempotent + concurrency-safe:
+ *  - No-op when the collection already has ANY admin (never overwrites/edits an
+ *    existing account) or when the env is unset.
+ *  - The insert uses a deterministic `_id` (`adm_<email>`) AND the unique
+ *    `admins_email` index, so if two cold-starts race, the loser's insert hits a
+ *    duplicate-key error which is swallowed as a no-op (not an error).
+ *
+ * Never logs the password. Returns a small result for a single non-secret log.
+ */
+export async function ensureBootstrapAdmin(
+  now: Date = new Date()
+): Promise<BootstrapAdminResult> {
+  const email = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  const password = process.env.ADMIN_PASSWORD;
+  // Only auto-seed when BOTH the email and its initial password are configured.
+  if (!email || email.length === 0 || !password || password.length === 0) {
+    return { created: false, reason: "env-missing" };
+  }
+
+  const admins = await collections.admins();
+  // Seed ONLY into a genuinely empty collection — never touch an existing admin.
+  if ((await admins.countDocuments({})) > 0) {
+    return { created: false, reason: "admins-exist" };
+  }
+
+  const admin: Admin = {
+    _id: `adm_${email}`,
+    email,
+    passwordHash: await hashPassword(password),
+    role: "owner",
+    name: "Owner",
+    createdAt: now,
+    disabledAt: null,
+  };
+  try {
+    await admins.insertOne(admin);
+  } catch (err) {
+    // A concurrent cold-start already created the owner (unique _id / email) —
+    // that is the desired end state, so treat the race as a no-op, not a crash.
+    if (isDuplicateKeyError(err)) {
+      return { created: false, reason: "concurrent-create" };
+    }
+    throw err;
+  }
+  return { created: true, email };
+}
+
 // ---------------------------------------------------------------------------
 // Owner-only management helpers (list / lookup / role / disable). These are the
 // only sanctioned readers/writers of the `admins` collection outside login, and

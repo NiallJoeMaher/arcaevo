@@ -97,6 +97,8 @@ Stripe test keys are already in, so a sandbox card charge works on dev with zero
 
 *(Ref: `ENVIRONMENTS_AND_SETUP.md §2`, `PRELAUNCH_CHECKLIST.md §2.2/§3.3`.)*
 
+> **First admin login is AUTOMATIC — no manual seeding.** You do NOT run the seed script in prod (it wipes data). On the first boot with an empty `admins` collection, the app auto-creates the initial **owner** account from `ADMIN_EMAIL` + `ADMIN_PASSWORD`. Set **`ADMIN_EMAIL=accounts@arcaevo.com`** and a strong `ADMIN_PASSWORD` in Vercel, deploy, then sign in at `/{ADMIN_PATH_SLUG}/login` (the secret admin path) with those two values — you'll be walked through mandatory 2FA enrolment. Afterwards, rotate `ADMIN_PASSWORD` and add any teammates at `/admin/admins`. *(Ref: `PRELAUNCH_CHECKLIST.md §7.2`, `MOCKED_APIS.md §3`.)*
+
 ## B5. Stripe — real account + live keys (only when you charge)
 
 | ☐ | Item | Cost | Where |

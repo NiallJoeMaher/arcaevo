@@ -67,7 +67,7 @@ These are **done and verified** (web 352 vitest + iOS 48 XCTests green; app + wi
 | 3.2 | ⛔ Confirm Atlas **encryption-at-rest ON**, **backups/PITR enabled AND EU-region**, **IP allow-list**, **least-privilege DB user**; run one **restore test**. | 👥 | ☐ |
 | 3.3 | ⛔ **Vercel** project connected, **EU region (dub1/fra1)** confirmed for **functions** (not a US default). | 👥 | ☐ |
 | 3.4 | ⛔ Point **`arcaevo.com`** (or chosen domain) at Vercel; HTTPS enforced. | 👤 | ☐ |
-| 3.5 | ⛔ **Production env vars set:** `MONGODB_URI`, `SESSION_SECRET` (long random), `ADMIN_PASSWORD` (bootstrap owner), `ADMIN_EMAIL`, `MFA_ENC_KEY` (long random), `CRON_SECRET` (long random), `NEXT_PUBLIC_SITE_URL`. | 👤 | ☐ |
+| 3.5 | ⛔ **Production env vars set:** `MONGODB_URI`, `SESSION_SECRET` (long random), `ADMIN_PASSWORD` (initial owner password), `ADMIN_EMAIL` (e.g. `accounts@arcaevo.com` — **required** so the first-boot owner auto-seed runs), `MFA_ENC_KEY` (long random), `CRON_SECRET` (long random), `NEXT_PUBLIC_SITE_URL`. | 👤 | ☐ |
 | 3.6 | ⛔ **Do NOT set** `ALLOW_DEMO_TOKEN`, `ALLOW_OPEN_WEBHOOKS`, `ALLOW_MOCK_EXTRACTION`, `RATE_LIMIT_DISABLED`, `STRIPE_FORCE_MOCK` in prod. | 🛠 | ☐ |
 | 3.7 | ⛔ **Erasure cron** live — `vercel.json` (`0 3 * * *` → `/api/v1/cron/run-erasure`) with `CRON_SECRET` set; **monitor success + keep proof it ran** (§6). Runner is built. | 👥 | ◐ |
 | 3.8 | Confirm PostHog **account region is EU** (not just ingest host), or keep analytics off. | 👥 | ☐ |
@@ -116,7 +116,7 @@ These are **done and verified** (web 352 vitest + iOS 48 XCTests green; app + wi
 | # | Item | Owner | Status |
 |---|---|---|---|
 | 7.1 | **Per-admin accounts + roles + `admin_access_log` + IP rate-limiting** — shipped (`ADMIN_AUTH_OPTIONS.md`). | 🛠 | ☑ |
-| 7.2 | ⛔ **First admin bootstrap** — deploy, log in with `ADMIN_PASSWORD`, create real per-admin accounts at `/admin/admins`, then consider disabling the bootstrap-password path. | 👤 | ☐ |
+| 7.2 | ⛔ **First admin bootstrap — now AUTOMATIC** (no manual seeding). On the first prod boot with an empty `admins` collection, the initial **owner** account is auto-created from `ADMIN_EMAIL` + `ADMIN_PASSWORD` (`ensureBootstrapAdmin()`). Founder step: log in at `/admin/login` with `ADMIN_EMAIL` + `ADMIN_PASSWORD` (you're forced through MFA enrolment), create any further per-admin accounts at `/admin/admins`, **rotate `ADMIN_PASSWORD`**, then consider `ADMIN_BOOTSTRAP_DISABLED=true` to close the password-only break-glass path. | 👤 | ☐ |
 | 7.3 | **MFA now MANDATORY** for real admin accounts (enforced enrollment gate — shipped). Founder step: enroll each admin at `/admin/security`; decide the owner-driven **recovery** flow for a lost authenticator. | 👥 | ◐ |
 | 7.4 | **Fail-closed secrets** (`SESSION_SECRET`/`ADMIN_PASSWORD`/`MFA_ENC_KEY`/`CRON_SECRET`) — enforced in code; just set them (see 3.5). | 🛠 | ☑ |
 | 7.5 | **Mock AI bloodwork extraction is gated** — `ALLOW_MOCK_EXTRACTION` unset in prod ⇒ honest manual-entry-only (shipped). Just don't set the flag in prod (§3.6). | 🛠 | ☑ |

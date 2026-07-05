@@ -38,34 +38,56 @@ export class ArcaevoEmailStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    // Domain is a single easily-changed knob: context param wins, else default.
+    // Two modes:
+    //  • senderEmail context set  → verify a SINGLE email address (no DNS/DKIM;
+    //    SES emails a confirmation link). Used for the interim trial sender
+    //    (e.g. niall@codu.ie) while no arcaevo.com DNS is under our control.
+    //      npx cdk deploy ArcaevoEmailStack -c senderEmail=niall@codu.ie
+    //  • otherwise                → verify the sending DOMAIN with Easy DKIM +
+    //    custom MAIL FROM (the production path; use a subdomain of arcaevo.com
+    //    such as mail.arcaevo.com to insulate the apex domain's reputation).
+    const senderEmail = (
+      this.node.tryGetContext("senderEmail") as string | undefined
+    )?.trim();
     const sendingDomain =
       (this.node.tryGetContext("sendingDomain") as string | undefined)?.trim() ||
       DEFAULT_SENDING_DOMAIN;
-
-    // Custom MAIL FROM subdomain — makes the bounce/Return-Path align to our
-    // own domain (better SPF alignment + deliverability) instead of amazonses.com.
     const mailFromDomain = `mail.${sendingDomain}`;
 
-    // --- SES: domain identity with Easy DKIM ---------------------------------
-    const identity = new ses.EmailIdentity(this, "SendingDomainIdentity", {
-      identity: ses.Identity.domain(sendingDomain),
-      // Easy DKIM: AWS manages the 2048-bit keys; we publish 3 CNAMEs (below).
-      dkimSigning: true,
-      // Route bounces/complaints through our own subdomain (needs MX + SPF TXT
-      // on mail.<domain>; those records are documented in SES_SETUP.md).
-      mailFromDomain,
-      // If the MAIL FROM MX isn't set up yet, fall back to amazonses.com so
-      // sending still works while DNS propagates.
-      mailFromBehaviorOnMxFailure:
-        ses.MailFromBehaviorOnMxFailure.USE_DEFAULT_VALUE,
-    });
+    // The verified identity + the ARN/From condition the IAM policy is scoped to.
+    // In domain mode CDK creates + manages the identity; in single-email mode we
+    // do NOT create it (the address is verified out-of-band via SES's emailed
+    // confirmation link — and may already exist in the account), we just scope
+    // the IAM sender to its ARN.
+    let identity: ses.EmailIdentity | undefined;
+    let identityResourceName: string;
+    let fromAddressCondition: string;
 
-    // ARN of the verified identity — used to scope the send policy to THIS domain.
+    if (senderEmail) {
+      // --- Single verified email address (interim, no DNS) -------------------
+      // Verify it once via: aws ses verify-email-identity --email-address <addr>
+      // (SES emails a confirmation link). Not CFN-managed to avoid clashing with
+      // an already-verified address.
+      identityResourceName = senderEmail;
+      fromAddressCondition = senderEmail; // may only send AS exactly this address
+    } else {
+      // --- Domain identity with Easy DKIM (production) -----------------------
+      identity = new ses.EmailIdentity(this, "SendingDomainIdentity", {
+        identity: ses.Identity.domain(sendingDomain),
+        dkimSigning: true,
+        mailFromDomain,
+        mailFromBehaviorOnMxFailure:
+          ses.MailFromBehaviorOnMxFailure.USE_DEFAULT_VALUE,
+      });
+      identityResourceName = sendingDomain;
+      fromAddressCondition = `*@${sendingDomain}`;
+    }
+
+    // ARN of the verified identity — scopes the send policy to THIS identity.
     const identityArn = this.formatArn({
       service: "ses",
       resource: "identity",
-      resourceName: sendingDomain,
+      resourceName: identityResourceName,
     });
 
     // --- IAM: least-privilege SMTP sender ------------------------------------
@@ -82,8 +104,9 @@ export class ArcaevoEmailStack extends cdk.Stack {
         actions: ["ses:SendEmail", "ses:SendRawEmail"],
         resources: [identityArn],
         conditions: {
-          // May only send with a From address at our sending domain.
-          StringLike: { "ses:FromAddress": `*@${sendingDomain}` },
+          // May only send AS the verified identity (single address, or any
+          // address at the verified domain).
+          StringLike: { "ses:FromAddress": fromAddressCondition },
         },
       }),
     );
@@ -105,9 +128,11 @@ export class ArcaevoEmailStack extends cdk.Stack {
     });
 
     // --- Outputs (never the secret in plaintext) -----------------------------
-    new cdk.CfnOutput(this, "SendingDomain", {
-      value: sendingDomain,
-      description: "Verified SES sending domain",
+    new cdk.CfnOutput(this, "SesIdentity", {
+      value: senderEmail ?? sendingDomain,
+      description: senderEmail
+        ? "Verified SES sender EMAIL (check its inbox for the AWS confirmation link)"
+        : "Verified SES sending DOMAIN",
     });
 
     new cdk.CfnOutput(this, "SmtpUsername", {
@@ -127,37 +152,38 @@ export class ArcaevoEmailStack extends cdk.Stack {
       description: "SMTP_HOST for the web env (STARTTLS :587 / TLS :465).",
     });
 
-    new cdk.CfnOutput(this, "MailFromDomain", {
-      value: mailFromDomain,
-      description:
-        "Custom MAIL FROM subdomain — add its MX + SPF TXT records (see SES_SETUP.md).",
-    });
-
-    // Easy DKIM CNAMEs the user must publish (3 records). Names/values are
-    // resolved at deploy time from the identity's DKIM tokens.
-    new cdk.CfnOutput(this, "DkimCname1Name", {
-      value: identity.dkimDnsTokenName1,
-      description: "DKIM CNAME #1 — record name",
-    });
-    new cdk.CfnOutput(this, "DkimCname1Value", {
-      value: identity.dkimDnsTokenValue1,
-      description: "DKIM CNAME #1 — record value",
-    });
-    new cdk.CfnOutput(this, "DkimCname2Name", {
-      value: identity.dkimDnsTokenName2,
-      description: "DKIM CNAME #2 — record name",
-    });
-    new cdk.CfnOutput(this, "DkimCname2Value", {
-      value: identity.dkimDnsTokenValue2,
-      description: "DKIM CNAME #2 — record value",
-    });
-    new cdk.CfnOutput(this, "DkimCname3Name", {
-      value: identity.dkimDnsTokenName3,
-      description: "DKIM CNAME #3 — record name",
-    });
-    new cdk.CfnOutput(this, "DkimCname3Value", {
-      value: identity.dkimDnsTokenValue3,
-      description: "DKIM CNAME #3 — record value",
-    });
+    // Domain-mode only: the MAIL FROM subdomain + the 3 Easy-DKIM CNAMEs the
+    // user must publish. (Single-email identities have no DKIM/MAIL FROM.)
+    if (!senderEmail && identity) {
+      new cdk.CfnOutput(this, "MailFromDomain", {
+        value: mailFromDomain,
+        description:
+          "Custom MAIL FROM subdomain — add its MX + SPF TXT records (see SES_SETUP.md).",
+      });
+      new cdk.CfnOutput(this, "DkimCname1Name", {
+        value: identity.dkimDnsTokenName1,
+        description: "DKIM CNAME #1 — record name",
+      });
+      new cdk.CfnOutput(this, "DkimCname1Value", {
+        value: identity.dkimDnsTokenValue1,
+        description: "DKIM CNAME #1 — record value",
+      });
+      new cdk.CfnOutput(this, "DkimCname2Name", {
+        value: identity.dkimDnsTokenName2,
+        description: "DKIM CNAME #2 — record name",
+      });
+      new cdk.CfnOutput(this, "DkimCname2Value", {
+        value: identity.dkimDnsTokenValue2,
+        description: "DKIM CNAME #2 — record value",
+      });
+      new cdk.CfnOutput(this, "DkimCname3Name", {
+        value: identity.dkimDnsTokenName3,
+        description: "DKIM CNAME #3 — record name",
+      });
+      new cdk.CfnOutput(this, "DkimCname3Value", {
+        value: identity.dkimDnsTokenValue3,
+        description: "DKIM CNAME #3 — record value",
+      });
+    }
   }
 }

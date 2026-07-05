@@ -156,6 +156,26 @@ export function mockExtractionEnabled(): boolean {
 }
 
 /**
+ * Whether the paid BLOOD-TESTING tiers are available to buy / activate.
+ *
+ * Covers Essential (€329) + Performance (€399), the lab-kit / nurse / venous
+ * order types + add-ons, and the clinician-reviewed-results service. The Fusion
+ * tier (€119 — Apple Watch + user-uploaded bloods, no kit/nurse/clinician) is
+ * ALWAYS available and is never gated by this flag.
+ *
+ * FAIL-SAFE OFF: enabled ONLY when `BLOOD_TIERS_ENABLED` is exactly "true".
+ * Unset / anything-else = DISABLED — so production never sells a blood tier it
+ * cannot yet fulfil (no lab/phlebotomy partner or real clinician live). Dev and
+ * pre-prod set `BLOOD_TIERS_ENABLED=true` (plus the `NEXT_PUBLIC_` mirror for
+ * client UI). This is the SERVER-ONLY source of truth; it is enforced in the
+ * checkout / orders / gift routes and exposed publicly (no secrets) via
+ * `GET /api/v1/config` so the iOS app can read it at runtime with no rebuild.
+ */
+export function bloodTiersEnabled(): boolean {
+  return process.env.BLOOD_TIERS_ENABLED === "true";
+}
+
+/**
  * Whether IP rate-limiting is enforced (auth endpoints). ON everywhere by
  * default; a local prod-build stack (e2e) can opt out with
  * `RATE_LIMIT_DISABLED=true` so many scripted sign-in attempts from one host

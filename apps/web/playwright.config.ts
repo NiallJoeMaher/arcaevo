@@ -36,6 +36,13 @@ export const E2E_ENV = {
   // verify attempts from one host and would otherwise trip the limiter. Real
   // production leaves this unset (limiter ON).
   RATE_LIMIT_DISABLED: "true",
+  // Blood tiers (Essential/Performance + kit/nurse/venous orders + gifting) are
+  // fail-safe OFF unless BLOOD_TIERS_ENABLED=true. The suite exercises the full
+  // paid flow (checkout, orders, gift), so turn them ON here — both the server
+  // gate and the NEXT_PUBLIC_ mirror (inlined at `next build` time). Real prod
+  // leaves both unset until the lab partner + clinician are live.
+  BLOOD_TIERS_ENABLED: "true",
+  NEXT_PUBLIC_BLOOD_TIERS_ENABLED: "true",
   // Emails always land in the Mongo outbox. Locally we ALSO deliver them via
   // SMTP to the compose mailhog container (host :1026, UI :8026) so
   // email.spec.ts can assert real delivery; CI has no mailhog, so it stays

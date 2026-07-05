@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import { bloodTiersEnabled } from "@/lib/env";
 import {
   jsonLd,
   organizationJsonLd,
@@ -120,6 +121,13 @@ const FAQS = [
 ];
 
 export default function PricingPage() {
+  // Blood tiers (Essential/Performance) are gated until the lab partner +
+  // clinician are live. When off, the cards stay visible (so people see the
+  // roadmap) but aren't buyable — "Coming soon" + a waitlist CTA instead of a
+  // checkout button. Fusion is always purchasable. Server-enforced in the
+  // checkout/orders routes; this is the matching UI.
+  const bloodEnabled = bloodTiersEnabled();
+
   return (
     <div className="w-full overflow-x-hidden bg-bone font-sans text-ink">
       <SiteNav active="pricing" />
@@ -204,15 +212,34 @@ export default function PricingPage() {
                 ✓ Retest verdicts on what you changed
                 <br />✓ Everything in Fusion
               </div>
-              <Link
-                href="/checkout?tier=essential"
-                className="mt-[22px] block rounded-pill bg-bone-white p-[13px] text-center font-semibold text-ink no-underline"
-              >
-                Start Essential
-              </Link>
-              <div className="mt-[10px] text-center text-[11.5px] text-muted-dark-soft">
-                Dublin service area — quick Eircode check first
-              </div>
+              {bloodEnabled ? (
+                <>
+                  <Link
+                    href="/checkout?tier=essential"
+                    className="mt-[22px] block rounded-pill bg-bone-white p-[13px] text-center font-semibold text-ink no-underline"
+                  >
+                    Start Essential
+                  </Link>
+                  <div className="mt-[10px] text-center text-[11.5px] text-muted-dark-soft">
+                    Dublin service area — quick Eircode check first
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div
+                    aria-disabled="true"
+                    className="mt-[22px] block rounded-pill border border-hairline-dark p-[13px] text-center font-semibold text-muted-dark-soft"
+                  >
+                    Coming soon
+                  </div>
+                  <Link
+                    href="/early-access"
+                    className="mt-[10px] block text-center text-[11.5px] font-semibold text-vitality-light no-underline"
+                  >
+                    Join the waitlist →
+                  </Link>
+                </>
+              )}
             </div>
 
             <div className="flex flex-col rounded-card-lg border border-hairline bg-surface p-8">
@@ -238,15 +265,34 @@ export default function PricingPage() {
                 ✓ Priority clinician review
                 <br />✓ Everything in Essential
               </div>
-              <Link
-                href="/checkout?tier=performance"
-                className="mt-[22px] block rounded-pill border border-ink p-[13px] text-center font-semibold text-ink no-underline"
-              >
-                Start Performance
-              </Link>
-              <div className="mt-[10px] text-center text-[11.5px] text-caption">
-                Dublin service area — quick Eircode check first
-              </div>
+              {bloodEnabled ? (
+                <>
+                  <Link
+                    href="/checkout?tier=performance"
+                    className="mt-[22px] block rounded-pill border border-ink p-[13px] text-center font-semibold text-ink no-underline"
+                  >
+                    Start Performance
+                  </Link>
+                  <div className="mt-[10px] text-center text-[11.5px] text-caption">
+                    Dublin service area — quick Eircode check first
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div
+                    aria-disabled="true"
+                    className="mt-[22px] block rounded-pill border border-hairline p-[13px] text-center font-semibold text-caption"
+                  >
+                    Coming soon
+                  </div>
+                  <Link
+                    href="/early-access"
+                    className="mt-[10px] block text-center text-[11.5px] font-semibold text-forest no-underline"
+                  >
+                    Join the waitlist →
+                  </Link>
+                </>
+              )}
             </div>
           </div>
           <p className="mb-0 mt-5 text-center text-[13px] text-caption">

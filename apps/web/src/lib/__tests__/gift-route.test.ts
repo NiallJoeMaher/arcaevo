@@ -8,7 +8,7 @@
  *  - /gift/redeem now IP-rate-limits before any lookup, so an authenticated
  *    attacker can't grind the code space.
  */
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CODE_ALPHABET } from "@/lib/member-auth";
 
 type Doc = { _id: string; [k: string]: unknown };
@@ -76,7 +76,11 @@ import { POST as redeemPost } from "@/app/api/v1/gift/redeem/route";
 
 beforeEach(() => {
   for (const k of Object.keys(store)) delete store[k];
+  // Gifting is an Essential (blood) tier — buying/redeeming requires blood tiers
+  // ON. This suite exercises those flows, so turn the fail-safe gate on here.
+  vi.stubEnv("BLOOD_TIERS_ENABLED", "true");
 });
+afterEach(() => vi.unstubAllEnvs());
 
 function giftReq() {
   return new Request("http://localhost/api/v1/gift", {

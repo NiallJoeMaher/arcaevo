@@ -14,6 +14,7 @@ import { parseJsonBody } from "@/lib/api";
 import { collections } from "@/lib/db";
 import { newId } from "@/lib/ids";
 import { checkEligibility } from "@/lib/eligibility";
+import { bloodTiersEnabled } from "@/lib/env";
 import { renderEmailLayout } from "@/lib/emails";
 import { GiftRedeemInput, type Membership } from "@/lib/models";
 import { GIFT_REDEEM_RATE_LIMIT, limitByIp } from "@/lib/rate-limit";
@@ -45,6 +46,20 @@ export async function POST(req: Request) {
     return Response.json(
       { error: "already_redeemed", message: "This gift was already activated." },
       { status: 409 }
+    );
+  }
+
+  // Blood-tier feature gate — a gift activates a blood tier (Essential), which
+  // ships kits + clinician review. When blood tiers are off we can't activate
+  // it; the code stays unredeemed so it's still valid once the tiers open.
+  if (gift.tier !== "fusion" && !bloodTiersEnabled()) {
+    return Response.json(
+      {
+        error: "blood_tiers_unavailable",
+        message:
+          "This gift can't be activated yet — the Essential year opens once our lab partner and clinician are live. Your code stays valid until then.",
+      },
+      { status: 403 }
     );
   }
 

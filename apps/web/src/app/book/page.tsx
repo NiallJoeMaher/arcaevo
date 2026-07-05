@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { currentMember } from "@/components/account/session";
 import { AuthShell } from "@/components/account/ui";
+import { bloodTiersEnabled } from "@/lib/env";
 import BookingClient from "./BookingClient";
 
 export const metadata: Metadata = {
@@ -32,6 +33,10 @@ function nextTueWedThu(from: Date): { iso: string; day: string; month: string }[
 }
 
 export default async function BookPage() {
+  // Nurse booking is a blood-tier (Performance venous) affordance — not
+  // reachable while blood tiers are off (matches the orders-route gate).
+  if (!bloodTiersEnabled()) redirect("/pricing");
+
   const member = await currentMember();
   if (!member) redirect("/signin");
 

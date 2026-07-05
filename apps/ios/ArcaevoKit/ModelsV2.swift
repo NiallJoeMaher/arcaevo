@@ -2,6 +2,32 @@ import Foundation
 
 // MARK: - v2/v3 API shapes (apps/web /api/v1 — zod schemas are the contract)
 
+// MARK: App config (public feature gates — no auth)
+
+/// `GET /api/v1/config` (public, no auth) — server-controlled feature gates.
+///
+/// `bloodTiersEnabled` gates the paid BLOOD-TESTING tiers (Essential €329 /
+/// Performance €399) and the testing journey (Eircode gate, activate-kit,
+/// nurse-booking, venous draw). While the lab/clinician partners don't exist,
+/// production returns `false` so the app offers ONLY the Fusion tier.
+///
+/// FAIL-SAFE: the custom decoder defaults a missing/garbled field to `false`,
+/// so an unknown flag never renders the blood tiers as purchasable.
+struct AppConfig: Codable, Hashable {
+    var bloodTiersEnabled: Bool
+
+    init(bloodTiersEnabled: Bool = false) {
+        self.bloodTiersEnabled = bloodTiersEnabled
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        // decodeIfPresent → false: a `{}` body, a null, or an absent field all
+        // resolve to the safe default rather than throwing.
+        bloodTiersEnabled = try container.decodeIfPresent(Bool.self, forKey: .bloodTiersEnabled) ?? false
+    }
+}
+
 // MARK: Auth (magic link)
 
 /// `POST /auth/magic-link` → 202. Non-revealing: identical whether or not

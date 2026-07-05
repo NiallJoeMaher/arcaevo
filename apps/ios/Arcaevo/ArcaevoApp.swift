@@ -26,6 +26,10 @@ struct ArcaevoApp: App {
                     // token can be handed to the paired watch (re-pushes the
                     // current token on activation if already signed in).
                     PhoneWatchConnectivity.shared.activate()
+                    // Server-controlled feature gate: whether the paid blood
+                    // tiers + testing journey are offered. Fail-safe false until
+                    // /config confirms (DEBUG defaults true for local dev).
+                    await appState.loadAppConfig()
                     await model.loadAll()
                     // Turn on background HealthKit delivery + schedule the
                     // refresh so widgets/complications stay fresh without an
@@ -46,6 +50,10 @@ struct ArcaevoApp: App {
                     guard phase == .active else { return }
                     appState.markAppOpened()
                     EngagementNudge.refresh(appState: appState, model: model)
+                    // Re-check the blood-tier gate on every foreground so a
+                    // server flip (partners go live / paused) takes effect
+                    // without a relaunch.
+                    Task { await appState.loadAppConfig() }
                 }
                 // Magic-link entry points:
                 //  - https://arcaevo.com/verify?token=…  (universal link —

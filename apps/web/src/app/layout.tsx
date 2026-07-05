@@ -8,6 +8,7 @@ import {
   jsonLd,
   websiteJsonLd,
 } from "@/lib/seo";
+import { getLocale } from "@/i18n/server";
 
 const instrumentSerif = Instrument_Serif({
   weight: "400",
@@ -54,14 +55,19 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Resolve the visitor's locale from request headers so <html lang> reflects
+  // the negotiated locale (content-negotiation on a single URL structure).
+  // Reading headers opts the tree into dynamic rendering; the Ireland-first
+  // en-IE default keeps ambiguous/EU/IE requests correct. See docs/LOCALIZATION.md.
+  const locale = await getLocale();
   return (
     <html
-      lang="en-IE"
+      lang={locale}
       className={`${instrumentSerif.variable} ${hankenGrotesk.variable} ${geistMono.variable} antialiased`}
     >
       <body className="min-h-screen bg-bone font-sans text-ink">

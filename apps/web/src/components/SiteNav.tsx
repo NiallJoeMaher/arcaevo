@@ -1,15 +1,24 @@
 import Link from "next/link";
+import { DEFAULT_LOCALE, getDictionary, type Locale } from "@/i18n/messages";
 
+/** Route structure (hrefs + active keys); labels come from the dictionary. */
 const NAV_ITEMS = [
-  { key: "how", href: "/how-it-works", label: "How it works" },
-  { key: "pricing", href: "/pricing", label: "Pricing" },
-  { key: "science", href: "/science", label: "Science" },
-  { key: "app", href: "/app", label: "The app" },
-  { key: "compare", href: "/compare", label: "Compare" },
-  { key: "blog", href: "/blog", label: "Blog" },
-];
+  { key: "how", href: "/how-it-works" },
+  { key: "pricing", href: "/pricing" },
+  { key: "science", href: "/science" },
+  { key: "app", href: "/app" },
+  { key: "compare", href: "/compare" },
+  { key: "blog", href: "/blog" },
+] as const;
 
-export default function SiteNav({ active = "" }: { active?: string }) {
+export default function SiteNav({
+  active = "",
+  locale = DEFAULT_LOCALE,
+}: {
+  active?: string;
+  locale?: Locale;
+}) {
+  const m = getDictionary(locale).nav;
   return (
     <header className="sticky top-0 z-50 border-b border-hairline bg-[rgba(236,231,221,0.82)] font-sans backdrop-blur-[14px] backdrop-saturate-[1.4]">
       <nav
@@ -21,7 +30,7 @@ export default function SiteNav({ active = "" }: { active?: string }) {
           className="flex shrink-0 items-center gap-[11px] text-ink no-underline"
         >
           <span className="text-[19px] font-semibold tracking-[-0.01em]">
-            Arcaevo
+            {m.brand}
           </span>
         </Link>
         <div className="hidden items-center gap-7 md:flex">
@@ -36,7 +45,7 @@ export default function SiteNav({ active = "" }: { active?: string }) {
                   : "font-medium text-muted"
               }`}
             >
-              {item.label}
+              {m.items[item.key]}
             </Link>
           ))}
         </div>
@@ -44,7 +53,7 @@ export default function SiteNav({ active = "" }: { active?: string }) {
           href="/pricing"
           className="shrink-0 rounded-pill bg-ink px-5 py-[10px] text-[13.5px] font-semibold text-bone-white no-underline"
         >
-          Start membership
+          {m.cta}
         </Link>
       </nav>
     </header>

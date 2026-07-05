@@ -34,13 +34,19 @@ export function jsonLd(obj: Record<string, unknown>): string {
 }
 
 /**
- * hreflang scaffolding. en-IE is the only live locale today; x-default points
- * at it. en-GB / en-US slots are intentionally left out until localized routes
- * exist (don't fabricate locale URLs) — add them here when they ship.
+ * hreflang alternates. The site serves all English variants from ONE URL
+ * structure (no /en-us/ path segments): the locale is chosen per request by
+ * the Accept-Language resolver (see src/i18n/), and the visible copy differs
+ * only in spelling. So every alternate is SELF-REFERENCING — it points at the
+ * same absolute URL — which is the correct hreflang signal for content
+ * negotiation on a single URL. x-default points at the same URL and resolves
+ * to the Ireland-first en-IE default. Add a new tag here when a locale ships.
  */
 export function hreflangFor(path: string): Record<string, string> {
   const url = canonicalUrl(path);
   return {
+    "en-US": url,
+    "en-GB": url,
     "en-IE": url,
     "x-default": url,
   };

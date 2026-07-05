@@ -24,13 +24,13 @@ describe("canonicalUrl", () => {
 });
 
 describe("hreflangFor", () => {
-  it("emits en-IE + x-default pointing at the same absolute URL", () => {
+  it("advertises en-US/en-GB/en-IE + x-default, all self-referencing", () => {
     const langs = hreflangFor("/blog");
+    // Single URL structure: every locale negotiates from the same absolute URL.
+    expect(langs["en-US"]).toBe(`${SITE_URL}/blog`);
+    expect(langs["en-GB"]).toBe(`${SITE_URL}/blog`);
     expect(langs["en-IE"]).toBe(`${SITE_URL}/blog`);
     expect(langs["x-default"]).toBe(`${SITE_URL}/blog`);
-    // en-GB / en-US are intentionally absent until localized routes exist.
-    expect(langs["en-GB"]).toBeUndefined();
-    expect(langs["en-US"]).toBeUndefined();
   });
 });
 

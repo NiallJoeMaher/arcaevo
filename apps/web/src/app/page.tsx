@@ -9,6 +9,7 @@ import {
   membershipProductJsonLd,
   routeMetadata,
 } from "@/lib/seo";
+import { getServerMessages } from "@/i18n/server";
 
 export const metadata: Metadata = routeMetadata({ path: "/" });
 
@@ -279,10 +280,15 @@ const TRUST_SIGNALS: {
   },
 ];
 
-export default function Home() {
+export default async function Home() {
+  // Reading request headers here opts this page into per-request (dynamic)
+  // rendering so US visitors get American spelling; EU/IE visitors get the
+  // en-IE default. See docs/LOCALIZATION.md for the static-vs-dynamic trade-off.
+  const { locale, m } = await getServerMessages();
+  const h = m.home;
   return (
     <div className="w-full overflow-x-hidden bg-bone font-sans text-ink">
-      <SiteNav active="home" />
+      <SiteNav active="home" locale={locale} />
 
       <main>
         {/* HERO */}
@@ -290,40 +296,37 @@ export default function Home() {
           <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
             <div>
               <div className="mb-[22px] font-mono text-xs tracking-[0.14em] text-forest">
-                THE INTERPRETATION LAYER · DUBLIN
+                {h.hero.eyebrow}
               </div>
               <h1 className="mb-[22px] mt-0 font-serif text-[clamp(40px,5.4vw,62px)] font-normal leading-[1.02] tracking-[-0.015em]">
-                The numbers were never the problem. The roadmap was.
+                {h.hero.title}
               </h1>
               <p className="mb-[34px] mt-0 max-w-[46ch] text-[19px] leading-[1.55] text-muted">
-                Everyone else hands you a panel of biomarkers and walks away.
-                Arcaevo fuses your bloods with your Apple Watch, reads them off
-                your own baseline, and gives you two things to change — then
-                proves whether they worked.
+                {h.hero.lead}
               </p>
               <div className="flex flex-wrap items-center gap-[14px]">
                 <Link
                   href="/pricing"
                   className="rounded-pill bg-forest px-7 py-[15px] text-base font-semibold text-white no-underline"
                 >
-                  Order your first test
+                  {h.hero.ctaPrimary}
                 </Link>
                 <Link
                   href="/how-it-works"
                   className="text-[15px] font-semibold text-ink no-underline"
                 >
-                  See how it works →
+                  {h.hero.ctaSecondary}
                 </Link>
               </div>
               <div className="mt-[34px] flex flex-wrap gap-[10px] font-mono text-[11px] text-muted">
                 <span className="rounded-pill border border-hairline-strong px-[14px] py-2">
-                  ACCREDITED EU LABS
+                  {h.hero.badgeLabs}
                 </span>
                 <span className="rounded-pill border border-hairline-strong px-[14px] py-2">
-                  CLINICIAN-REVIEWED
+                  {h.hero.badgeClinician}
                 </span>
                 <span className="rounded-pill border border-hairline-strong px-[14px] py-2">
-                  GDPR · EU-HOSTED
+                  {h.hero.badgeGdpr}
                 </span>
               </div>
             </div>
@@ -335,21 +338,21 @@ export default function Home() {
         <section className="border-y border-hairline-soft bg-surface">
           <div className="mx-auto flex max-w-[1180px] flex-wrap items-center justify-between gap-5 px-10 py-[26px]">
             <span className="font-mono text-[11px] tracking-[0.12em] text-caption">
-              BUILT FOR
+              {h.logoStrip.builtFor}
             </span>
             <div className="flex flex-wrap items-baseline gap-[30px] text-base font-semibold text-muted">
-              <span>Apple Watch</span>
-              <span>Apple Health</span>
-              <span>iPhone</span>
+              <span>{h.logoStrip.appleWatch}</span>
+              <span>{h.logoStrip.appleHealth}</span>
+              <span>{h.logoStrip.iphone}</span>
               <span className="text-[13px] font-medium text-[#6C756E]">
-                WHOOP, Oura &amp; Garmin — on the roadmap
+                {h.logoStrip.roadmap}
               </span>
             </div>
             <Link
               href="/science"
               className="font-mono text-[11px] tracking-[0.1em] text-forest no-underline"
             >
-              READ THE SCIENCE →
+              {h.logoStrip.readScience}
             </Link>
           </div>
         </section>
@@ -359,45 +362,46 @@ export default function Home() {
           <div className="mx-auto max-w-[1180px]">
             <div className="mb-[54px] text-center">
               <div className="mb-[14px] font-mono text-xs tracking-[0.14em] text-forest">
-                HOW IT WORKS
+                {h.howItWorks.eyebrow}
               </div>
               <h2 className="m-0 font-serif text-[42px] font-normal tracking-[-0.01em]">
-                Test. Understand. Act.
+                {h.howItWorks.title}
               </h2>
             </div>
             <div className="grid gap-7 md:grid-cols-3">
               <div>
                 <div className="mb-4 font-mono text-[13px] text-forest">01</div>
-                <h3 className="mb-[10px] mt-0 text-[21px] font-bold">Test</h3>
+                <h3 className="mb-[10px] mt-0 text-[21px] font-bold">
+                  {h.howItWorks.step1Title}
+                </h3>
                 <p className="mb-4 mt-0 text-[15px] leading-[1.55] text-muted">
-                  Finger-prick kit to your door, or a nurse to your home for a
-                  full venous draw. You choose the depth.
+                  {h.howItWorks.step1Body}
                 </p>
                 <div className="flex gap-2">
                   <span className="rounded-pill bg-[rgba(28,38,32,0.05)] px-[10px] py-[5px] font-mono text-[11px] text-muted">
-                    15–35
+                    {h.howItWorks.step1PillA}
                   </span>
                   <span className="rounded-pill bg-[rgba(30,92,69,0.1)] px-[10px] py-[5px] font-mono text-[11px] text-forest">
-                    45–80 markers
+                    {h.howItWorks.step1PillB}
                   </span>
                 </div>
               </div>
               <div>
                 <div className="mb-4 font-mono text-[13px] text-forest">02</div>
                 <h3 className="mb-[10px] mt-0 text-[21px] font-bold">
-                  Understand
+                  {h.howItWorks.step2Title}
                 </h3>
                 <p className="m-0 text-[15px] leading-[1.55] text-muted">
-                  Results land in a beautiful dashboard — every marker against
-                  its optimal range, layered with your sleep, HRV and activity.
+                  {h.howItWorks.step2Body}
                 </p>
               </div>
               <div>
                 <div className="mb-4 font-mono text-[13px] text-forest">03</div>
-                <h3 className="mb-[10px] mt-0 text-[21px] font-bold">Act</h3>
+                <h3 className="mb-[10px] mt-0 text-[21px] font-bold">
+                  {h.howItWorks.step3Title}
+                </h3>
                 <p className="m-0 text-[15px] leading-[1.55] text-muted">
-                  Your AI coach gives you one or two prioritised changes — and
-                  tracks whether they&apos;re working at your next test.
+                  {h.howItWorks.step3Body}
                 </p>
               </div>
             </div>
@@ -406,7 +410,7 @@ export default function Home() {
                 href="/how-it-works"
                 className="text-[15px] font-semibold text-forest no-underline"
               >
-                The full walkthrough →
+                {h.howItWorks.walkthrough}
               </Link>
             </div>
           </div>
@@ -417,14 +421,13 @@ export default function Home() {
           <div className="mx-auto max-w-[1180px]">
             <div className="mb-[52px] max-w-[62ch]">
               <div className="mb-[14px] font-mono text-xs tracking-[0.14em] text-vitality-light">
-                WHAT NOBODY ELSE DOES
+                {h.differentiators.eyebrow}
               </div>
               <h2 className="mb-[14px] mt-0 font-serif text-[42px] font-normal tracking-[-0.01em]">
-                Five things the others can&apos;t copy.
+                {h.differentiators.title}
               </h2>
               <p className="m-0 text-base leading-[1.6] text-muted-dark">
-                Your blood, your Apple Watch, your baseline. The EU-native
-                membership that tells you what actually moved your numbers.
+                {h.differentiators.intro}
               </p>
             </div>
             <div className="grid gap-6 md:grid-cols-6">
@@ -502,7 +505,7 @@ export default function Home() {
                 href="/compare"
                 className="text-[15px] font-semibold text-vitality-light no-underline"
               >
-                See how we compare →
+                {h.differentiators.compareCta}
               </Link>
             </div>
           </div>
@@ -513,10 +516,10 @@ export default function Home() {
           <div className="mx-auto max-w-[1180px]">
             <div className="mb-[52px] text-center">
               <div className="mb-[14px] font-mono text-xs tracking-[0.14em] text-forest">
-                MEMBERSHIP
+                {h.pricingTeaser.eyebrow}
               </div>
               <h2 className="m-0 font-serif text-[42px] font-normal tracking-[-0.01em]">
-                One annual membership. Tests included.
+                {h.pricingTeaser.title}
               </h2>
             </div>
             <div className="grid items-stretch gap-[22px] md:grid-cols-3">
@@ -597,15 +600,13 @@ export default function Home() {
           <div className="mx-auto max-w-[1180px]">
             <div className="mb-[52px] max-w-[62ch]">
               <div className="mb-[14px] font-mono text-xs tracking-[0.14em] text-forest">
-                WHY YOU CAN BELIEVE THE NUMBER
+                {h.credibility.eyebrow}
               </div>
               <h2 className="mb-[14px] mt-0 font-serif text-[42px] font-normal tracking-[-0.01em]">
-                How we earn your trust — before you&rsquo;ve even tested.
+                {h.credibility.title}
               </h2>
               <p className="m-0 text-base leading-[1.6] text-muted">
-                We&rsquo;re a new Irish membership with no reviews to show yet,
-                so we won&rsquo;t invent any. Here&rsquo;s the honest case for
-                the number you&rsquo;ll see instead.
+                {h.credibility.intro}
               </p>
             </div>
             <div className="grid gap-6 md:grid-cols-3">
@@ -631,13 +632,13 @@ export default function Home() {
                 href="/science"
                 className="text-[15px] font-semibold text-forest no-underline"
               >
-                Read the method →
+                {h.credibility.methodCta}
               </Link>
               <Link
                 href="/legal/clinical-safety"
                 className="text-[15px] font-semibold text-forest no-underline"
               >
-                Our wellness &amp; safety posture →
+                {h.credibility.safetyCta}
               </Link>
             </div>
           </div>
@@ -651,21 +652,20 @@ export default function Home() {
               className="mx-auto mb-6 h-14 w-14 rounded-full bg-[linear-gradient(135deg,#5FB592,#1E5C45)]"
             />
             <p className="mb-5 mt-0 font-serif text-[26px] leading-[1.4] tracking-[-0.005em] text-ink">
-              &ldquo;I built Arcaevo because health data should belong to you —
-              calm, clear, and yours. Not a PDF you can&apos;t read, and never
-              something we&apos;d sell.&rdquo;
+              {h.founder.quote}
             </p>
             <div className="font-mono text-sm text-caption">
-              — FOUNDER, ARCAEVO ·{" "}
+              {h.founder.attribution}{" "}
               <Link href="/about" className="text-forest underline underline-offset-2">
-                OUR STORY
+                {h.founder.storyLink}
               </Link>
             </div>
           </div>
           <div className="mx-auto max-w-[900px] rounded-card-xl bg-forest px-10 py-14 text-center text-white">
             <h2 className="mb-3 mt-0 font-serif text-[38px] font-normal tracking-[-0.01em]">
-              Start your baseline.
+              {h.finalCta.title}
             </h2>
+            {/* Price-bearing line: contractual €119 stays hardcoded, never localized. */}
             <p className="mb-[26px] mt-0 text-base text-vitality-faint">
               Join Essential and your first kit ships today. Not ready to test?
               Fusion starts at €119 a year.
@@ -675,20 +675,20 @@ export default function Home() {
                 href="/pricing"
                 className="inline-block rounded-pill bg-bone-white px-8 py-[15px] text-base font-semibold text-ink no-underline"
               >
-                See membership plans
+                {h.finalCta.plansBtn}
               </Link>
               <Link
                 href="/help"
                 className="inline-block rounded-pill border border-[rgba(255,255,255,0.4)] px-8 py-[15px] text-base font-semibold text-white no-underline"
               >
-                Questions? Help centre
+                {h.finalCta.helpBtn}
               </Link>
             </div>
           </div>
         </section>
       </main>
 
-      <SiteFooter />
+      <SiteFooter locale={locale} />
 
       <script
         type="application/ld+json"

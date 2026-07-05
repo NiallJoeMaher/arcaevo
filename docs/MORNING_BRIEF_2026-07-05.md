@@ -113,6 +113,17 @@ You kept relaunching, which I read as: stop deferring the decision-laden items a
 
 **What I deliberately left open on admin auth:** MFA/TOTP and a password-reset flow. Those are "before wide launch," not "before internal beta" — the per-admin passwords + rate-limiting + access log + instant revocation are a reasonable bar for a closed beta. Managed IdP (WorkOS/Auth0) is still an option later; `docs/legal/ADMIN_AUTH_OPTIONS.md` tracks it.
 
+## 10. Round 5 — admin MFA (TOTP)
+
+You kept the loop going, so I added the last concrete hardening the admin surface was missing: **two-factor authentication**. It's the standard, decision-independent choice (works whether or not you later adopt a managed IdP), so it's not throwaway.
+
+- **TOTP 2FA** (RFC 6238, works with Google Authenticator / 1Password / Authy etc.) + **8 single-use backup codes**, built with `node:crypto` (no new dependencies). The TOTP secret is **AES-256-GCM encrypted at rest** (a database leak alone can't yield working secrets), backup codes are stored only as hashes.
+- **Opt-in per admin, default off** — so the existing login and the e2e suite are completely unaffected; an admin enables it themselves from a new `/admin/security` page.
+- **Two-step login done safely** — after the password, an MFA-enabled admin must submit a TOTP/backup code before any session is issued; the interim "pending" token carries no privileges and can't be used as a session.
+- **Security review of the MFA code — clean, no findings.** All nine checks passed: no factor bypass, no privilege in the pending token, secrets never exposed, backup codes single-use, brute-force rate-limited, no injection.
+
+**Left as founder policy calls** (documented in `ADMIN_AUTH_OPTIONS.md`): whether to make MFA *mandatory* (at least for owners), the owner-driven reset for a locked-out admin, and `MFA_ENC_KEY` custody/rotation. And an owner can currently disable their own MFA without a code (break-glass for a lost authenticator) — a one-line change if you'd rather always require one.
+
 ## Where things stand
 
 - ✅ Phase 22 built, integrated, verified

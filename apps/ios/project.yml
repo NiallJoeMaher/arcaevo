@@ -201,6 +201,29 @@ targets:
       - sdk: WidgetKit.framework
       - sdk: SwiftUI.framework
 
+  # ---------------------------------------------------------------
+  # Phase 22 engine regression suite — XCTest unit tests for the
+  # daily-engagement engines (the core IP). HOSTLESS logic tests: the
+  # target compiles the ArcaevoKit engine sources directly (same as the
+  # app/watch targets do), so `xcodebuild test` runs pure deterministic
+  # maths with NO app launch, NO HealthKit, NO network, NO host-app flake.
+  # Test-only: it links nothing from the app/watch/widget targets.
+  # ---------------------------------------------------------------
+  ArcaevoKitTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: ArcaevoKitTests
+      # The engines under test — compiled straight into the test bundle so
+      # the suite is a standalone logic-test module (no @testable host).
+      - path: ArcaevoKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: co.arcaevo.kit.tests
+        GENERATE_INFOPLIST_FILE: YES
+        TARGETED_DEVICE_FAMILY: "1"
+
 schemes:
   Arcaevo:
     build:
@@ -218,3 +241,11 @@ schemes:
       config: Debug
     archive:
       config: Release
+  ArcaevoKitTests:
+    build:
+      targets:
+        ArcaevoKitTests: all
+    test:
+      targets:
+        - ArcaevoKitTests
+      gatherCoverageData: false

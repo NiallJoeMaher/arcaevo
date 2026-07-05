@@ -15,6 +15,7 @@
  * MOCK: rendered HTML is "sent" via email.mock.ts → the Mongo `outbox`.
  */
 import { emailVendor } from "@/lib/vendors/email.mock";
+import { canonicalUrl } from "@/lib/seo";
 
 export const EMAIL_FROM = "hello@arcaevo.com";
 
@@ -32,8 +33,11 @@ interface LayoutParams {
   footerHtml: string;
 }
 
-const ORB =
-  '<div style="width:20px;height:20px;border-radius:50%;background:radial-gradient(circle at 32% 30%, #5FB592, #1E5C45 70%);margin-bottom:16px;"></div>';
+// Hosted raster: email clients don't render SVG or radial-gradient reliably,
+// so the brand mark is a PNG served from the site origin.
+const ORB = `<img src="${canonicalUrl(
+  "/email-logo.png"
+)}" width="48" height="48" alt="Arcaevo" style="display:block;border:0;border-radius:50%;margin-bottom:16px;" />`;
 
 function button(label: string, url: string, variant: "primary" | "outline"): string {
   const style =

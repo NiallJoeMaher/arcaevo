@@ -84,11 +84,12 @@ const SAMPLES: { [K in EmailTemplateId]: EmailTemplates[K] } = {
 const ALL_TEMPLATES = Object.keys(SAMPLES) as EmailTemplateId[];
 
 describe("one shared layout for all eleven", () => {
-  it("every email renders the orb, a headline and the footer hairline", () => {
+  it("every email renders the brand logo, a headline and the footer hairline", () => {
     for (const template of ALL_TEMPLATES) {
       const { subject, html } = renderEmail(template, SAMPLES[template] as never);
       expect(subject.length).toBeGreaterThan(0);
-      expect(html).toContain("radial-gradient(circle at 32% 30%, #5FB592, #1E5C45 70%)"); // brand orb
+      expect(html).toContain("/email-logo.png"); // hosted brand mark (raster, email-safe)
+      expect(html).toMatch(/<img[^>]+alt="Arcaevo"/); // brand logo img
       expect(html).toContain("Instrument Serif"); // serif headline
       expect(html).toContain("border-top:1px solid rgba(28,38,32,0.08)"); // footer rule
     }

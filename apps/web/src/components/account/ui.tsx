@@ -8,18 +8,18 @@
  */
 import Link from "next/link";
 
-/** The Arcaevo orb — the only brand mark on product screens (§03 W1). */
+/** The Arcaevo brand mark — the only logo on product screens (§03 W1). */
 export function Orb({ size = 20 }: { size?: number }) {
   return (
-    <span
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/brand-mark.svg"
+      alt=""
       aria-hidden="true"
+      width={size}
+      height={size}
       className="block rounded-full"
-      style={{
-        width: size,
-        height: size,
-        background:
-          "radial-gradient(circle at 32% 30%, #5FB592, #1E5C45 70%)",
-      }}
+      style={{ width: size, height: size }}
     />
   );
 }

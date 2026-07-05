@@ -647,9 +647,14 @@ export default async function Home() {
         {/* FOUNDER + CTA */}
         <section className="px-10 pb-[90px] pt-5">
           <div className="mx-auto mb-16 max-w-[760px] text-center">
-            <div
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/brand-mark.svg"
+              alt=""
               aria-hidden="true"
-              className="mx-auto mb-6 h-14 w-14 rounded-full bg-[linear-gradient(135deg,#5FB592,#1E5C45)]"
+              width={56}
+              height={56}
+              className="mx-auto mb-6 h-14 w-14 rounded-full"
             />
             <p className="mb-5 mt-0 font-serif text-[26px] leading-[1.4] tracking-[-0.005em] text-ink">
               {h.founder.quote}

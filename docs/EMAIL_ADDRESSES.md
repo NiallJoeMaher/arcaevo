@@ -18,7 +18,7 @@ The **canonical domain is `arcaevo.com`** — the app/marketing host and the SES
 | **`dmarc@arcaevo.com`** | **DMARC aggregate (RUA) reports** | **Receive** (machine) | Referenced in the `_dmarc` TXT `rua=`. Can be a mailbox or forwarded to a DMARC-analytics service. |
 | **`dpo@arcaevo.com`** | **RESERVED** for a future Data Protection Officer | — | **DO NOT advertise or use until a DPO is actually appointed.** Provisioning the address is fine; publishing it is not (see §5). |
 
-Optional extras used elsewhere in copy (reconcile to `.com` if kept): `clinical@arcaevo.com`, `press@arcaevo.com` (currently `@arcaevo.health` on the contact page — out of scope of the privacy reconciliation, tidy up when convenient).
+Optional extras used elsewhere in copy: `clinical@arcaevo.com`, `press@arcaevo.com` — both now reconciled to `.com` on the contact page (`apps/web/src/app/contact/page.tsx`); the earlier `@arcaevo.health` placeholders are gone (`hello@`/`clinical@`/`press@` all `@arcaevo.com`, `privacy@arcaevo.com` unchanged).
 
 ---
 
@@ -84,13 +84,26 @@ This is what actually delivers mail to `privacy@` / `support@` / `security@` / `
 
 ## 4. Wiring it into the app
 
-The web app already sends via SES over SMTP (`apps/web/src/lib/vendors/email.smtp.ts`); nothing changes structurally. Confirm the env `From` is a verified `arcaevo.com` address:
+The web app can deliver to SES **two ways** — pick one with `EMAIL_PROVIDER`. Both are ADDITIONAL to the always-on Mongo `outbox` write (`email.mock.ts`), both fire-and-forget, and both send from the same verified `arcaevo.com` identity. See `docs/MOCKED_APIS.md` §7 for the full contract.
+
+| Option | `EMAIL_PROVIDER` | Auth | File | Best for |
+|---|---|---|---|---|
+| **SES v2 API (SigV4)** — *recommended* | `ses` | IAM **access key id + secret**, the SES call signed directly with AWS SigV4 (`node:crypto`, dep-free) | `apps/web/src/lib/vendors/email.ses.ts` | **Vercel serverless** — no persistent SMTP connection, native HTTPS + SES retries, uses the raw IAM keys the AWS console gives you |
+| **SMTP** | `mailhog` / `smtp` | An SMTP password **derived** from the IAM secret (or MailHog no-auth locally) | `apps/web/src/lib/vendors/email.smtp.ts` | Local MailHog loop; ESPs that only expose SMTP |
+
+**SES v2 API env** (`EMAIL_PROVIDER=ses`):
 
 ```bash
-EMAIL_FROM=Arcaevo <no-reply@arcaevo.com>   # or hello@arcaevo.com for human-answerable sends
+EMAIL_PROVIDER=ses
+AWS_SES_REGION=eu-west-1                       # falls back to AWS_REGION
+AWS_SES_ACCESS_KEY_ID=AKIA…                    # falls back to AWS_ACCESS_KEY_ID
+AWS_SES_SECRET_ACCESS_KEY=…                    # falls back to AWS_SECRET_ACCESS_KEY (never logged)
+EMAIL_FROM=Arcaevo <no-reply@arcaevo.com>      # or hello@arcaevo.com for human-answerable sends
 ```
 
-(The full SMTP env — `SMTP_HOST/PORT/USER/PASS/SECURE` — is derived in `infra/cdk/SES_SETUP.md` §5–6.)
+The signer (canonical request → string-to-sign → HMAC signing-key chain → `Authorization: AWS4-HMAC-SHA256 …`) is unit-tested against AWS's published SigV4 vectors in `apps/web/src/lib/__tests__/email-ses.test.ts`.
+
+**SMTP env** (`EMAIL_PROVIDER=smtp`): the full `SMTP_HOST/PORT/USER/PASS/SECURE` set is derived in `infra/cdk/SES_SETUP.md` §5–6. Confirm the `From` is a verified `arcaevo.com` address either way.
 
 ---
 

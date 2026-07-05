@@ -17,13 +17,13 @@ const CHANNELS = [
     icon: "✉",
     t: "General & support",
     d: "Account help, orders, anything about the app.",
-    v: "hello@arcaevo.health",
+    v: "hello@arcaevo.com",
   },
   {
     icon: "⚕",
     t: "Clinical questions",
     d: "Reviewed by our medical team, not the coach.",
-    v: "clinical@arcaevo.health",
+    v: "clinical@arcaevo.com",
   },
   {
     icon: "🔒",
@@ -35,7 +35,7 @@ const CHANNELS = [
     icon: "📣",
     t: "Press & partnerships",
     d: "Media, labs, and integration partners.",
-    v: "press@arcaevo.health",
+    v: "press@arcaevo.com",
   },
 ];
 

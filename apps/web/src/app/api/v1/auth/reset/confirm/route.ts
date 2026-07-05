@@ -72,7 +72,7 @@ export async function POST(req: Request) {
       headline: "Your password was changed.",
       bodyHtml:
         '<p style="font-size:13px;line-height:1.6;color:#4A554D;margin:0 0 18px;">Every other session has been signed out. If this wasn\'t you, reply to this email — a person reads it.</p>',
-      footerHtml: "Arcaevo Ltd · Dublin, Ireland",
+      footerHtml: "Arcaevo — a product of Codú Limited · Dublin, Ireland",
     }),
     template: "password_changed",
   });

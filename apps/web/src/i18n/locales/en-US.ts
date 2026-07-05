@@ -68,7 +68,7 @@ const enUS = {
     },
     // Disclaimer, spelling only ("optimization"/"optimisation"). Never a price.
     copyright:
-      "© 2026 Arcaevo Health, Ireland · Wellness & optimization, not medical diagnosis. Always consult your GP for medical concerns.",
+      "© 2026 Arcaevo — a product of Codú Limited, registered in Ireland · Wellness & optimization, not medical diagnosis. Always consult your GP for medical concerns.",
     staffLogin: "Staff login →",
   },
 

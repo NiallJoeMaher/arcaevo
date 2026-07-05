@@ -122,7 +122,7 @@ export async function POST(req: Request) {
       headline: "Your gift just came to life.",
       bodyHtml:
         '<p style="font-size:13px;line-height:1.6;color:#4A554D;margin:0 0 18px;">The Essential year you gifted has been activated. That\'s everything we\'ll ever tell you — their health data starts and ends with them.</p>',
-      footerHtml: "Arcaevo Ltd · Dublin, Ireland",
+      footerHtml: "Arcaevo — a product of Codú Limited · Dublin, Ireland",
     }),
     template: "gift_activated",
   });

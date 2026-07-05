@@ -125,9 +125,10 @@ export default async function LegalDocPage({ params }: Props) {
             ))}
 
             <div className="mt-9 border-t border-hairline-mid pt-5 text-[13px] leading-[1.6] text-caption">
-              This document is written in plain English for a product prototype
-              and is not legal advice. Codú Limited, Dublin, Ireland — data
-              controller for GDPR purposes. Questions:{" "}
+              This document is current best-effort copy pending solicitor
+              review and is not legal advice. Arcaevo is a product of Codú
+              Limited (registered in Ireland, CRO [TODO: CRO number]), Dublin,
+              Ireland — the data controller for GDPR purposes. Questions:{" "}
               <Link href="/contact" className="text-forest no-underline">
                 privacy@arcaevo.com
               </Link>

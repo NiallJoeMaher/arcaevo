@@ -62,7 +62,7 @@ const enGB: Messages = {
       clinicalSafety: "Clinical safety",
     },
     copyright:
-      "© 2026 Arcaevo Health, Ireland · Wellness & optimisation, not medical diagnosis. Always consult your GP for medical concerns.",
+      "© 2026 Arcaevo — a product of Codú Limited, registered in Ireland · Wellness & optimisation, not medical diagnosis. Always consult your GP for medical concerns.",
     staffLogin: "Staff login →",
   },
 

@@ -151,6 +151,10 @@ export default function AboutPage() {
                 Get in touch
               </Link>
             </div>
+            <p className="mx-auto mt-8 mb-0 max-w-[600px] text-[13px] leading-[1.6] text-caption">
+              Arcaevo is a product of Codú Limited, a company registered in
+              Ireland. Wellness and optimisation, not medical diagnosis.
+            </p>
           </div>
         </section>
       </main>

@@ -32,7 +32,7 @@ These are **done and verified** (web 352 vitest + iOS 48 XCTests green; app + wi
 | # | Item | Owner | Status |
 |---|---|---|---|
 | 1.1 | ⛔ Confirm **Codú Limited** as interim data controller; record its **CRO number** in `docs/legal/RECORDS_OF_PROCESSING.md`; note the plan to form a dedicated entity on monetisation. | 👤 | ☐ |
-| 1.2 | ⛔ **Reconcile the public privacy copy** — `apps/web/src/content/legal.ts` still names "Arcaevo Health Ltd." Either update the design copy to **Codú Limited** or ship a short **interim-controller notice** to trial users. (Design-copy change — route via design owner given the verbatim-copy rule.) | 👥 | ☐ |
+| 1.2 | ✅ **Company attribution set to Codú Limited; privacy/terms hardened (pending solicitor sign-off).** Public copy (`apps/web/src/content/legal.ts`, footer, `/legal/[doc]`, `/contact`, `/about`) now carries "Arcaevo is a product of Codú Limited, registered in Ireland", names Codú Limited (CRO `[TODO: CRO number]`) as data controller, and the privacy policy is expanded to Art. 9 depth (special-category data, Art. 6 + Art. 9(2)(a) consent, transfers/SCCs, retention + erasure, all DSAR rights, DPC complaint, Art. 22 note, cookies, security, children, versioning). **Still needs 1.4 solicitor sign-off + real CRO number.** | 👥 | ◐ |
 | 1.3 | ⛔ **DPIA sign-off** — the draft (`docs/legal/DPIA.md`) is reviewed + signed by a DPO/solicitor before the first real user. | 👤 | ☐ |
 | 1.4 | ⛔ **Solicitor review** of privacy policy, consent copy, terms, sub-processor page. | 👤 | ☐ |
 | 1.5 | ⛔ **DPO decision** — appoint one, or document "no DPO required at trial scale" + name a **privacy contact**. | 👤 | ☐ |

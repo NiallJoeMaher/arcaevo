@@ -662,6 +662,11 @@ async function seed() {
   // password the bootstrap password-only login accepts) plus a demo OPS and
   // CLINICIAN so the role gates are exercisable. Hashes use the deterministic
   // seed scrypt (fixed salt) — DEV ONLY; real accounts use a random salt.
+  //
+  // MFA: seeded admins have NO `mfa` field → two-factor is OFF (opt-in per
+  // admin, docs/MOCKED_APIS.md §3). This keeps the e2e/one-step password login
+  // unchanged. To try it: sign in, open /admin/security, and enrol (needs
+  // MFA_ENC_KEY set, or it derives from SESSION_SECRET in dev).
   const bootstrapPassword = process.env.ADMIN_PASSWORD ?? "change-me-local";
   const admins: Admin[] = [
     {

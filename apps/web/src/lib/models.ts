@@ -616,6 +616,30 @@ export type AdminRole = z.infer<typeof AdminRole>;
  * (see member-auth.ts hashPassword). `disabledAt` set ⇒ login refused
  * (offboarding a leaver without rotating a shared secret).
  */
+/**
+ * Sealed TOTP secret (AES-256-GCM, see src/lib/admin-mfa.ts). All three parts
+ * are base64. The raw secret is NEVER stored — a DB dump yields only this
+ * ciphertext, which is useless without the MFA_ENC_KEY-derived key.
+ */
+export const SealedSecretSchema = z.object({
+  ciphertext: z.string(),
+  iv: z.string(),
+  tag: z.string(),
+});
+export type SealedSecret = z.infer<typeof SealedSecretSchema>;
+
+/**
+ * Per-admin TOTP MFA (OPT-IN — absent = password-only, the default). Carries
+ * the sealed secret + single-use backup-code SHA-256 hashes. NEVER exposed by
+ * publicAdmin() (which emits only `mfaEnabled: boolean`).
+ */
+export const AdminMfaSchema = z.object({
+  enabledAt: z.date(),
+  secretEnc: SealedSecretSchema,
+  backupCodeHashes: z.array(z.string()),
+});
+export type AdminMfa = z.infer<typeof AdminMfaSchema>;
+
 export const AdminSchema = z.object({
   _id: z.string(), // e.g. "adm_owner" (seed) or "adm_<uuid>" (runtime)
   email: z.string(), // lowercased
@@ -625,6 +649,8 @@ export const AdminSchema = z.object({
   createdAt: z.date(),
   /** While set, this account can no longer sign in. */
   disabledAt: z.date().nullable().default(null),
+  /** OPT-IN TOTP two-factor (absent = password-only). See src/lib/admin-mfa.ts. */
+  mfa: AdminMfaSchema.optional(),
 });
 export type Admin = z.infer<typeof AdminSchema>;
 
@@ -699,6 +725,31 @@ export type AdminCreateInput = z.infer<typeof AdminCreateInput>;
 /** Change an admin's role (owner-only; last-owner guard enforced in the route). */
 export const AdminRoleChangeInput = z.object({ role: AdminRole });
 export type AdminRoleChangeInput = z.infer<typeof AdminRoleChangeInput>;
+
+/**
+ * Enrol MFA (an admin enables their OWN TOTP). `secret` is the base32 secret
+ * issued by /mfa/setup and shown to the admin; `code` is the first valid TOTP
+ * proving the authenticator is configured before we persist it.
+ */
+export const AdminMfaEnableInput = z.object({
+  secret: z.string().min(1),
+  code: z.string().min(1),
+});
+export type AdminMfaEnableInput = z.infer<typeof AdminMfaEnableInput>;
+
+/** Disable MFA — a current TOTP or backup code (owners may omit; see route). */
+export const AdminMfaDisableInput = z.object({
+  code: z.string().optional(),
+});
+export type AdminMfaDisableInput = z.infer<typeof AdminMfaDisableInput>;
+
+/** Second-factor step of admin login (TOTP or backup code). */
+export const AdminLoginMfaInput = z.object({
+  /** Optional — the acting admin is resolved from the mfa-pending cookie. */
+  email: z.string().optional(),
+  code: z.string().min(1),
+});
+export type AdminLoginMfaInput = z.infer<typeof AdminLoginMfaInput>;
 
 export const CreateSupportTicketInput = z.object({
   memberId: z.string().nullable().optional(),

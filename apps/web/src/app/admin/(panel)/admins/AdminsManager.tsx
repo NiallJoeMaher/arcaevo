@@ -33,7 +33,7 @@ const ROLE_PILL: Record<AdminRole, CSSProperties> = {
   clinician: PILL.amber,
 };
 
-const ROW_GRID = "1.6fr 0.9fr 0.9fr 1fr 1.4fr";
+const ROW_GRID = "1.6fr 0.9fr 0.8fr 0.7fr 0.9fr 1.3fr";
 
 const INPUT: CSSProperties = {
   fontFamily: "inherit",
@@ -250,6 +250,7 @@ export default function AdminsManager({
           <span>ADMIN</span>
           <span>ROLE</span>
           <span>STATUS</span>
+          <span>MFA</span>
           <span>CREATED</span>
           <span>ACTIONS</span>
         </div>
@@ -340,6 +341,10 @@ export default function AdminsManager({
 
               <span style={isDisabled ? PILL.red : PILL.vitality}>
                 {isDisabled ? "Disabled" : "Active"}
+              </span>
+
+              <span style={a.mfaEnabled ? PILL.forest : PILL.neutral}>
+                {a.mfaEnabled ? "On" : "Off"}
               </span>
 
               <span style={{ fontSize: 13, color: "#4A554D" }}>

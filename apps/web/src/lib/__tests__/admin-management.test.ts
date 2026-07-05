@@ -109,9 +109,24 @@ describe("GET /api/v1/admin/admins (list)", () => {
     expect((await GET()).status).toBe(403);
   });
 
-  it("NEVER returns passwordHash for any admin", async () => {
+  it("NEVER returns passwordHash or the MFA secret/backup hashes (only mfaEnabled)", async () => {
     await seedOwner();
     await createAdmin({ _id: "adm_ops", email: "ops@a.local", password: "secret-pw", role: "ops" });
+    // Give one admin real MFA state so we prove the sealed secret + backup
+    // hashes never surface — only the mfaEnabled boolean does.
+    const withMfa = adminsStore.get("adm_ops")!;
+    adminsStore.set("adm_ops", {
+      ...withMfa,
+      mfa: {
+        enabledAt: new Date(),
+        secretEnc: {
+          ciphertext: "SEALED-CIPHERTEXT-XYZ",
+          iv: "SEALED-IV-XYZ",
+          tag: "SEALED-TAG-XYZ",
+        },
+        backupCodeHashes: ["BACKUPHASH-AAA", "BACKUPHASH-BBB"],
+      },
+    });
     signIn("adm_owner", "owner");
 
     const res = await GET();
@@ -121,12 +136,22 @@ describe("GET /api/v1/admin/admins (list)", () => {
     const serialised = JSON.stringify(body);
     expect(serialised).not.toContain("passwordHash");
     expect(serialised).not.toContain("scrypt");
+    // The sealed secret + backup-code hashes must never appear anywhere.
+    expect(serialised).not.toContain("secretEnc");
+    expect(serialised).not.toContain("SEALED-CIPHERTEXT-XYZ");
+    expect(serialised).not.toContain("BACKUPHASH-AAA");
+    expect(serialised).not.toContain("backupCodeHashes");
     for (const a of body.admins) {
       expect(a).not.toHaveProperty("passwordHash");
+      expect(a).not.toHaveProperty("mfa");
+      expect(typeof a.mfaEnabled).toBe("boolean");
       expect(Object.keys(a).sort()).toEqual(
-        ["createdAt", "disabledAt", "email", "id", "name", "role"].sort()
+        ["createdAt", "disabledAt", "email", "id", "mfaEnabled", "name", "role"].sort()
       );
     }
+    // The mfaEnabled flag reflects the underlying state.
+    const opsRow = body.admins.find((a: { id: string }) => a.id === "adm_ops");
+    expect(opsRow.mfaEnabled).toBe(true);
   });
 });
 

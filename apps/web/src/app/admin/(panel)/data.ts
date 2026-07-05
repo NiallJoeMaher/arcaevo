@@ -485,7 +485,8 @@ export async function loadConsentAudit(
 // Admin accounts + access log (owner-only management views)
 // ---------------------------------------------------------------------------
 
-/** One row of the /admin/admins table — NEVER carries passwordHash. */
+/** One row of the /admin/admins table — NEVER carries passwordHash or the MFA
+ * secret/backup hashes (only the mfaEnabled boolean). */
 export interface AdminAccountRow {
   id: string;
   email: string;
@@ -493,6 +494,7 @@ export interface AdminAccountRow {
   name: string | null;
   createdAt: Date;
   disabledAt: Date | null;
+  mfaEnabled: boolean;
 }
 
 /** All admin accounts (oldest first), secret-free. Null when Mongo is down. */
@@ -510,6 +512,8 @@ export async function loadAdmins(): Promise<AdminAccountRow[] | null> {
       name: a.name ?? null,
       createdAt: a.createdAt,
       disabledAt: a.disabledAt ?? null,
+      // Only the boolean — the sealed secret + backup hashes never leave here.
+      mfaEnabled: Boolean(a.mfa),
     }));
   } catch {
     return null;

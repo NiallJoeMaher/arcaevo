@@ -40,6 +40,8 @@ const NAV: {
   { href: "/admin/waitlist", icon: "◔", label: "Waitlist" },
   { href: "/admin/eligibility", icon: "◫", label: "Eligibility" },
   { href: "/admin/consent", icon: "❋", label: "Consent audit" },
+  // Self-service: every admin manages their own two-factor auth (MOCKED_APIS §3).
+  { href: "/admin/security", icon: "⚷", label: "Security" },
   // Owner-only: self-hosted admin auth management (MOCKED_APIS §3).
   { href: "/admin/admins", icon: "⚿", label: "Admins", ownerOnly: true },
   { href: "/admin/access-log", icon: "☰", label: "Access log", ownerOnly: true },

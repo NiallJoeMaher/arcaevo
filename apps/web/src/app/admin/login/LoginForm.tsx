@@ -11,6 +11,16 @@ export default function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Second-factor step: shown only when step 1 returns { mfaRequired: true }.
+  // The default (no-MFA) path never enters this state — it redirects straight
+  // to /admin, exactly as before (keeps the e2e password login unchanged).
+  const [mfaRequired, setMfaRequired] = useState(false);
+  const [code, setCode] = useState("");
+
+  function goToDashboard() {
+    router.push("/admin");
+    router.refresh();
+  }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -29,8 +39,16 @@ export default function LoginForm() {
         ),
       });
       if (res.ok) {
-        router.push("/admin");
-        router.refresh();
+        const data: { ok?: boolean; mfaRequired?: boolean } = await res
+          .json()
+          .catch(() => ({}));
+        if (data.mfaRequired) {
+          // Password verified; a second factor is now required. No session yet.
+          setMfaRequired(true);
+          setBusy(false);
+          return;
+        }
+        goToDashboard();
         return;
       }
       setError(
@@ -43,6 +61,103 @@ export default function LoginForm() {
       setError("Sign-in is unavailable right now — check the server logs.");
       setBusy(false);
     }
+  }
+
+  async function onSubmitMfa(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/v1/admin/login/mfa", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: code.trim() }),
+      });
+      if (res.ok) {
+        goToDashboard();
+        return;
+      }
+      setError(
+        res.status === 401
+          ? "That code didn't work. Try again, or use a backup code."
+          : "Sign-in is unavailable right now — check the server logs."
+      );
+      setBusy(false);
+    } catch {
+      setError("Sign-in is unavailable right now — check the server logs.");
+      setBusy(false);
+    }
+  }
+
+  if (mfaRequired) {
+    return (
+      <form
+        onSubmit={onSubmitMfa}
+        style={{ display: "flex", flexDirection: "column", gap: 14 }}
+      >
+        <div style={{ fontSize: 13, color: "#4A554D", lineHeight: 1.5 }}>
+          Enter the 6-digit code from your authenticator app, or a backup code.
+        </div>
+        <label style={{ display: "block" }}>
+          <span
+            style={{
+              display: "block",
+              fontSize: 12,
+              color: "#7C887F",
+              marginBottom: 6,
+            }}
+          >
+            Authenticator or backup code
+          </span>
+          <input
+            type="text"
+            name="code"
+            inputMode="text"
+            autoComplete="one-time-code"
+            autoFocus
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            placeholder="123456"
+            style={{
+              width: "100%",
+              background: "#EDE9E1",
+              border: "1px solid rgba(28,38,32,0.12)",
+              borderRadius: 10,
+              padding: "12px 14px",
+              fontFamily: MONO,
+              fontSize: 14,
+              letterSpacing: "0.2em",
+              color: "#1C2620",
+              outline: "none",
+            }}
+          />
+        </label>
+        {error ? (
+          <div style={{ fontSize: 13, color: "#B5483A", fontWeight: 600 }}>
+            {error}
+          </div>
+        ) : null}
+        <button
+          type="submit"
+          disabled={busy}
+          style={{
+            background: "#1E5C45",
+            color: "#fff",
+            fontSize: 14,
+            fontWeight: 600,
+            fontFamily: "inherit",
+            padding: "12px 16px",
+            border: "none",
+            borderRadius: 100,
+            cursor: busy ? "default" : "pointer",
+            opacity: busy ? 0.7 : 1,
+          }}
+        >
+          {busy ? "Verifying…" : "Verify"}
+        </button>
+      </form>
+    );
   }
 
   return (

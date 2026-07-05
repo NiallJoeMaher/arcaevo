@@ -96,6 +96,8 @@ export interface PublicAdmin {
   name: string | null;
   createdAt: Date;
   disabledAt: Date | null;
+  /** Only whether TOTP MFA is on — NEVER the secret or backup-code hashes. */
+  mfaEnabled: boolean;
 }
 
 export function publicAdmin(admin: Admin): PublicAdmin {
@@ -106,6 +108,9 @@ export function publicAdmin(admin: Admin): PublicAdmin {
     name: admin.name ?? null,
     createdAt: admin.createdAt,
     disabledAt: admin.disabledAt ?? null,
+    // Expose only the boolean — the sealed secret + backup hashes never leave
+    // the server. Built explicitly so a new sensitive field can't leak here.
+    mfaEnabled: Boolean(admin.mfa),
   };
 }
 

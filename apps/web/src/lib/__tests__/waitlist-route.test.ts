@@ -38,6 +38,7 @@ function col(name: string): FakeCollection {
 const sendEmail = vi.fn();
 
 vi.mock("@/lib/db", () => ({
+  PRIMARY_READ: { readPreference: "primary" },
   collections: {
     waitlist: async () => col("waitlist"),
     sessions: async () => col("sessions"),

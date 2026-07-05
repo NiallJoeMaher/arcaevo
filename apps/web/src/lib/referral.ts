@@ -26,7 +26,7 @@
  *    cap still count but earn no further months.
  *  - The referrer never learns who joined (counts only — GDPR posture).
  */
-import { collections } from "@/lib/db";
+import { collections, PRIMARY_READ } from "@/lib/db";
 import type { ReferralCode, User } from "@/lib/models";
 
 /** Months of membership extension each side earns per successful referral. */
@@ -151,7 +151,14 @@ async function extendActiveMembership(
 ): Promise<boolean> {
   if (months <= 0) return false;
   const memberships = await collections.memberships();
-  const m = await memberships.findOne({ memberId, status: "active" });
+  // Read-after-write (money path, in-request): the caller (webhook activation)
+  // has just flipped this membership to "active" moments earlier. Pin to
+  // primary so a lagging secondary doesn't report "no active membership" and
+  // silently drop the referral month. (See db.ts.)
+  const m = await memberships.findOne(
+    { memberId, status: "active" },
+    PRIMARY_READ
+  );
   if (!m) return false;
   await memberships.updateOne(
     { _id: m._id },
@@ -222,10 +229,14 @@ export async function creditReferralOnActivation(
   // membership. Called wrongly before payment settles → no-op, referral stays
   // pending until they actually pay.
   const memberships = await collections.memberships();
-  const activeMembership = await memberships.findOne({
-    memberId,
-    status: "active",
-  });
+  // Read-after-write (money path, in-request): guards crediting on a genuinely
+  // active membership the webhook activated a moment ago. Pin to primary so
+  // replica lag can't make a just-paid member look unpaid and skip their
+  // reward. (See db.ts.)
+  const activeMembership = await memberships.findOne(
+    { memberId, status: "active" },
+    PRIMARY_READ
+  );
   if (!activeMembership) return result;
 
   // Atomic claim: only the first delivery flips pending → credited; retries and

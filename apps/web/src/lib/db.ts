@@ -38,6 +38,28 @@ function mongoUri(): string {
 }
 
 /**
+ * Per-operation read override: pin a read to the PRIMARY replica.
+ *
+ * WHY: in production the Atlas cluster may serve reads from multi-region
+ * SECONDARY replicas (see docs/MONGO_CONSISTENCY.md) if the connection string
+ * sets `readPreference=secondary/secondaryPreferred/nearest`. A secondary can
+ * lag the primary by a few seconds, so a read issued immediately after a write
+ * can land on a replica that hasn't received it yet and MISS the just-written
+ * doc. Passing this on the specific read-after-write calls that MUST be
+ * consistent (auth sessions, magic-link tokens, membership activation, upload
+ * confirmation) overrides the client/URI default for that one operation, so
+ * those reads are correct even when everything else is served from replicas.
+ * Combined with the client's `w:"majority"` write concern (a write is
+ * acknowledged by a majority before returning), a subsequent primary read is
+ * guaranteed to observe it. This is the ONLY read override we apply — bulk /
+ * list / analytics reads deliberately keep the URI's read preference so the
+ * geo replicas still absorb that traffic. If you later want even these pinned
+ * reads served from replicas, switch to causally-consistent sessions instead
+ * (see docs/MONGO_CONSISTENCY.md).
+ */
+export const PRIMARY_READ = { readPreference: "primary" as const };
+
+/**
  * Cache the client promise on globalThis so Next.js dev-mode HMR (which
  * re-evaluates modules) doesn't leak connections. Standard driver pattern.
  */
@@ -47,7 +69,23 @@ const globalForMongo = globalThis as unknown as {
 
 export function getClient(): Promise<MongoClient> {
   if (!globalForMongo._arcaevoMongoClientPromise) {
-    const client = new MongoClient(mongoUri());
+    // Durability defaults — safe whether reads go to PRIMARY (driver default)
+    // or to geo SECONDARY replicas (if the URI sets a secondary read pref):
+    //  - writeConcern w:"majority" — a write returns only once a majority of
+    //    replicas have it, so it's durable across a region loss AND a later
+    //    primary read always observes it (the basis for our PRIMARY_READ pins).
+    //  - retryWrites / retryReads — the driver transparently retries a write or
+    //    read once on a transient network blip or a replica-set failover/election
+    //    (routine on a multi-region Atlas cluster), so a step-down doesn't surface
+    //    as a user-facing error.
+    // No client-level readPreference is set on purpose: the URI decides where
+    // non-critical reads go; only the correctness-critical read-after-write
+    // calls pin themselves to primary via PRIMARY_READ.
+    const client = new MongoClient(mongoUri(), {
+      writeConcern: { w: "majority" },
+      retryWrites: true,
+      retryReads: true,
+    });
     globalForMongo._arcaevoMongoClientPromise = client.connect();
   }
   return globalForMongo._arcaevoMongoClientPromise;

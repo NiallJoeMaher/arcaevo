@@ -55,6 +55,7 @@ function col(name: string): FakeCollection {
 }
 
 vi.mock("@/lib/db", () => ({
+  PRIMARY_READ: { readPreference: "primary" },
   collections: {
     giftCodes: async () => col("giftCodes"),
     rateLimits: async () => col("rateLimits"),

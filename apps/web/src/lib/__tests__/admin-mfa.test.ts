@@ -16,6 +16,7 @@ import type { Admin } from "@/lib/models";
 const adminsStore = new Map<string, Admin>();
 
 vi.mock("@/lib/db", () => ({
+  PRIMARY_READ: { readPreference: "primary" },
   collections: {
     admins: async () => ({
       findOne: async (q: { _id?: string }) =>

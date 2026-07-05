@@ -31,7 +31,7 @@ import {
   timingSafeEqual,
 } from "node:crypto";
 import { cookies } from "next/headers";
-import { collections } from "@/lib/db";
+import { collections, PRIMARY_READ } from "@/lib/db";
 import { newId } from "@/lib/ids";
 import {
   SESSION_TTL_DAYS,
@@ -247,7 +247,13 @@ export async function consumeMagicLink(
   now: Date = new Date()
 ): Promise<ConsumeMagicLinkResult> {
   const tokens = await collections.magicLinkTokens();
-  const doc = await tokens.findOne({ tokenHash: sha256Hex(rawToken) });
+  // Read-after-write (cross-request): a link may be issued and then verified
+  // within the same second (fast tap, or a scanner prefetch). Pin to primary so
+  // a lagging secondary can't 404 a token that was just written. (See db.ts.)
+  const doc = await tokens.findOne(
+    { tokenHash: sha256Hex(rawToken) },
+    PRIMARY_READ
+  );
   const state = evaluateMagicLink(doc, now);
   if (state !== "valid" || !doc) return { state: state as Exclude<MagicLinkState, "valid"> };
   // Atomic burn: only succeeds if it is still unused (single-use guarantee).
@@ -289,8 +295,11 @@ export async function consumeMagicLinkByCode(
 
   const tokens = await collections.magicLinkTokens();
   // Latest sign-in/verify token for this email (reset is password-only).
+  // Read-after-write: the code is verified moments after the link is issued, so
+  // pin to primary — a stale secondary would miss the just-issued token and
+  // wrongly report "invalid". (See db.ts.)
   const latest = await tokens
-    .find({ email: normalizedEmail, purpose: { $ne: "reset" } })
+    .find({ email: normalizedEmail, purpose: { $ne: "reset" } }, PRIMARY_READ)
     .sort({ createdAt: -1 })
     .limit(1)
     .toArray();
@@ -391,7 +400,14 @@ export async function memberFromSessionToken(
 ): Promise<User | null> {
   if (!rawToken) return null;
   const sessions = await collections.sessions();
-  const session = await sessions.findOne({ tokenHash: sha256Hex(rawToken) });
+  // Read-after-write (cross-request, critical): a client that signs in
+  // (createSession INSERT) then immediately calls an authed API must find its
+  // brand-new session. Pin to primary so a lagging secondary can't reject a
+  // just-issued token as "not signed in". (See db.ts.)
+  const session = await sessions.findOne(
+    { tokenHash: sha256Hex(rawToken) },
+    PRIMARY_READ
+  );
   if (!session) return null;
   if (isSessionExpired(session)) return null;
   await sessions.updateOne(
@@ -441,7 +457,13 @@ export async function refreshSession(
 ): Promise<{ user: User; session: Session; expiresAt: Date } | null> {
   if (!rawToken) return null;
   const sessions = await collections.sessions();
-  const session = await sessions.findOne({ tokenHash: sha256Hex(rawToken) });
+  // Same read-after-write concern as memberFromSessionToken: a freshly minted
+  // (e.g. watch-handoff) session may be refreshed almost immediately. Pin the
+  // lookup to primary so a lagging secondary can't fail a valid refresh.
+  const session = await sessions.findOne(
+    { tokenHash: sha256Hex(rawToken) },
+    PRIMARY_READ
+  );
   if (!session) return null;
   if (isSessionExpired(session, now)) return null;
   const expiresAt = new Date(now.getTime() + SESSION_TTL_DAYS * 24 * 60 * 60 * 1000);

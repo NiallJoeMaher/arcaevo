@@ -21,6 +21,7 @@ vi.mock("@/lib/member-auth", () => ({
   revokeSessions: (id: string) => revokeSessions(id),
 }));
 vi.mock("@/lib/db", () => ({
+  PRIMARY_READ: { readPreference: "primary" },
   collections: {
     users: async () => ({ updateOne }),
     shareLinks: async () => ({ updateMany: shareUpdateMany }),

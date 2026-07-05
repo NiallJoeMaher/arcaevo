@@ -48,6 +48,7 @@ class FakeCollection {
 const store: Record<string, FakeCollection> = {};
 
 vi.mock("@/lib/db", () => ({
+  PRIMARY_READ: { readPreference: "primary" },
   collections: {
     rateLimits: async () => (store.rate_limits ??= new FakeCollection()),
   },

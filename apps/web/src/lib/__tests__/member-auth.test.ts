@@ -95,6 +95,7 @@ const fake = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/db", () => ({
+  PRIMARY_READ: { readPreference: "primary" },
   collections: {
     magicLinkTokens: async () => fake.magicLinkTokens,
     sessions: async () => fake.sessions,

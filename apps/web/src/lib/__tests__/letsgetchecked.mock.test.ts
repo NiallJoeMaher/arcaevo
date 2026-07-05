@@ -89,6 +89,7 @@ class FakeCollection {
 const fake = vi.hoisted(() => ({ col: undefined as unknown }));
 
 vi.mock("@/lib/db", () => ({
+  PRIMARY_READ: { readPreference: "primary" },
   collections: {
     lgcMockOrders: async () => fake.col,
   },

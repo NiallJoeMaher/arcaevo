@@ -2,6 +2,8 @@
 
 Nothing here is wired to a real vendor yet. Every mock lives behind a small interface so swapping in the real API is a one-file change. This document is the checklist for productionising.
 
+> **MongoDB read-after-write consistency** (not a mock — real hardening): the app pins the correctness-critical auth/payment/upload read-after-write reads to the **primary** replica (`PRIMARY_READ` in `src/lib/db.ts`) with a `w:"majority"` write concern, so it stays correct even if the production connection string points non-critical reads at multi-region **secondary** replicas. Recommended URI: `…?retryWrites=true&w=majority`. Full detail: **docs/MONGO_CONSISTENCY.md**.
+
 ## 1. LetsGetChecked (finger-prick blood testing) — MOCKED
 
 - **Status**: No API contract selected/signed. The shapes below are our own guesses, NOT LetsGetChecked's real schema.

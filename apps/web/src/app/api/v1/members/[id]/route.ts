@@ -1,15 +1,28 @@
 /** GET /api/v1/members/[id] — admin: single member detail. */
-import { requireAdmin } from "@/lib/auth";
+import { currentAdmin, requireAdmin } from "@/lib/auth";
+import { logAdminAccess } from "@/lib/admin-audit";
+import { clientIp } from "@/lib/rate-limit";
 import { collections } from "@/lib/db";
 
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const denied = await requireAdmin();
   if (denied) return denied;
 
   const { id } = await params;
+
+  // DPIA R4: a member-detail read pulls that member's orders + readings (Art.9).
+  const admin = await currentAdmin();
+  logAdminAccess({
+    action: "member.detail.read",
+    adminId: admin?.adminId ?? null,
+    role: admin?.role ?? null,
+    targetMemberId: id,
+    ip: clientIp(req),
+  });
+
   const users = await collections.users();
   const user = await users.findOne({ _id: id });
   if (!user) {

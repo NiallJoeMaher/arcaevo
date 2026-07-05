@@ -100,6 +100,8 @@ vi.mock("@/lib/consent-guard", () => ({
 }));
 vi.mock("@/lib/auth", () => ({
   requireAdmin: async () => null,
+  requireAdminRole: async () => null,
+  currentAdmin: async () => ({ adminId: "adm_test", role: "owner" }),
 }));
 
 // --- fixtures -------------------------------------------------------------------

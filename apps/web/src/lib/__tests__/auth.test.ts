@@ -21,6 +21,7 @@ vi.mock("@/lib/db", () => ({
 
 import {
   createAdminSessionValue,
+  readAdminSession,
   verifyAdminPassword,
   verifyAdminSessionValue,
 } from "@/lib/auth";
@@ -37,24 +38,52 @@ afterEach(() => {
 });
 
 describe("admin session sign → verify roundtrip", () => {
-  it("verifies a freshly signed session value", () => {
+  it("verifies a freshly signed session value (default bootstrap owner)", () => {
     const value = createAdminSessionValue();
     expect(verifyAdminSessionValue(value)).toBe(true);
   });
 
-  it("verifies regardless of issue time (iat is informational)", () => {
-    const value = createAdminSessionValue(new Date("2026-01-01T00:00:00Z"));
-    expect(verifyAdminSessionValue(value)).toBe(true);
+  it("round-trips the admin identity (adminId + role)", () => {
+    const value = createAdminSessionValue(
+      { adminId: "adm_ops", role: "ops" },
+      new Date("2026-07-02T08:00:00Z")
+    );
+    expect(readAdminSession(value)).toEqual({
+      adminId: "adm_ops",
+      role: "ops",
+      iat: "2026-07-02T08:00:00.000Z",
+    });
   });
 
-  it("payload is base64url JSON with role=admin, dot-separated from the sig", () => {
-    const value = createAdminSessionValue(new Date("2026-07-02T08:00:00Z"));
+  it("payload is base64url JSON with adminId+role+iat, dot-separated from the sig", () => {
+    const value = createAdminSessionValue(
+      { adminId: "adm_owner", role: "owner" },
+      new Date("2026-07-02T08:00:00Z")
+    );
     const dot = value.lastIndexOf(".");
     const payload = JSON.parse(
       Buffer.from(value.slice(0, dot), "base64url").toString()
     );
-    expect(payload.role).toBe("admin");
+    expect(payload.adminId).toBe("adm_owner");
+    expect(payload.role).toBe("owner");
     expect(payload.iat).toBe("2026-07-02T08:00:00.000Z");
+  });
+
+  it("treats a legacy {role:'admin'} cookie as an owner session (back-compat)", () => {
+    const payload = Buffer.from(
+      JSON.stringify({ role: "admin", iat: new Date().toISOString() })
+    ).toString("base64url");
+    const sig = createHmac("sha256", SECRET).update(payload).digest("hex");
+    const session = readAdminSession(`${payload}.${sig}`);
+    expect(session?.role).toBe("owner");
+  });
+
+  it("rejects a correctly signed payload with an unknown role", () => {
+    const payload = Buffer.from(
+      JSON.stringify({ adminId: "x", role: "superuser", iat: new Date().toISOString() })
+    ).toString("base64url");
+    const sig = createHmac("sha256", SECRET).update(payload).digest("hex");
+    expect(readAdminSession(`${payload}.${sig}`)).toBeNull();
   });
 });
 

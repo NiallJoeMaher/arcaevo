@@ -19,6 +19,7 @@ import {
   SESSION_TTL_DAYS,
   composeClinicianNote,
   isWatchMarker,
+  type Admin,
   type BiomarkerReading,
   type BiomarkerRule,
   type Consent,
@@ -38,6 +39,7 @@ import {
   type WearableSignal,
 } from "../src/lib/models";
 import { LAUNCH_ALLOWLIST } from "../src/lib/eligibility";
+import { bootstrapOwnerEmail } from "../src/lib/admin-auth";
 import { computeBaselineBand, computeRcvVerdict } from "../src/lib/rcv";
 
 // --- determinism helpers ----------------------------------------------------
@@ -175,6 +177,9 @@ async function seed() {
     eligibilityRejections: await collections.eligibilityRejections(),
     bloodworkUploads: await collections.bloodworkUploads(),
     erasureJobs: await collections.erasureJobs(),
+    // admin auth (per-admin accounts). NB: admin_access_log is intentionally
+    // NOT reset here — an audit trail must survive a re-seed.
+    admins: await collections.admins(),
   };
   await Promise.all(Object.values(cols).map((c) => c.deleteMany({})));
 
@@ -651,6 +656,44 @@ async function seed() {
   ];
   await cols.sessions.insertMany(seedSessions);
 
+  // --- admin accounts (self-hosted per-admin auth) -------------------------------
+  // A bootstrap OWNER (its email/password come from ADMIN_EMAIL/ADMIN_PASSWORD,
+  // defaulting to owner@arcaevo.local / change-me-local — the same shared
+  // password the bootstrap password-only login accepts) plus a demo OPS and
+  // CLINICIAN so the role gates are exercisable. Hashes use the deterministic
+  // seed scrypt (fixed salt) — DEV ONLY; real accounts use a random salt.
+  const bootstrapPassword = process.env.ADMIN_PASSWORD ?? "change-me-local";
+  const admins: Admin[] = [
+    {
+      _id: "adm_owner",
+      email: bootstrapOwnerEmail(),
+      passwordHash: seedPasswordHash(bootstrapPassword),
+      role: "owner",
+      name: "Owner (bootstrap)",
+      createdAt: daysAgo(400),
+      disabledAt: null,
+    },
+    {
+      _id: "adm_ops",
+      email: "ops@arcaevo.local",
+      passwordHash: seedPasswordHash("ops-demo-local"),
+      role: "ops",
+      name: "Demo Ops",
+      createdAt: daysAgo(120),
+      disabledAt: null,
+    },
+    {
+      _id: "adm_clinician",
+      email: "clinician@arcaevo.local",
+      passwordHash: seedPasswordHash("clinician-demo-local"),
+      role: "clinician",
+      name: "Demo Clinician",
+      createdAt: daysAgo(120),
+      disabledAt: null,
+    },
+  ];
+  await cols.admins.insertMany(admins);
+
   // Summary -------------------------------------------------------------------
   console.log(`  users:              ${users.length} (demo: mem_0001 · Aoife Byrne · token "demo-member-token")`);
   console.log(`  memberships:        ${memberships.length} (essential ${memberships.filter((m) => m.tier === "essential").length} · performance ${memberships.filter((m) => m.tier === "performance").length} · fusion ${memberships.filter((m) => m.tier === "fusion").length})`);
@@ -668,6 +711,7 @@ async function seed() {
   console.log(`  v2 · gift code:     ${giftCode._id} (unredeemed) · referral ${referralCode._id}`);
   console.log(`  v2 · sessions:      ${seedSessions.length} device-scoped (mem_0001: watch + iOS; tokens "seed-watch-token-aoife" / "seed-ios-token-aoife")`);
   console.log(`  v2 · password user: ${passwordMember.email} / "demo-password-123" (${passwordMember._id}, no membership)`);
+  console.log(`  admins:             ${admins.length} — owner ${admins[0].email} / "${bootstrapPassword}" · ops ops@arcaevo.local / "ops-demo-local" · clinician clinician@arcaevo.local / "clinician-demo-local"`);
   console.log("Seed complete.");
 }
 

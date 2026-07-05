@@ -7,6 +7,7 @@ const MONO = "var(--font-mono)";
 
 export default function LoginForm() {
   const router = useRouter();
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -17,10 +18,15 @@ export default function LoginForm() {
     setBusy(true);
     setError(null);
     try {
+      // Email is optional: submit it only when filled so a password-only entry
+      // still takes the bootstrap OWNER path (unchanged for the e2e flow).
+      const trimmedEmail = email.trim();
       const res = await fetch("/api/v1/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify(
+          trimmedEmail ? { email: trimmedEmail, password } : { password }
+        ),
       });
       if (res.ok) {
         router.push("/admin");
@@ -50,12 +56,43 @@ export default function LoginForm() {
             marginBottom: 6,
           }}
         >
+          Email <span style={{ color: "#A9B2AA" }}>(optional)</span>
+        </span>
+        <input
+          type="email"
+          name="email"
+          autoComplete="username"
+          autoFocus
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          style={{
+            width: "100%",
+            background: "#EDE9E1",
+            border: "1px solid rgba(28,38,32,0.12)",
+            borderRadius: 10,
+            padding: "12px 14px",
+            fontFamily: MONO,
+            fontSize: 14,
+            color: "#1C2620",
+            outline: "none",
+          }}
+        />
+      </label>
+      <label style={{ display: "block" }}>
+        <span
+          style={{
+            display: "block",
+            fontSize: 12,
+            color: "#7C887F",
+            marginBottom: 6,
+          }}
+        >
           Password
         </span>
         <input
           type="password"
           name="password"
-          autoFocus
+          autoComplete="current-password"
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}

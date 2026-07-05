@@ -10,7 +10,9 @@
  * reflects the panel's current state; un-reviewing the last reading of a
  * panel removes it.
  */
-import { requireAdmin } from "@/lib/auth";
+import { currentAdmin, requireAdminRole } from "@/lib/auth";
+import { logAdminAccess } from "@/lib/admin-audit";
+import { clientIp } from "@/lib/rate-limit";
 import { collections } from "@/lib/db";
 import {
   composeClinicianNote,
@@ -59,7 +61,10 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const denied = await requireAdmin();
+  // Clinician sign-off writes the clinician note onto a member's Art.9 record,
+  // so it is restricted to clinician|owner (ops is 403). Other admin views stay
+  // any-role via requireAdmin.
+  const denied = await requireAdminRole("clinician", "owner");
   if (denied) return denied;
 
   const { id } = await params;
@@ -89,6 +94,16 @@ export async function POST(
   if (result.orderId) {
     await syncClinicianNote(result.orderId);
   }
+
+  // DPIA R4: record the sign-off against the member whose record it touches.
+  const admin = await currentAdmin();
+  logAdminAccess({
+    action: reviewed ? "result.review.signoff" : "result.review.unsign",
+    adminId: admin?.adminId ?? null,
+    role: admin?.role ?? null,
+    targetMemberId: result.memberId,
+    ip: clientIp(req),
+  });
 
   return Response.json({ reading: result });
 }

@@ -597,6 +597,61 @@ export const ErasureJobSchema = z.object({
 export type ErasureJob = z.infer<typeof ErasureJobSchema>;
 
 // ---------------------------------------------------------------------------
+// Admin accounts + access log (self-hosted per-admin auth — replaces the
+// single shared ADMIN_PASSWORD; see docs/legal/ADMIN_AUTH_OPTIONS.md Option A,
+// docs/MOCKED_APIS.md §3, docs/legal/DPIA.md R4).
+// ---------------------------------------------------------------------------
+
+/**
+ * Admin roles (least privilege):
+ *  - owner     — full access (the bootstrap ADMIN_PASSWORD maps to this).
+ *  - ops       — members/support/eligibility/waitlist; NOT clinician sign-off.
+ *  - clinician — result review + sign-off (writes the clinician note).
+ */
+export const AdminRole = z.enum(["owner", "ops", "clinician"]);
+export type AdminRole = z.infer<typeof AdminRole>;
+
+/**
+ * A per-admin account. Password hashed with the SAME scrypt params as members
+ * (see member-auth.ts hashPassword). `disabledAt` set ⇒ login refused
+ * (offboarding a leaver without rotating a shared secret).
+ */
+export const AdminSchema = z.object({
+  _id: z.string(), // e.g. "adm_owner" (seed) or "adm_<uuid>" (runtime)
+  email: z.string(), // lowercased
+  passwordHash: z.string(), // scrypt:… (member-auth.ts format)
+  role: AdminRole,
+  name: z.string().optional(),
+  createdAt: z.date(),
+  /** While set, this account can no longer sign in. */
+  disabledAt: z.date().nullable().default(null),
+});
+export type Admin = z.infer<typeof AdminSchema>;
+
+/**
+ * Per-record admin access log (DPIA R4 / Art. 32 accountability). Records
+ * WHO (adminId/email/role) did WHAT (action) to WHOSE record (targetMemberId)
+ * and WHEN (at) — plus the source ip. Deliberately stores NO health values,
+ * only the fact of access. Written fire-and-forget (never breaks a request).
+ */
+export const AdminAccessLogSchema = z.object({
+  _id: z.string(), // e.g. "aal_<uuid>"
+  at: z.date(),
+  /** Dotted action key, e.g. "login", "results.queue.read", "member.detail.read". */
+  action: z.string(),
+  /** Null on a failed login (no authenticated admin yet). */
+  adminId: z.string().nullable().default(null),
+  /** Email tied to the event (login attempt / acting admin). */
+  email: z.string().nullable().default(null),
+  role: AdminRole.nullable().default(null),
+  outcome: z.enum(["success", "failure"]).default("success"),
+  /** The member whose Art.9 record was touched, when applicable. */
+  targetMemberId: z.string().nullable().default(null),
+  ip: z.string().nullable().default(null),
+});
+export type AdminAccessLog = z.infer<typeof AdminAccessLogSchema>;
+
+// ---------------------------------------------------------------------------
 // API input schemas
 // ---------------------------------------------------------------------------
 
@@ -622,6 +677,9 @@ export const SyncWearablesInput = z.object({
 export type SyncWearablesInput = z.infer<typeof SyncWearablesInput>;
 
 export const AdminLoginInput = z.object({
+  /** Optional — omitted/empty ⇒ password-only bootstrap OWNER login (keeps the
+   * legacy single-password path + e2e working). Present ⇒ per-admin account. */
+  email: z.string().optional(),
   password: z.string().min(1),
 });
 

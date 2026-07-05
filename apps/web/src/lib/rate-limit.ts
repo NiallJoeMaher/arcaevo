@@ -43,6 +43,12 @@ export const SIGNIN_RATE_LIMIT: RateLimitConfig = {
   windowMs: 5 * 60 * 1000,
 };
 
+/** Admin login — ~10 attempts / 5 min / IP (Art.32 brute-force defence). */
+export const ADMIN_LOGIN_RATE_LIMIT: RateLimitConfig = {
+  limit: 10,
+  windowMs: 5 * 60 * 1000,
+};
+
 export interface RateLimitResult {
   allowed: boolean;
   /** Remaining hits in the current window (0 once refused). */

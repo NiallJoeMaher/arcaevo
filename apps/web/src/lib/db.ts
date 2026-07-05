@@ -26,6 +26,8 @@ import type {
   EligibilityRejection,
   BloodworkUpload,
   ErasureJob,
+  Admin,
+  AdminAccessLog,
 } from "@/lib/models";
 
 const DEFAULT_URI = "mongodb://localhost:27017/arcaevo";
@@ -119,6 +121,11 @@ export const collections = {
   erasureJobs: () => collection<ErasureJob>("erasure_jobs"),
   /** IP/global rate-limit counters (fixed-window) — see src/lib/rate-limit.ts. */
   rateLimits: () => collection<RateLimitRecord>("rate_limits"),
+  // --- admin auth (per-admin accounts, roles, access log) ------------------
+  /** Per-admin accounts (scrypt password, role). See src/lib/admin-auth.ts. */
+  admins: () => collection<Admin>("admins"),
+  /** Per-record admin access log (DPIA R4). See src/lib/admin-audit.ts. */
+  adminAccessLog: () => collection<AdminAccessLog>("admin_access_log"),
 };
 
 /** Close the shared client (used by scripts like seed.ts; not by the app). */

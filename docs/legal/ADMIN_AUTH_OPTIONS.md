@@ -4,6 +4,8 @@
 >
 > This is a **decision document**, not a legal instrument. It lays out the options for replacing the current admin authentication so the founder can make the call. Replacing it is a **top-5 security/GDPR gap** (`docs/LAUNCH_READINESS.md` Top-5 #5; `docs/MOCKED_APIS.md` §3) that must be closed before real members' data exists.
 
+> **STATUS (implemented):** **Option A is shipped** — self-hosted per-admin accounts (`admins` collection, scrypt reusing `member-auth.ts`), `owner`/`ops`/`clinician` roles, a role gate on clinician sign-off, an `admin_access_log` (DPIA R4) written on every admin access to member Art.9 data, and IP rate-limiting on admin login. The single `ADMIN_PASSWORD` is retained only as a **bootstrap owner** credential. **Still open on Option A:** MFA/TOTP + password reset + leaver-offboarding UI. **Option B (managed EU IdP) remains open** as the medium-term move. See `docs/MOCKED_APIS.md` §3 for the concrete surface.
+
 ## The problem, precisely
 
 Admin authentication today is a **single shared password**:
@@ -28,9 +30,11 @@ Fail-closed secret handling is done well (`env.ts` refuses to boot in production
 
 ---
 
-## Option A — Self-hosted: per-user accounts + roles + audit log
+## Option A — Self-hosted: per-user accounts + roles + audit log — **IMPLEMENTED**
 
-Build admin identity into the existing stack: an `admin_users` collection (email, per-user password hash — reuse the existing scrypt in `member-auth.ts` — role, active flag, MFA secret), replace the shared-password check, add a middleware-enforced role check, and write an `admin_audit` record on every access to member data.
+Build admin identity into the existing stack: an admin accounts collection (email, per-user password hash — reuse the existing scrypt in `member-auth.ts` — role, active flag, MFA secret), replace the shared-password check, add a middleware-enforced role check, and write an audit record on every access to member data.
+
+**As shipped:** the collection is **`admins`** (`email, passwordHash, role ∈ {owner,ops,clinician}, name?, createdAt, disabledAt?`); the session cookie carries `{adminId, role}`; `requireAdminRole()` gates clinician sign-off to `clinician|owner`; the audit collection is **`admin_access_log`** (`logAdminAccess()`, fire-and-forget, no health values); admin login is IP rate-limited. `ADMIN_PASSWORD` survives only as a bootstrap-owner credential. **Not yet built (Option A remainder): MFA/TOTP + password reset + offboarding UI.**
 
 | Pros | Cons |
 |---|---|

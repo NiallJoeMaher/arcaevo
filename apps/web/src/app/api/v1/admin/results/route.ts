@@ -3,12 +3,23 @@
  * Readings with clinicianReviewed=false, oldest first, member joined in.
  * (Clinician review is MOCKED — docs/MOCKED_APIS.md §5.)
  */
-import { requireAdmin } from "@/lib/auth";
+import { currentAdmin, requireAdmin } from "@/lib/auth";
+import { logAdminAccess } from "@/lib/admin-audit";
+import { clientIp } from "@/lib/rate-limit";
 import { collections } from "@/lib/db";
 
-export async function GET() {
+export async function GET(req: Request) {
   const denied = await requireAdmin();
   if (denied) return denied;
+
+  // DPIA R4: the review queue exposes every pending member's markers.
+  const admin = await currentAdmin();
+  logAdminAccess({
+    action: "results.queue.read",
+    adminId: admin?.adminId ?? null,
+    role: admin?.role ?? null,
+    ip: clientIp(req),
+  });
 
   const [pending, users, rules] = await Promise.all([
     collections

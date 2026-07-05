@@ -49,6 +49,16 @@ export const ADMIN_LOGIN_RATE_LIMIT: RateLimitConfig = {
   windowMs: 5 * 60 * 1000,
 };
 
+/**
+ * Gift-code redemption — ~10 attempts / 5 min / IP (security audit W-3). Stops
+ * an authenticated attacker grinding the (now ≥80-bit) code space for an
+ * unredeemed year to activate onto their own account.
+ */
+export const GIFT_REDEEM_RATE_LIMIT: RateLimitConfig = {
+  limit: 10,
+  windowMs: 5 * 60 * 1000,
+};
+
 export interface RateLimitResult {
   allowed: boolean;
   /** Remaining hits in the current window (0 once refused). */

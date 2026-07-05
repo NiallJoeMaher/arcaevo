@@ -8,9 +8,9 @@
 
 | Field | Value | Source / status |
 |---|---|---|
-| Controller | Arcaevo Health Ltd, Dublin, Ireland | Asserted in `apps/web/src/content/legal.ts` (privacy doc, "Who we are"). **OPEN: confirm the entity is registered (CRO number) and is the named controller.** |
-| Controller representative | Founder (Niall Maher) | Confirm |
-| Data Protection Officer | **None appointed** | **OPEN: a DPO is likely required — Art. 37(1)(c), core activities = large-scale special-category processing. Either appoint one or document the decision + name a privacy contact.** Privacy contact address in copy: `privacy@arcaevo.health` (`legal.ts`, data-deletion doc). Note the domain mismatch vs the `arcaevo.com` app host — reconcile. |
+| Controller (interim) | **Codú Limited**, Ireland — the founder's existing registered Irish company, acting as **interim data controller for the early closed trial** | **DECISION (founder, 2026-07):** Codú Limited is the controller for the trial phase. A **dedicated entity will be formed if the product monetises**, at which point the controller migrates and this register + the public privacy copy are updated. Public privacy copy reconciled to **Codú Limited** (`apps/web/src/content/legal.ts`, `/legal/[doc]` + `/contact` footers). **OPEN: confirm and record Codú Limited's CRO number here** (CRO number — TODO). |
+| Controller representative | Founder (Niall Maher), for Codú Limited | Confirm |
+| Data Protection Officer | **None appointed (at trial scale)** | **No DPO appointed at trial scale — a dated, defensible "DPO not required (yet)" assessment is recorded in [`DPO_NOT_REQUIRED_MEMO.md`](./DPO_NOT_REQUIRED_MEMO.md)** (scale-dependent + time-limited; explicit review triggers; DPO **will** be appointed at launch scale). A named, reachable **privacy contact** stands in the DPO's stead for now. **Do NOT label this contact "DPO"** (GDPR Art. 37(7)/WP243 — labelling it so could be read as a voluntary appointment triggering the full Art. 37–39 regime). **Privacy contact:** `privacy@arcaevo.com` — the durable, role-based, monitored address (deliverable via the SES-verified `arcaevo.com` domain; receiving mailbox setup in [`../EMAIL_ADDRESSES.md`](../EMAIL_ADDRESSES.md)). This is now the single contact used across the public copy and every legal document. |
 | Establishment / lead SA | Ireland — Data Protection Commission (DPC) | Controller is Dublin-based; EU-only processing |
 
 ## Register conventions

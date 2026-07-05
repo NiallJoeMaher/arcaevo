@@ -54,8 +54,16 @@ export const legalDocs: Record<string, LegalDoc> = {
     intro:
       "This policy explains what personal data Arcaevo collects, why, how we protect it, and the rights you have under the EU General Data Protection Regulation (GDPR). Your health data is special-category data and we treat it with the highest level of care.",
     sections: [
+      // Controller reconciled to the interim controller, Codú Limited, and the
+      // data-protection contact set to the durable role-based address
+      // privacy@arcaevo.com (deliverable via the SES-verified arcaevo.com
+      // domain — see docs/EMAIL_ADDRESSES.md). Add Codú Limited's CRO number
+      // once confirmed, and revisit if/when the controller transfers to a
+      // dedicated Arcaevo entity. No DPO is named: at trial scale none is
+      // appointed yet — see docs/legal/DPO_NOT_REQUIRED_MEMO.md; do NOT label
+      // this contact "DPO". Reconciliation tracked in docs/PRELAUNCH_CHECKLIST.md §1.2/1.6.
       S("Who we are", [
-        "Arcaevo Health Ltd is the data controller for the personal data described here. We are based in Dublin, Ireland, and process data in the European Union.",
+        "Codú Limited is the data controller for the personal data described here. We are based in Dublin, Ireland, and process data in the European Union. For any data-protection question or to exercise your rights, contact our privacy team at privacy@arcaevo.com.",
       ]),
       S(
         "What we collect",
@@ -77,7 +85,7 @@ export const legalDocs: Record<string, LegalDoc> = {
         "We never sell your data or use it for advertising. We share it only with the accredited laboratories that process your samples, the clinicians who review your results, and the infrastructure sub-processors listed on our sub-processors page — all under strict data-processing agreements.",
       ]),
       S("Your rights", [
-        "Under GDPR you can access, correct, export (portability) and erase your data, restrict or object to processing, and withdraw consent. Most of these are self-service in the app; the rest we action within one month.",
+        "Under GDPR you can access, correct, export (portability) and erase your data, restrict or object to processing, and withdraw consent. Most of these are self-service in the app; the rest we action within one month. To make a request, use the in-app controls or email our privacy team at privacy@arcaevo.com.",
       ]),
       S("Retention", [
         "We keep your health data while your account is active and for a limited period afterwards to meet clinical-record obligations, unless you ask us to delete it sooner. When you delete your account, we permanently erase your data with no copies kept, except where law requires a minimal record.",
@@ -116,7 +124,7 @@ export const legalDocs: Record<string, LegalDoc> = {
         "Where Irish or EU law requires us to keep a minimal record (for example, a proof that a regulated test was performed), we retain only that legally-required minimum, isolated and inaccessible for any other purpose, and delete it as soon as the obligation ends.",
       ]),
       S("Prefer to email?", [
-        "You can also email privacy@arcaevo.health from your registered address and we will action any export or deletion request within one month, and usually within a few days.",
+        "You can also email privacy@arcaevo.com from your registered address and we will action any export or deletion request within one month, and usually within a few days.",
       ]),
     ],
   },

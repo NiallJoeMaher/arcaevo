@@ -30,4 +30,15 @@ final class MockHealthStore: HealthDataProviding {
         // simulator demos the cycle-aware band note honestly.
         CyclePreferences.isEnabled ? .luteal : nil
     }
+
+    // MARK: - Background delivery (no-op)
+
+    /// The mock never drives background refresh — there is no real overnight
+    /// data to wake on, and we must never recompute a score off seeded series
+    /// in the background.
+    var supportsBackgroundDelivery: Bool { false }
+
+    func enableBackgroundDelivery(onUpdate: @escaping @Sendable () async -> Void) async {
+        // Intentionally empty — simulator / denied has nothing to observe.
+    }
 }

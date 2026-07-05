@@ -6,11 +6,13 @@
  *  GET  — position: authenticated member (uses their email) or ?email=…
  *         (position + county only — nothing sensitive).
  */
-import { memberFromRequest } from "@/lib/auth";
+import { requireMember } from "@/lib/auth";
+import { AnalyticsEvent, capture } from "@/lib/analytics";
 import { parseJsonBody, siteUrl } from "@/lib/api";
 import { collections } from "@/lib/db";
 import { checkEligibility } from "@/lib/eligibility";
 import { sendEmail } from "@/lib/emails";
+import { newId } from "@/lib/ids";
 import { WaitlistJoinInput } from "@/lib/models";
 
 export async function POST(req: Request) {
@@ -44,20 +46,22 @@ export async function POST(req: Request) {
   const waitlist = await collections.waitlist();
   const county = result.county ?? "Ireland";
 
+  // Non-revealing join (security audit W-2): the response is IDENTICAL whether
+  // or not the email was already on the list — same shape, same 201, no
+  // `alreadyJoined` tell — so a third party can't probe an arbitrary address to
+  // learn whether it's registered. Re-joining is still idempotent (returns the
+  // existing position) and does NOT re-send E10 (avoids confirmation spam).
   const existing = await waitlist.findOne({ email });
   if (existing) {
-    return Response.json({
-      ok: true,
-      alreadyJoined: true,
-      position: existing.position,
-      county: existing.county,
-    });
+    return Response.json(
+      { ok: true, position: existing.position, county: existing.county },
+      { status: 201 }
+    );
   }
 
   const position = (await waitlist.countDocuments({ county })) + 1;
-  const total = await waitlist.countDocuments();
   const entry = {
-    _id: `wait_${String(total + 1).padStart(4, "0")}`,
+    _id: newId("wait"), // collision-free (security audit W-4; see lib/ids)
     email,
     routingKey: result.routingKey,
     county,
@@ -65,6 +69,14 @@ export async function POST(req: Request) {
     createdAt: new Date(),
   };
   await waitlist.insertOne(entry);
+
+  // Funnel: a genuine new join (re-joins above return early, so no double-count).
+  // distinctId is the waitlist id (no member id yet); county is coarse geo.
+  capture(
+    AnalyticsEvent.WaitlistJoined,
+    { county, routingKey: result.routingKey, position },
+    entry._id
+  );
 
   // E10 — confirmation immediately; monthly updates + the county-open E11
   // (30-day founding-member window) come later from ops.
@@ -74,25 +86,17 @@ export async function POST(req: Request) {
     fusionUrl: `${siteUrl()}/pricing`,
   });
 
-  return Response.json(
-    { ok: true, alreadyJoined: false, position, county },
-    { status: 201 }
-  );
+  return Response.json({ ok: true, position, county }, { status: 201 });
 }
 
 export async function GET(req: Request) {
-  const member = await memberFromRequest(req);
-  const emailParam = new URL(req.url).searchParams.get("email");
-  const email = (member?.email ?? emailParam)?.toLowerCase();
-  if (!email) {
-    return Response.json(
-      {
-        error: "bad_request",
-        message: "Sign in or pass ?email= to look up a waitlist position.",
-      },
-      { status: 400 }
-    );
-  }
+  // Member-scoped only (security audit W-2): the previous `?email=` bypass let
+  // anyone confirm whether an arbitrary address was on the waitlist (+ county /
+  // join date). A member may only look up THEIR OWN position.
+  const auth = await requireMember(req);
+  if (auth.denied) return auth.denied;
+  const email = auth.member.email.toLowerCase();
+
   const entry = await collections
     .waitlist()
     .then((c) => c.findOne({ email }));

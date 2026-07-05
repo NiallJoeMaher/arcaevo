@@ -9,15 +9,22 @@
  * Outside Dublin: honest fallback — Fusion + waitlist priority, or a refund.
  */
 import { requireMember } from "@/lib/auth";
+import { AnalyticsEvent, capture } from "@/lib/analytics";
 import { parseJsonBody } from "@/lib/api";
 import { collections } from "@/lib/db";
 import { newId } from "@/lib/ids";
 import { checkEligibility } from "@/lib/eligibility";
 import { renderEmailLayout } from "@/lib/emails";
 import { GiftRedeemInput, type Membership } from "@/lib/models";
+import { GIFT_REDEEM_RATE_LIMIT, limitByIp } from "@/lib/rate-limit";
 import { emailVendor } from "@/lib/vendors/email.mock";
 
 export async function POST(req: Request) {
+  // IP rate-limit BEFORE any lookup (security audit W-3): caps how fast an
+  // authenticated attacker can grind for an unredeemed code.
+  const limited = await limitByIp(req, "gift_redeem", GIFT_REDEEM_RATE_LIMIT);
+  if (limited) return limited;
+
   const auth = await requireMember(req);
   if (auth.denied) return auth.denied;
 
@@ -103,6 +110,9 @@ export async function POST(req: Request) {
     { _id: gift._id },
     { $set: { redeemedBy: auth.member._id, redeemedAt: now } }
   );
+
+  // Lifecycle: gift converted to an active membership. Tier enum only.
+  capture(AnalyticsEvent.GiftRedeemed, { tier: gift.tier }, auth.member._id);
 
   // The buyer's one and only email — no health data, ever (design §16).
   await emailVendor.send({

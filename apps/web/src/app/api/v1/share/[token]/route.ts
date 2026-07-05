@@ -41,6 +41,36 @@ export async function GET(
     );
   }
 
+  // Consent gate on the PUBLIC endpoint (security audit W-1): if the owning
+  // member has withdrawn health_processing consent or started account closure
+  // (processingSuspended / status closing|closed), refuse to disclose their
+  // Art.9 lab values — even if the link's own 30-day TTL hasn't elapsed yet.
+  // Withdrawal also revokes the link (suspendProcessingForWithdrawal), so this
+  // is defence-in-depth for a link created/raced around the withdrawal.
+  const member = await collections
+    .users()
+    .then((c) => c.findOne({ _id: link.userId }));
+  if (!member) {
+    return Response.json(
+      { error: "gone", message: "This account no longer exists." },
+      { status: 410 }
+    );
+  }
+  if (
+    member.processingSuspended ||
+    member.status === "closing" ||
+    member.status === "closed"
+  ) {
+    return Response.json(
+      {
+        error: "gone",
+        message:
+          "This share link has been revoked or has expired. Ask the member for a fresh one.",
+      },
+      { status: 410 }
+    );
+  }
+
   // Access is logged and shown to the member ("Opened twice — Dublin, 3 July").
   // MOCK: coarse location is hardcoded — a real deployment would GeoIP the
   // request (city-level only, never stored beyond this log).
@@ -49,21 +79,12 @@ export async function GET(
     { $push: { accessLog: { at: new Date(), location: "Dublin" } } }
   );
 
-  const [member, readings] = await Promise.all([
-    collections.users().then((c) => c.findOne({ _id: link.userId })),
-    collections.biomarkerReadings().then((c) =>
-      c
-        .find({ memberId: link.userId, source: "lab" }) // lab values only
-        .sort({ takenAt: 1 })
-        .toArray()
-    ),
-  ]);
-  if (!member) {
-    return Response.json(
-      { error: "gone", message: "This account no longer exists." },
-      { status: 410 }
-    );
-  }
+  const readings = await collections.biomarkerReadings().then((c) =>
+    c
+      .find({ memberId: link.userId, source: "lab" }) // lab values only
+      .sort({ takenAt: 1 })
+      .toArray()
+  );
 
   // Last two lab values per marker → the Feb/Jul columns of the GP table.
   const byCode = new Map<string, BiomarkerReading[]>();

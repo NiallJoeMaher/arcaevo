@@ -79,6 +79,31 @@ compile the same files directly, which keeps signing/embedding simple for v1.
   the same demo data; its ring is computed by the shared deterministic
   `Readiness` score.
 
+## Background refresh, telemetry & the first-run nudge
+
+- **Background HealthKit refresh** (`Arcaevo/Health/HealthBackgroundManager.swift`):
+  `HKObserverQuery` + `enableBackgroundDelivery` for HRV, resting HR and sleep
+  wakes the app when new overnight data lands; a `BGAppRefreshTask`
+  (identifier `co.arcaevo.app.health.refresh`, in `BGTaskSchedulerPermittedIdentifiers`;
+  `UIBackgroundModes` = `fetch`, `processing`) re-pulls the series, recomputes
+  readiness/energy/vitality via the existing engines and rewrites the App-Group
+  `GlanceSnapshot`, so widgets/complications show the fresh morning score
+  without opening the app. Real device only — the mock (simulator / denied)
+  no-ops so nothing is fabricated in the background.
+- **Sentry (crash + error observability)** — privacy-first and DSN-gated. Set
+  the **`SENTRY_DSN`** Info.plist key (per config, via the `SENTRY_DSN` build
+  setting — same pattern as `ARCAEVO_API_BASE_URL`). Empty/unset ⇒ Sentry stays
+  OFF (`Telemetry.start()` returns before touching the SDK). No HealthKit values
+  and no PII are ever sent: `sendDefaultPii = false`, `beforeSend`/
+  `beforeBreadcrumb` strip user/request/extras and redact anything email-shaped.
+  All SDK use is behind `#if canImport(Sentry)` so a build without the package
+  still compiles.
+- **First-reading re-engagement nudge** (`Arcaevo/Notifications/FirstReadingNudge.swift`):
+  a one-time, local, kind nudge scheduled ~24h after onboarding when the member
+  has notifications on but hasn't opened their readiness surface; cancelled the
+  moment they view a score (`AppState.hasViewedFirstScore`). Honours quiet hours
+  and the notification prefs; never a health value in the payload.
+
 ## Product rules honoured
 
 - v1 integrations: **Apple Watch + Apple Health only** (WHOOP/Oura/Garmin

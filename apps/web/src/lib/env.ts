@@ -46,6 +46,17 @@ export function demoTokenEnabled(): boolean {
 }
 
 /**
+ * Whether the password-only BOOTSTRAP OWNER login (the shared `ADMIN_PASSWORD`
+ * break-glass path) is DISABLED. Set `ADMIN_BOOTSTRAP_DISABLED=true` in prod
+ * once a real owner account exists + has MFA enrolled, so the shared-secret
+ * owner credential (security audit finding A-1) can no longer be used at all.
+ * OFF by default so dev, first-login and the e2e password flow are unaffected.
+ */
+export function adminBootstrapDisabled(): boolean {
+  return process.env.ADMIN_BOOTSTRAP_DISABLED === "true";
+}
+
+/**
  * Validate that all required secrets are present. Called from
  * `instrumentation.ts` `register()` so a misconfigured production server fails
  * to boot instead of silently running with forgeable auth. No-op outside prod.
@@ -54,7 +65,12 @@ export function assertRequiredSecrets(): void {
   if (!isProduction()) return;
   const missing: string[] = [];
   if (!process.env.SESSION_SECRET) missing.push("SESSION_SECRET");
-  if (!process.env.ADMIN_PASSWORD) missing.push("ADMIN_PASSWORD");
+  // ADMIN_PASSWORD is only required while the bootstrap owner login is enabled.
+  // Once ADMIN_BOOTSTRAP_DISABLED=true (a real MFA-enrolled owner exists), prod
+  // can — and should — boot without the shared break-glass password (A-1 fix).
+  if (!adminBootstrapDisabled() && !process.env.ADMIN_PASSWORD) {
+    missing.push("ADMIN_PASSWORD");
+  }
   if (missing.length) {
     throw new Error(
       `Missing required production environment variables: ${missing.join(", ")}. ` +

@@ -24,38 +24,49 @@ export interface SidebarBadges {
   support: number | null;
 }
 
+// `suffix` is the path under the admin base ("" = dashboard). The real base is
+// injected from the server (adminBasePath()) so every link uses the configured
+// secret slug in prod — a hardcoded "/admin/*" href would 404 there. Comparing
+// against the browser pathname (usePathname reflects the slug URL after the
+// proxy rewrite) is done against `${basePath}${suffix}`.
 const NAV: {
-  href: string;
+  suffix: string;
   icon: string;
   label: string;
   badge?: keyof SidebarBadges;
   /** Only rendered for owner sessions (admin-account management + audit log). */
   ownerOnly?: boolean;
 }[] = [
-  { href: "/admin", icon: "◧", label: "Dashboard" },
-  { href: "/admin/members", icon: "◍", label: "Members" },
-  { href: "/admin/results", icon: "✚", label: "Review queue", badge: "review" },
-  { href: "/admin/support", icon: "✉", label: "Support", badge: "support" },
+  { suffix: "", icon: "◧", label: "Dashboard" },
+  { suffix: "/members", icon: "◍", label: "Members" },
+  { suffix: "/results", icon: "✚", label: "Review queue", badge: "review" },
+  { suffix: "/support", icon: "✉", label: "Support", badge: "support" },
   // v2 ops views (design_handoff_v2 §18 ADM-1/2/3)
-  { href: "/admin/waitlist", icon: "◔", label: "Waitlist" },
-  { href: "/admin/eligibility", icon: "◫", label: "Eligibility" },
-  { href: "/admin/consent", icon: "❋", label: "Consent audit" },
+  { suffix: "/waitlist", icon: "◔", label: "Waitlist" },
+  { suffix: "/eligibility", icon: "◫", label: "Eligibility" },
+  { suffix: "/consent", icon: "❋", label: "Consent audit" },
   // Self-service: every admin manages their own two-factor auth (MOCKED_APIS §3).
-  { href: "/admin/security", icon: "⚷", label: "Security" },
+  { suffix: "/security", icon: "⚷", label: "Security" },
   // Owner-only: self-hosted admin auth management (MOCKED_APIS §3).
-  { href: "/admin/admins", icon: "⚿", label: "Admins", ownerOnly: true },
-  { href: "/admin/access-log", icon: "☰", label: "Access log", ownerOnly: true },
+  { suffix: "/admins", icon: "⚿", label: "Admins", ownerOnly: true },
+  { suffix: "/access-log", icon: "☰", label: "Access log", ownerOnly: true },
 ];
 
 export default function AdminSidebar({
   badges,
   role,
+  basePath,
 }: {
   badges: SidebarBadges;
   role: AdminRole | null;
+  /** The admin base path (secret slug in prod) that every link is built on. */
+  basePath: string;
 }) {
   const pathname = usePathname();
-  const nav = NAV.filter((n) => !n.ownerOnly || role === "owner");
+  const nav = NAV.filter((n) => !n.ownerOnly || role === "owner").map((n) => ({
+    ...n,
+    href: `${basePath}${n.suffix}`,
+  }));
 
   return (
     <aside

@@ -9,6 +9,7 @@
  * the member is shown the consent screen again on next sign-in.
  */
 import { collections } from "@/lib/db";
+import { newId } from "@/lib/ids";
 import {
   CONSENT_VERSION,
   ConsentPurpose,
@@ -52,9 +53,13 @@ export async function recordConsents(
   now: Date = new Date()
 ): Promise<Consent[]> {
   const consents = await collections.consents();
-  const count = await consents.countDocuments();
-  const docs: Consent[] = grants.map((grant, i) => ({
-    _id: `consent_${String(count + i + 1).padStart(4, "0")}`,
+  // Collision-safe ids (security audit W-4): the old
+  // `consent_${countDocuments()+1}` scheme raced under concurrent withdrawals
+  // (two writes computing the same count → duplicate _id → the second insert
+  // throws), which on this append-only audit trail could silently drop a
+  // withdrawal record. newId() removes the race.
+  const docs: Consent[] = grants.map((grant) => ({
+    _id: newId("consent"),
     userId,
     purpose: grant.purpose,
     granted: grant.granted,

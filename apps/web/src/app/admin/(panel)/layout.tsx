@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
-import { currentAdmin } from "@/lib/auth";
+import { currentAdmin, currentAdminEnrollment } from "@/lib/auth";
+import { adminBasePath, adminPath } from "@/lib/admin-path";
 import AdminSidebar from "./AdminSidebar";
 import { loadSidebarBadges } from "./data";
 
@@ -19,7 +20,13 @@ export default async function AdminPanelLayout({
   // currentAdmin() also gives the live DB role, so the sidebar can show the
   // owner-only tabs (Admins / Access log) to owners only.
   const admin = await currentAdmin();
-  if (!admin) redirect("/admin/login");
+  if (!admin) {
+    // "Signed in but MFA not yet enrolled" is NOT authorised for any data route
+    // — the scoped enrol state only reaches the enrolment flow. Send them there;
+    // otherwise (no session, no enrol state) send them to sign in.
+    if (await currentAdminEnrollment()) redirect(adminPath("enroll-mfa"));
+    redirect(adminPath("login"));
+  }
 
   // Badge counts for the sidebar (review queue + open tickets). Null when
   // Mongo is unreachable — the sidebar simply hides the badges.
@@ -37,7 +44,7 @@ export default async function AdminPanelLayout({
         gridTemplateColumns: "236px 1fr",
       }}
     >
-      <AdminSidebar badges={badges} role={admin.role} />
+      <AdminSidebar badges={badges} role={admin.role} basePath={adminBasePath()} />
       <main style={{ padding: 0, minWidth: 0 }}>{children}</main>
     </div>
   );

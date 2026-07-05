@@ -59,6 +59,9 @@ struct NotificationsV3View: View {
         }
         finishing = false
         appState.completeOnboarding()
+        // Re-engagement: nudge them to open their first readiness within ~24h
+        // (cancelled the moment they view a score). No-op if they didn't grant.
+        FirstReadingNudge.scheduleIfNeeded(appState: appState)
     }
 
     private func prefRow(_ title: String, _ sub: String, _ isOn: Binding<Bool>) -> some View {

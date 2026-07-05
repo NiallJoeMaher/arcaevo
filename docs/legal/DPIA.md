@@ -3,6 +3,8 @@
 > **DRAFT — prepared for review by a Data Protection Officer / solicitor before reliance. Not legal advice.**
 >
 > A DPIA is effectively **mandatory** here: Arcaevo processes special-category health data (Art. 9), performs systematic profiling / health scoring, and does so at consumer scale — the Irish DPC's list of processing requiring a DPIA covers all three. This is a first draft grounded in the current codebase (with file citations) to accelerate a real DPO/solicitor review. It is **not** a completed, signed-off DPIA: the sign-off, consultation and residual-risk acceptance are for the appointed DPO/controller.
+>
+> **Controller (interim):** **Codú Limited** (the founder's existing registered Irish company) is the data controller for the early closed trial. A dedicated entity will be formed if the product monetises, at which point the controller migrates and this DPIA is re-reviewed. See `RECORDS_OF_PROCESSING.md` for the controller register.
 
 ---
 
@@ -47,7 +49,7 @@ Adult members (18+; `legal.ts` "Children" — not knowingly processing under-18s
 | Lawful basis | See §3 |
 | Accuracy | Self-reported bloods are permanently marked `self_reported` (never presented as clinician-reviewed); RCV verdicts guard against over-reading noise; **mock extraction is OFF in production** so real users never confirm fabricated numbers (`env.ts` `ALLOW_MOCK_EXTRACTION`) |
 | Storage limitation | Active-account retention + a real +30-day erasure (`erasure.ts`); see `DATA_RETENTION.md` |
-| Transparency | Layered privacy/consent copy exists (`legal.ts`); **OPEN: solicitor review of the wording, and reconcile the `privacy@arcaevo.health` vs `arcaevo.com` domain** |
+| Transparency | Layered privacy/consent copy exists (`legal.ts`); named controller reconciled to the interim controller **Codú Limited**, and the data-protection contact set to the durable role-based address **`privacy@arcaevo.com`** across the public copy, `/consent`, `/account/privacy` and every legal doc (receiving-mailbox setup in [`../EMAIL_ADDRESSES.md`](../EMAIL_ADDRESSES.md)). No DPO is named — see [`DPO_NOT_REQUIRED_MEMO.md`](./DPO_NOT_REQUIRED_MEMO.md). **OPEN: solicitor review of the wording.** |
 | Data-subject rights | Access/export/erase/withdraw are self-service in the app + a one-month email fallback (`legal.ts`); withdrawal is genuinely as easy as granting |
 
 **Conclusion:** the processing is necessary and — for the core wellness purpose — proportionate, with unusually strong minimisation for this stage. Proportionality gaps are operational/legal (DPAs, DPIA sign-off, admin access), not architectural.
@@ -130,7 +132,7 @@ Scoring: Likelihood × Severity, each Low/Med/High, after existing mitigations (
 3. **Replace shared-password admin** with per-user accounts + roles + audit log (R4) — `ADMIN_AUTH_OPTIONS.md`.
 4. **Set `CRON_SECRET`**, monitor the erasure cron, and keep proof it ran (R5).
 5. **Wire a real EU ESP**; keep rate-limiting on (R6).
-6. **Solicitor-review** the privacy policy, consent copy, terms, sub-processor page; confirm the controller entity (CRO).
+6. **Solicitor-review** the privacy policy, consent copy, terms, sub-processor page; confirm the interim controller entity **Codú Limited** (record its CRO number) and the migration plan to a dedicated entity on monetisation.
 7. **Verify EU region pinning** (Atlas cluster + backups, Vercel functions, PostHog account) (R7).
 8. **Verify cycle-data flow end-to-end** before shipping cycle features (R8).
 9. **Write a short MDR intended-purpose self-assessment** (wellness, not a device) + confirm the blood-layer ON/OFF behaves as a true config flag (R3).
@@ -156,7 +158,7 @@ Scoring: Likelihood × Severity, each Low/Med/High, after existing mitigations (
 **Prior consultation (Art. 36):** if, after mitigation, any residual remains **high**, consult the DPC before that processing begins. On this draft, **R4 (admin access)** and **R9 (mock clinician, paid tiers)** are the items most likely to require resolution before launch rather than DPC consultation — close them and re-score.
 
 **Open items for the DPO/solicitor:**
-- Confirm controller entity (CRO) + DPO decision.
+- Confirm interim controller **Codú Limited** (CRO number) + the plan to migrate to a dedicated entity on monetisation + DPO decision.
 - Approve lawful-basis analysis and the consent-withdrawal→closure consequence copy.
 - Confirm the MDR wellness position and the profiling/Art. 22 conclusion.
 - Accept or challenge each residual-risk rating; decide on any Art. 36 consultation.

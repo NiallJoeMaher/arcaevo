@@ -15,6 +15,7 @@
  * token in the body for the iOS app to use as a bearer), and reports whether
  * the consent gate must be shown next (§04: right after email verification).
  */
+import { AnalyticsEvent, capture } from "@/lib/analytics";
 import { parseJsonBody } from "@/lib/api";
 import { consentState } from "@/lib/consents";
 import { collections } from "@/lib/db";
@@ -93,6 +94,8 @@ export async function POST(req: Request) {
     req.headers.get("user-agent") ?? "unknown"
   );
   await setMemberSessionCookie(sessionToken);
+
+  capture(AnalyticsEvent.MagicLinkVerified, { via: viaCode ? "code" : "link" }, user._id);
 
   const consent = await consentState(user._id);
   return Response.json({

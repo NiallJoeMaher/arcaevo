@@ -9,13 +9,16 @@
  *          entirely (never gated — nothing ships).
  *  Step 2 · details — name, delivery/visit address, email for guests
  *          (account created inline server-side), DOB (lab requirement).
- *  Step 3 · payment — MOCK Stripe card form + Apple Pay on web. Both submit
- *          POST /api/v1/checkout, then fire the mock
- *          checkout.session.completed webhook to activate, then → /welcome.
+ *  Step 3 · payment — both submit POST /api/v1/checkout. Then, split by vendor:
+ *          · LIVE Stripe → redirect to the hosted Checkout `url`; activation
+ *            happens only via the real signature-verified server webhook.
+ *          · MOCK (dev/e2e/docker) → fire the mock checkout.session.completed
+ *            webhook to activate, then → /welcome. (card form is mock-only)
  */
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { resolveCheckoutAction } from "@/lib/checkout-action";
 import {
   Card,
   errorCls,
@@ -67,9 +70,13 @@ type Eligibility =
 export default function CheckoutClient({
   tier,
   member,
+  paymentsLive = false,
 }: {
   tier: CheckoutTier;
   member: { id: string; email: string; name: string } | null;
+  /** True when real Stripe keys are live: redirect to hosted Checkout instead
+   *  of firing the browser mock webhook (see handlePay). */
+  paymentsLive?: boolean;
 }) {
   const router = useRouter();
   const gated = tier !== "fusion"; // Fusion skips step 1 — never gated
@@ -175,6 +182,22 @@ export default function CheckoutClient({
             ? data.message
             : "Something went wrong — try again in a moment."
         );
+        return;
+      }
+      // LIVE Stripe: hand off to the real hosted Checkout page. Money is
+      // actually collected there and the membership is activated ONLY by the
+      // real, signature-verified server-to-server webhook — the browser NEVER
+      // fires a webhook in live mode (that was the revenue-leak: it granted
+      // membership with €0 collected). MOCK: fire the browser webhook as before.
+      const action = resolveCheckoutAction(paymentsLive, data);
+      if (action.kind === "redirect") {
+        window.location.href = action.url; // leaves the page — no more work here
+        return;
+      }
+      if (action.kind === "error") {
+        // LIVE but no hosted URL — fail closed rather than silently activate.
+        setError("Couldn't start secure checkout — try again in a moment.");
+        setBusy(false);
         return;
       }
       // MOCK: the payment succeeded instantly — fire the webhook that a real

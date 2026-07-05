@@ -143,6 +143,18 @@ enum PushCopy {
         all.first { $0.key == key }!
     }
 
+    // MARK: First-run activation nudge (NOT one of the twelve)
+    //
+    // Deliberately separate from the twelve-card daily vocabulary: this is a
+    // one-time ONBOARDING activation prompt, scheduled once when a member has
+    // notifications on but hasn't yet opened their readiness, and cancelled the
+    // moment they view their first score. Same calm voice — no streak guilt,
+    // never a health value, never a number. See `FirstReadingNudge`.
+    enum FirstReading {
+        static let title = "Your first reading is ready to unlock"
+        static let body = "Open Arcaevo to see where your baseline starts."
+    }
+
     #if DEBUG
     /// Guards the "whole vocabulary" invariant: 12 cards, one per key, no dupes.
     static let isComplete: Bool =

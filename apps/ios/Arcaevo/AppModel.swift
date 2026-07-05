@@ -157,6 +157,32 @@ final class AppModel {
         return granted
     }
 
+    // MARK: - Background refresh (widgets/complications fresh without an open)
+
+    /// True when the current provider is a real HealthKit store on a capable
+    /// device — the only case where background delivery + a scheduled refresh
+    /// should ever run (never off the seeded mock).
+    var supportsBackgroundHealth: Bool { health.supportsBackgroundDelivery }
+
+    /// Turn on `HKObserverQuery` background delivery so iOS wakes us when new
+    /// overnight data lands; each wake recomputes + rewrites the snapshot.
+    func enableHealthBackgroundDelivery() async {
+        guard health.supportsBackgroundDelivery else { return } // no-op on mock
+        await health.enableBackgroundDelivery { [weak self] in
+            await self?.refreshForBackground()
+        }
+    }
+
+    /// Background-safe refresh (BGAppRefreshTask / observer wake): re-pull the
+    /// series, recompute readiness/energy/vitality via the existing engines,
+    /// and write the `GlanceSnapshot` (App Group) so widgets/complications show
+    /// the fresh morning score WITHOUT the user opening the app. No-ops on the
+    /// mock so nothing is ever fabricated in the background.
+    func refreshForBackground() async {
+        guard health.supportsBackgroundDelivery else { return }
+        await loadWearables() // pulls series → recomputeEngines() → writeGlanceSnapshot()
+    }
+
     func loadWearables() async {
         // 60 days: the readiness baseline window (ALGORITHM §1.2).
         var series: [WearableMetric: [WearableSignal]] = [:]

@@ -17,6 +17,17 @@ This stack is intentionally small, because most of Arcaevo does **not** run on A
 See `docs/MOCKED_APIS.md` at the repo root: Stripe and LetsGetChecked are mock
 adapters until real agreements/keys exist — these secrets are their future homes.
 
+- **`ArcaevoEmailStack` (SES transactional email, eu-west-1)** — a separate
+  stack: an SES domain identity for **arcaevo.com** (Easy DKIM + custom MAIL
+  FROM), a least-privilege IAM SMTP sender (`ses:SendEmail`/`ses:SendRawEmail`
+  only, scoped to the identity + a `ses:FromAddress` condition), and its access
+  key, with the IAM secret parked in Secrets Manager (`arcaevo/ses-smtp`) — the
+  SMTP password is **derived** from it, never output in plaintext. Feeds the
+  existing nodemailer adapter (`apps/web/.../email.smtp.ts`). Full walkthrough
+  — DNS records, sandbox → production, password derivation, env vars — in
+  **[`SES_SETUP.md`](./SES_SETUP.md)**. The sending domain is a one-line
+  constant / `-c sendingDomain=` context param (default `arcaevo.com`).
+
 ## Usage
 
 ```bash
@@ -31,6 +42,9 @@ credentials (`CDK_DEFAULT_ACCOUNT`).
 
 ## Layout
 
-- `bin/arcaevo.ts` — CDK app entrypoint
-- `lib/arcaevo-stack.ts` — the single `ArcaevoStack`
+- `bin/arcaevo.ts` — CDK app entrypoint (both stacks)
+- `lib/arcaevo-stack.ts` — the core `ArcaevoStack`
+- `lib/arcaevo-email-stack.ts` — the `ArcaevoEmailStack` (SES + SMTP IAM)
+- `scripts/ses-smtp-password.mjs` — IAM secret → SES SMTP password derivation
+- `SES_SETUP.md` — SES deploy/DNS/env walkthrough
 - Standalone npm project (no workspaces) — matches the repo's ground rules.

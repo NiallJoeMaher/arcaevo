@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
+import { routeMetadata } from "@/lib/seo";
 import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import ContactForm from "./ContactForm";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = routeMetadata({
+  path: "/contact",
   title: "Contact",
   description:
     "Talk to a human. Support, press, partnerships or a clinical question — we read everything and reply within one working day.",
-};
+});
 
 const CHANNELS = [
   {
@@ -27,7 +29,7 @@ const CHANNELS = [
     icon: "🔒",
     t: "Data & privacy",
     d: "Access, export or deletion requests.",
-    v: "privacy@arcaevo.health",
+    v: "privacy@arcaevo.com",
   },
   {
     icon: "📣",
@@ -79,10 +81,9 @@ export default function ContactPage() {
               ))}
             </div>
             <div className="mt-[34px] border-t border-hairline pt-6 text-[13.5px] leading-[1.6] text-caption">
-              Arcaevo Health Ltd · Dublin 2, Ireland
+              Codú Limited · Dublin, Ireland
               <br />
-              Company reg. pending · Data controller for GDPR purposes. See
-              our{" "}
+              Interim data controller for GDPR purposes. See our{" "}
               <Link href="/legal/privacy" className="text-forest no-underline">
                 privacy policy
               </Link>

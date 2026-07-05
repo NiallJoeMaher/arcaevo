@@ -151,6 +151,9 @@ export default function ConsentForm({ next }: { next: string }) {
           </Link>{" "}
           · GDPR Art. 9(2)(a)
         </p>
+        <p className="mt-1 text-center text-[11.5px] text-caption">
+          Questions or to exercise your rights: privacy@arcaevo.com
+        </p>
       </form>
     </Card>
   );

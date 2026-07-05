@@ -3,12 +3,14 @@ import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import { compareIndex, compareIndexMeta } from "@/content/compare";
+import { routeMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = routeMetadata({
+  path: "/compare",
   title: "Compare — Arcaevo vs the rest of at-home health testing",
   description:
     "Honest, side-by-side comparisons. Most services are brilliant at collecting biomarkers and stop there. Here's how Arcaevo's interpretation layer — fusion, your-baseline flagging, and the “did it work?” loop — stacks up against each one.",
-};
+});
 
 export default function ComparePage() {
   return (

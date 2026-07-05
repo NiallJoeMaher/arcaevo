@@ -69,6 +69,46 @@ export function isWithinBand(value: number, band: BaselineBand): boolean {
   return value >= band.low && value <= band.high;
 }
 
+/** Minimal shape of a stored reading needed to build an ingest baseline. */
+export interface IngestHistoryReading {
+  value: number;
+  takenAt: Date;
+  source: string; // "lab" | "self_reported"
+}
+
+/**
+ * Select the baseline `series` and the chronologically-prior reading for a NEW
+ * reading being ingested. This is the single place that enforces three
+ * correctness rules the ingest routes previously got wrong:
+ *
+ *  1. **A reading is never in its own baseline.** Only readings STRICTLY BEFORE
+ *     the incoming reading's `takenAt` feed the band it's compared against.
+ *  2. **Sources never mix.** Lab and self-reported baselines are kept separate,
+ *     so a self-reported "hollow gold" value can't pollute the clinician-track
+ *     lab baseline/band (and vice-versa). Only same-`source` readings count.
+ *  3. **Backfill-correct.** An older reading uploaded after the fact is
+ *     verdicted against what came before IT chronologically — never against
+ *     today's most-recent reading.
+ *
+ * `history` may be in any order; it is filtered and sorted here. The incoming
+ * reading itself must NOT be included in `history`.
+ */
+export function baselineInputsForIngest(
+  history: IngestHistoryReading[],
+  incoming: { takenAt: Date; source: string }
+): { prior: IngestHistoryReading | null; series: number[] } {
+  const incomingMs = incoming.takenAt.getTime();
+  const priorReadings = history
+    .filter(
+      (h) => h.source === incoming.source && h.takenAt.getTime() < incomingMs
+    )
+    .sort((a, b) => a.takenAt.getTime() - b.takenAt.getTime());
+  return {
+    prior: priorReadings.at(-1) ?? null,
+    series: priorReadings.map((h) => h.value),
+  };
+}
+
 function round2(n: number): number {
   return Math.round(n * 100) / 100;
 }

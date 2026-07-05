@@ -20,7 +20,11 @@ import {
   VenousBookingStatus,
   type BiomarkerReading,
 } from "@/lib/models";
-import { computeBaselineBand, computeRcvVerdict } from "@/lib/rcv";
+import {
+  baselineInputsForIngest,
+  computeBaselineBand,
+  computeRcvVerdict,
+} from "@/lib/rcv";
 import { bloodTestVendor } from "@/lib/vendors/letsgetchecked.mock";
 import { emailVendor } from "@/lib/vendors/email.mock";
 
@@ -124,8 +128,13 @@ async function ingestResults(
       .find({ memberId, code: result.code })
       .sort({ takenAt: 1 })
       .toArray();
-    const prior = history.at(-1) ?? null;
-    const series = [...history.map((h) => h.value), result.value];
+    // Lab results are verdicted/banded against the member's LAB history only,
+    // excluding this incoming reading — self-reported "hollow gold" values must
+    // never pollute the clinician-track lab baseline (see lib/rcv.ts).
+    const { prior, series } = baselineInputsForIngest(history, {
+      takenAt,
+      source: "lab",
+    });
     docs.push({
       _id: newId("read"), // collision-free (see lib/ids)
       memberId,

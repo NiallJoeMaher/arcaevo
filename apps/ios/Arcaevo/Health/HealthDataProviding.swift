@@ -32,6 +32,19 @@ protocol HealthDataProviding {
     /// member hasn't opted in / no cycle data exists. Callers must gate on
     /// `CyclePreferences.isEnabled`.
     func cyclePhase(now: Date) async -> CyclePhase?
+
+    /// True ONLY for a real `HKHealthStore` on a device where health data is
+    /// available. The mock (simulator / denied) returns false so the whole
+    /// background-delivery + observer-query path no-ops cleanly and never
+    /// fabricates a score off seeded data.
+    var supportsBackgroundDelivery: Bool { get }
+
+    /// Registers `HKObserverQuery` background delivery for the key overnight
+    /// types (HRV, resting HR, sleep) so iOS wakes the app when new overnight
+    /// data lands. `onUpdate` is invoked (off the main thread) on each delivery
+    /// — the caller re-pulls the series, recomputes, and writes the snapshot.
+    /// No-op on the mock. Idempotent.
+    func enableBackgroundDelivery(onUpdate: @escaping @Sendable () async -> Void) async
 }
 
 enum HealthProviderFactory {

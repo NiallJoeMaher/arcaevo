@@ -13,6 +13,7 @@ const requireMember = vi.fn();
 const consentState = vi.fn();
 const revokeSessions = vi.fn();
 const updateOne = vi.fn();
+const shareUpdateMany = vi.fn();
 
 vi.mock("@/lib/auth", () => ({ requireMember: (req: Request) => requireMember(req) }));
 vi.mock("@/lib/consents", () => ({ consentState: (id: string) => consentState(id) }));
@@ -20,7 +21,10 @@ vi.mock("@/lib/member-auth", () => ({
   revokeSessions: (id: string) => revokeSessions(id),
 }));
 vi.mock("@/lib/db", () => ({
-  collections: { users: async () => ({ updateOne }) },
+  collections: {
+    users: async () => ({ updateOne }),
+    shareLinks: async () => ({ updateMany: shareUpdateMany }),
+  },
 }));
 
 import {
@@ -49,6 +53,7 @@ beforeEach(() => {
   requireMember.mockResolvedValue({ member: MEMBER, denied: null });
   revokeSessions.mockResolvedValue(2);
   updateOne.mockResolvedValue({});
+  shareUpdateMany.mockResolvedValue({ modifiedCount: 3 });
 });
 
 describe("requireConsentedMember", () => {
@@ -137,5 +142,13 @@ describe("suspendProcessingForWithdrawal", () => {
       status: "closing",
       closureRequestedAt: now,
     });
+  });
+
+  it("revokes every un-revoked GP share link the member issued (W-1)", async () => {
+    const { shareLinksRevoked } = await suspendProcessingForWithdrawal("mem_0001");
+    expect(shareLinksRevoked).toBe(3);
+    const [filter, update] = shareUpdateMany.mock.calls[0];
+    expect(filter).toEqual({ userId: "mem_0001", revoked: { $ne: true } });
+    expect(update).toEqual({ $set: { revoked: true } });
   });
 });

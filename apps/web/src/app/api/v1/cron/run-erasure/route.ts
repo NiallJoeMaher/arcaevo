@@ -17,6 +17,8 @@
  */
 import { runDueErasures } from "@/lib/erasure";
 import { cronRequestAuthorized } from "@/lib/env";
+import { AnalyticsEvent, capture } from "@/lib/analytics";
+import { logError } from "@/lib/log";
 
 // Never statically optimised — it mutates the database on every call.
 export const dynamic = "force-dynamic";
@@ -26,7 +28,24 @@ async function handle(req: Request): Promise<Response> {
     return Response.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  const { executed, pending } = await runDueErasures();
+  let executed: Awaited<ReturnType<typeof runDueErasures>>["executed"];
+  let pending: number;
+  try {
+    ({ executed, pending } = await runDueErasures());
+  } catch (err) {
+    // A failed drain silently leaving jobs undone would breach the "erased
+    // within 30 days" promise — make it loud in the logs and 500 so the cron
+    // is marked failed and retried.
+    logError("cron.run_erasure.failed", err);
+    return Response.json({ error: "erasure_failed" }, { status: 500 });
+  }
+
+  // Operational summary — counts only, no PII/health values.
+  capture(
+    AnalyticsEvent.ErasureRunCompleted,
+    { executed: executed.length, pending },
+    "system"
+  );
 
   return Response.json({
     ok: true,

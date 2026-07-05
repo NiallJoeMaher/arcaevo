@@ -430,6 +430,12 @@ async function handleRealEvent(event: StripeEvent): Promise<Response> {
     }
 
     case "invoice.payment_failed": {
+      // Idempotency (same class as invoice.paid): a re-delivered failure would
+      // advance the dunning ladder an extra stage per delivery, wrongly pushing
+      // a member toward read-only. Claim the event id first; duplicates no-op.
+      if (await alreadyProcessed(event.id, event.type)) {
+        return Response.json({ ok: true, type: event.type, deduped: true });
+      }
       const subscriptionId = invoiceSubscriptionId(obj);
       const membership = await findMembership({
         memberId: meta(obj, "memberId"),

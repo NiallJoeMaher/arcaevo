@@ -7,6 +7,7 @@ import SwiftUI
 /// diagnoses; flagged values route to the clinician (amber-bordered bubble).
 struct AskArcaevoV3View: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(AppModel.self) private var model
 
     @State private var messages: [Mv3ChatMessage] = []
     @State private var askedKeys: Set<String> = []
@@ -27,7 +28,9 @@ struct AskArcaevoV3View: View {
                     Mv3BackLink(title: "Today") { dismiss() }
                     Spacer()
                 }
-                Mv3Eyebrow(text: "ASK ARCAEVO · GROUNDED IN YOUR DATA")
+                Mv3Eyebrow(text: model.showsBloodSample
+                           ? "ASK ARCAEVO · SAMPLE ASSISTANT"
+                           : "ASK ARCAEVO · GROUNDED IN YOUR DATA")
                     .padding(.bottom, 10)
 
                 messageList
@@ -36,8 +39,11 @@ struct AskArcaevoV3View: View {
 
                 composer
 
-                Text("Narrates your numbers — never diagnoses. Flagged values go to a clinician, not a chatbot.")
+                Text(model.showsBloodSample
+                     ? "Sample assistant — illustrative answers from example data, not a live AI reading your results. It narrates, never diagnoses; flagged values go to a clinician, not a chatbot."
+                     : "Narrates your numbers — never diagnoses. Flagged values go to a clinician, not a chatbot.")
                     .font(.arcSans(9.5))
+                    .lineSpacing(2)
                     .foregroundStyle(Color.arcRailDim)
                     .frame(maxWidth: .infinity)
                     .multilineTextAlignment(.center)
@@ -59,11 +65,13 @@ struct AskArcaevoV3View: View {
                 VStack(alignment: .leading, spacing: 9) {
                     if messages.isEmpty {
                         VStack(spacing: 8) {
-                            Text("Ask about your own numbers.")
+                            Text(model.showsBloodSample ? "See how Ask Arcaevo reads." : "Ask about your own numbers.")
                                 .font(.arcSerif(24))
                                 .foregroundStyle(Color.arcCream)
                                 .multilineTextAlignment(.center)
-                            Text("Answers come from your results and your Watch. The AI writes the words — your data does the maths.")
+                            Text(model.showsBloodSample
+                                 ? "These are sample answers over example data. Once your results and Watch history are in, it narrates your own numbers — the AI writes the words, your data does the maths."
+                                 : "Answers come from your results and your Watch. The AI writes the words — your data does the maths.")
                                 .font(.arcSans(12.5))
                                 .lineSpacing(4)
                                 .foregroundStyle(Color.arcMutedOnDark)

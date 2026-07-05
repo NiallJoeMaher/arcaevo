@@ -8,6 +8,7 @@ import Charts
 /// plus a drag scrubber that reads the Watch value at any point in time.
 struct FusionTimelineV3View: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(AppModel.self) private var model
 
     @State private var markerKey = "apob"
     @State private var wearKey = "rhr"
@@ -36,6 +37,11 @@ struct FusionTimelineV3View: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     Mv3BackLink(title: "Today") { dismiss() }
+
+                    if model.showsBloodSample {
+                        Mv3SampleBanner(detail: "An example fusion timeline — the blood draws shown are not yours. The real chart fills in as your tests and Watch history build.")
+                            .padding(.bottom, 12)
+                    }
 
                     Mv3Eyebrow(text: "FUSION TIMELINE · BLOOD × WATCH")
                         .padding(.bottom, 6)

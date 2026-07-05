@@ -29,11 +29,14 @@ final class WatchModel {
     /// Locked-at-wake readiness. Drives the today ring + decision + one-line why.
     private(set) var readiness: ReadinessResult?
 
-    /// Displayed score — the blood-recalibrated final; honest fallback while nil.
-    var score: Int { readiness?.final ?? 62 }
+    /// Displayed score — the blood-recalibrated final. `showsScore` gates
+    /// whether it's shown at all, so this is only read once real.
+    var score: Int { readiness?.final ?? 0 }
     var decision: ReadinessDecision { readiness?.decision ?? .goEasy }
     var exertionCeiling: Int { readiness?.exertionCeiling ?? decision.exertionCeiling }
-    var showsScore: Bool { readiness?.state.showsScore ?? true }
+    /// Honest by default: with no computed readiness (the wrist can't build a
+    /// real baseline locally yet), show the calibrating state — never a number.
+    var showsScore: Bool { readiness?.state.showsScore ?? false }
 
     /// Short decision headline for the today ring (design: "Go easy").
     var decisionShort: String {
@@ -45,10 +48,10 @@ final class WatchModel {
         }
     }
 
-    /// One-line why + the exertion ceiling (design: "HRV below your band — and
-    /// iron may be part of why. Ceiling 4 of 10.").
+    /// One-line why + the exertion ceiling, straight from the engine. Only read
+    /// when `showsScore` is true, so there's always a real `why` behind it.
     var whyLine: String {
-        let why = readiness?.why ?? "HRV below your band — and iron may be part of why."
+        let why = readiness?.why ?? "From your overnight HRV and resting heart rate."
         return "\(why) Ceiling \(exertionCeiling) of 10."
     }
 
@@ -63,18 +66,25 @@ final class WatchModel {
     // MARK: Energy (all-day gauge)
 
     private(set) var energyDay: EnergyDay?
-    var energyPercent: Int { energyDay?.value(at: Date()) ?? energyDay?.start ?? 54 }
+    /// True once there's a real all-day curve to show; otherwise the screen
+    /// stays in its honest "building" state rather than inventing a percent.
+    var energyKnown: Bool { energyDay != nil }
+    var energyPercent: Int { energyDay?.value(at: Date()) ?? energyDay?.start ?? 0 }
     /// Amber gauge when the ceiling is pulled down (go-easy / rest).
     var energyLowered: Bool { decision == .goEasy || decision == .rest }
     var energyBestWindow = "Best window 10:00–12:30. Dip due ~15:00 — a walk beats coffee."
-    var energyCeilingNote = "Ceiling lowered by low iron — details on iPhone."
+    /// Blood-derived note only when there's a real blood penalty behind it;
+    /// otherwise nothing (never claim "low iron" the member hasn't measured).
+    var energyCeilingNote = "Modelled from your HRV, sleep and movement."
 
     // MARK: Vitality (glance: age ± band)
 
     private(set) var vitality: VitalityScore?
-    var vitalityAge: Int { vitality?.age ?? 29 }
-    var vitalityBand: Int { vitality?.band ?? 2 }
-    var vitalityDelta = "−0.8 yrs since February."
+    /// Vitality is blood-anchored — shown only once there's a real score.
+    var vitalityKnown: Bool { vitality != nil }
+    var vitalityAge: Int { vitality?.age ?? 0 }
+    var vitalityBand: Int { vitality?.band ?? 0 }
+    var vitalityDelta = "Appears after your first blood panel."
     let vitalityFootnote = "The slow score — it only moves when it's real."
 
     // MARK: Face entry (in-app stand-in for the complication)
@@ -83,10 +93,11 @@ final class WatchModel {
 
     // MARK: Biomarker glance (status + delta, no raw alarming values)
 
-    var hrvLatest = 52
+    var hrvLatest = 0
     var hrvSeries: [Double] = []
-    let glanceEyebrow = "INFLAMMATION · HRV PROXY"
-    let glanceCaption = "hs-CRP was low in July. HRV steady since — likely still quiet."
+    /// HRV is a wearable signal — never framed as a blood/inflammation reading.
+    let glanceEyebrow = "HRV · OVERNIGHT"
+    var glanceCaption = "Your recovery signal. Full trends on iPhone."
 
     // MARK: Felt check-in (§1.5 — one tap → posts back into today's score)
 
@@ -168,16 +179,17 @@ final class WatchModel {
     // MARK: Loading + engine compute
 
     func load(auth: WatchAuthManager) async {
-        // Seed the deterministic engine story (baseline-cache stand-in) so every
-        // ring/gauge/sparkline is populated instantly — matches the phone.
+        // Populate the engine outputs. In demo the deterministic story stands
+        // in so every ring/gauge/sparkline matches the phone; in a real build
+        // the wrist can't build a 60-day baseline locally yet, so readiness /
+        // energy / vitality stay honestly empty (calibrating) until the phone→
+        // watch baseline transport lands — never a fabricated number.
         recompute(felt: nil)
 
         if WatchDemoMode.isEnabled {
             let hrv = DemoDataProvider.wearableSeries(metric: .hrv)
             hrvSeries = hrv.suffix(9).map(\.value)
             hrvLatest = Int((hrv.last?.value ?? 52).rounded())
-        } else {
-            hrvSeries = DemoDataProvider.readinessDailyPoints(metric: .hrv).suffix(9).map(\.value)
         }
 
         // Real member via the watch token (Bearer = watch token; one silent
@@ -188,18 +200,31 @@ final class WatchModel {
     }
 
     /// Runs the deterministic engines on the crafted baseline series and writes
-    /// the App-Group GlanceSnapshot the watch complication reads.
+    /// the App-Group GlanceSnapshot the watch complication reads. Demo-only:
+    /// outside demo mode there's no real on-wrist baseline to feed them, so the
+    /// outputs stay nil and the screens render their honest calibrating states.
     private func recompute(felt: FeltCheckin?) {
         let now = Date()
         let calendar = Calendar.current
+
+        let todayFelt = felt ?? Self.loadTodayCheckin(now: now, calendar: calendar)
+        if let f = todayFelt { selectedFeel = f.feel }
+
+        guard WatchDemoMode.isEnabled else {
+            // Honest empty state — no bluffed readiness/energy/vitality.
+            readiness = nil
+            energyDay = nil
+            vitality = nil
+            SnapshotStore.write(GlanceSnapshot(
+                readiness: nil, energy: nil, nextTestDays: daysToNextTest, now: now
+            ))
+            return
+        }
 
         let hrv = DemoDataProvider.readinessDailyPoints(metric: .hrv)
         let rhr = DemoDataProvider.readinessDailyPoints(metric: .restingHeartRate)
         let penalties = BiomarkerPenalty.derive(from: DemoDataProvider.recalibrationReadings(), now: now)
         let vitals = DemoDataProvider.vitalsSnapshot()
-
-        let todayFelt = felt ?? Self.loadTodayCheckin(now: now, calendar: calendar)
-        if let f = todayFelt { selectedFeel = f.feel }
 
         readiness = ReadinessEngine.compute(
             hrv: hrv,

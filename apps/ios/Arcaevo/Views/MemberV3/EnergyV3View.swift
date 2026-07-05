@@ -141,7 +141,7 @@ struct EnergyV3View: View {
             VStack(alignment: .leading, spacing: 6) {
                 Mv3Eyebrow(text: "THE \(String(format: "%02d", dipHour)):00 DIP · FORECAST",
                            size: 9, color: Color.arcHollowGold, kerning: 0.9)
-                Text("Your usual afternoon dip lands around \(String(format: "%02d", dipHour)):00 today. Daylight or a 10-minute walk beats a third coffee — caffeine after 14:00 cost you 22 minutes of deep sleep in your last experiment.")
+                Text("Your usual afternoon dip lands around \(String(format: "%02d", dipHour)):00 today. Daylight or a 10-minute walk beats a third coffee — late-afternoon caffeine tends to cost you deep sleep that night.")
                     .font(.arcSans(12.5))
                     .foregroundStyle(Color.arcRailLight)
                     .lineSpacing(2)

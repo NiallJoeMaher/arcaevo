@@ -6,6 +6,7 @@ import SwiftUI
 /// maths comes from the member's own baselines.
 struct InsightsV3View: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(AppModel.self) private var model
 
     init() {}
 
@@ -36,7 +37,12 @@ struct InsightsV3View: View {
                 VStack(alignment: .leading, spacing: 0) {
                     Mv3BackLink(title: "Today") { dismiss() }
 
-                    Mv3Eyebrow(text: "THIS WEEK · TOP 3")
+                    if model.showsBloodSample {
+                        Mv3SampleBanner(detail: "Example insights — not drawn from your data. Yours appear once your blood and Watch history build up.")
+                            .padding(.bottom, 12)
+                    }
+
+                    Mv3Eyebrow(text: model.showsBloodSample ? "SAMPLE · TOP 3" : "THIS WEEK · TOP 3")
                         .padding(.bottom, 6)
                     Text("Three things your data agrees on.")
                         .font(.arcSerif(26))
@@ -49,7 +55,9 @@ struct InsightsV3View: View {
                             .padding(.bottom, 10)
                     }
 
-                    Text("AI writes the words. The maths comes from your own baselines —\nnever generic advice.")
+                    Text(model.showsBloodSample
+                         ? "These are examples of how insights read. Your own are written from your baselines — never generic advice."
+                         : "AI writes the words. The maths comes from your own baselines — never generic advice.")
                         .font(.arcSans(11.5))
                         .lineSpacing(3)
                         .foregroundStyle(Color.arcRailDim)

@@ -19,7 +19,14 @@ struct MemberResultsV3View: View {
                 Color.arcDarkSurface.ignoresSafeArea()
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
-                        Mv3Eyebrow(text: "JULY PANEL · SIGNED OFF BY DR. NOLAN · 2 JUL")
+                        if model.showsBloodSample {
+                            Mv3SampleBanner(detail: "An example blood panel — not your results. Your own appears once your first blood test is in.")
+                                .padding(.bottom, 12)
+                        }
+
+                        Mv3Eyebrow(text: model.showsBloodSample
+                                   ? "SAMPLE PANEL · EXAMPLE DATA"
+                                   : "JULY PANEL · REVIEWED · 2 JUL")
                             .padding(.bottom, 6)
                         Text("38 markers, one thing worth doing.")
                             .font(.arcSerif(26))
@@ -29,10 +36,14 @@ struct MemberResultsV3View: View {
 
                         summaryChips
 
-                        // Dr. Nolan's signed note — on EVERY reviewed panel (the
-                        // §5 guardrail: no uninterpreted results). Rendered from
-                        // the real `clinicianNote`; gracefully absent when null.
-                        if let note {
+                        // The panel note. For a real reviewed panel this is the
+                        // clinician's signed note; for the Sample preview it is
+                        // an honest automated-summary card, clearly badged and
+                        // never a fabricated clinician sign-off.
+                        if model.showsBloodSample {
+                            sampleSummaryCard
+                                .padding(.bottom, 9)
+                        } else if let note {
                             clinicianNoteCard(note)
                                 .padding(.bottom, 9)
                         }
@@ -96,11 +107,11 @@ struct MemberResultsV3View: View {
             .background(fill, in: Capsule())
     }
 
-    // MARK: Clinician note (signed, on every panel)
+    // MARK: Clinician note (real reviewed panel only)
 
     private func clinicianNoteCard(_ note: ClinicianNote) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            Mv3Eyebrow(text: "A NOTE FROM DR. NOLAN · ON EVERY PANEL", size: 9,
+            Mv3Eyebrow(text: "CLINICIAN NOTE · ON EVERY REVIEWED PANEL", size: 9,
                        color: Color.arcHollowGold, kerning: 0.9)
                 .padding(.bottom, 6)
             Text("\u{201C}\(note.text)\u{201D}")
@@ -125,13 +136,51 @@ struct MemberResultsV3View: View {
         .accessibilityElement(children: .combine)
     }
 
-    /// "DR. S. NOLAN · IMC 412887 · READ 2 JUL" — signed, named, dated.
+    /// Real signed note only — a registered clinician's name + IMC number,
+    /// shown ONLY for an actually-reviewed panel. The Sample preview never
+    /// borrows a name or IMC number (it uses `sampleSummaryCard` instead).
     private func signature(_ note: ClinicianNote) -> String {
         var parts = [note.clinicianName.uppercased(), "IMC \(note.imcNumber)"]
         if let readAt = note.readAt {
             parts.append("READ \(DataV3Format.dayMonth(readAt).uppercased())")
         }
         return parts.joined(separator: " · ")
+    }
+
+    /// Honest stand-in for the panel note on the Sample preview: framed as an
+    /// automated wellness summary (never a diagnosis, never a fabricated
+    /// clinician sign-off), badged Sample, with the real promise that a
+    /// registered clinician reviews blood-tier results once a lab is onboarded.
+    private var sampleSummaryCard: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: 8) {
+                Mv3Eyebrow(text: "AUTOMATED WELLNESS SUMMARY · NOT A DIAGNOSIS", size: 9,
+                           color: Color.arcHollowGold, kerning: 0.9)
+                Spacer(minLength: 6)
+                Mv3SampleTag()
+            }
+            .padding(.bottom, 6)
+            Text("\u{201C}Nothing here would worry a reviewer. The walks are clearly working — keep them. Ferritin is the one to feed: food first, recheck in January.\u{201D}")
+                .font(.arcSans(12.5))
+                .italic()
+                .lineSpacing(4)
+                .foregroundStyle(Color(hex: 0xE8E4DA))
+            Text("Example summary. On blood tiers, a registered clinician reviews your results once a lab partner is onboarded.")
+                .font(.arcMono(8.5, weight: .regular))
+                .lineSpacing(2)
+                .foregroundStyle(Color.arcMutedOnDark)
+                .padding(.top, 7)
+        }
+        .padding(.horizontal, 15)
+        .padding(.vertical, 13)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.arcCream.opacity(0.07),
+                    in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 15, style: .continuous)
+                .strokeBorder(Color.arcHollowGold.opacity(0.35), lineWidth: 1)
+        )
+        .accessibilityElement(children: .combine)
     }
 
     // MARK: Group rows

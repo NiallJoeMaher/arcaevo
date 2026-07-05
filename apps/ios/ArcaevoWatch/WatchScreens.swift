@@ -134,38 +134,51 @@ struct WatchEnergyV3View: View {
                 .kerning(0.8)
                 .foregroundStyle(Color.arcMutedOnDark)
 
-            (Text("\(model.energyPercent)")
-                .font(.arcMono(30))
-                .foregroundColor(.arcCream)
-                + Text("%")
-                .font(.arcMono(13))
-                .foregroundColor(.arcMutedOnDark))
-                .padding(.top, 8)
-                .padding(.bottom, 6)
+            if model.energyKnown {
+                (Text("\(model.energyPercent)")
+                    .font(.arcMono(30))
+                    .foregroundColor(.arcCream)
+                    + Text("%")
+                    .font(.arcMono(13))
+                    .foregroundColor(.arcMutedOnDark))
+                    .padding(.top, 8)
+                    .padding(.bottom, 6)
 
-            // Ceiling bar — amber when the day's ceiling is pulled down.
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    Capsule().fill(Color.white.opacity(0.12))
-                    Capsule()
-                        .fill(model.energyLowered ? Color.arcAmber : Color.arcPrimaryGreen)
-                        .frame(width: geo.size.width * CGFloat(model.energyPercent) / 100)
+                // Ceiling bar — amber when the day's ceiling is pulled down.
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(Color.white.opacity(0.12))
+                        Capsule()
+                            .fill(model.energyLowered ? Color.arcAmber : Color.arcPrimaryGreen)
+                            .frame(width: geo.size.width * CGFloat(model.energyPercent) / 100)
+                    }
                 }
+                .frame(height: 7)
+                .padding(.bottom, 9)
+
+                Text(model.energyBestWindow)
+                    .font(.arcSans(10.5))
+                    .foregroundStyle(Color.arcRailLight)
+                    .lineSpacing(2)
+
+                Spacer(minLength: 6)
+
+                Text(model.energyCeilingNote)
+                    .font(.arcSans(9))
+                    .foregroundStyle(Color.arcRailDim)
+                    .lineSpacing(2)
+            } else {
+                Text("Building")
+                    .font(.arcSerif(22))
+                    .foregroundStyle(Color.arcCream)
+                    .padding(.top, 10)
+                    .padding(.bottom, 6)
+                Text("Your all-day energy appears once there's enough Watch data. Open iPhone for today's curve.")
+                    .font(.arcSans(10.5))
+                    .foregroundStyle(Color.arcMutedOnDark)
+                    .lineSpacing(2)
+                Spacer(minLength: 0)
             }
-            .frame(height: 7)
-            .padding(.bottom, 9)
-
-            Text(model.energyBestWindow)
-                .font(.arcSans(10.5))
-                .foregroundStyle(Color.arcRailLight)
-                .lineSpacing(2)
-
-            Spacer(minLength: 6)
-
-            Text(model.energyCeilingNote)
-                .font(.arcSans(9))
-                .foregroundStyle(Color.arcRailDim)
-                .lineSpacing(2)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .padding(.horizontal, 14)
@@ -241,35 +254,47 @@ struct WatchVitalityV3View: View {
                 .kerning(0.8)
                 .foregroundStyle(Color.arcMutedOnDark)
 
-            (Text("\(model.vitalityAge) ")
-                .font(.arcMono(30))
-                .foregroundColor(.arcCream)
-                + Text("±\(model.vitalityBand)")
-                .font(.arcMono(12))
-                .foregroundColor(.arcMutedOnDark))
-                .padding(.top, 8)
-                .padding(.bottom, 4)
+            if model.vitalityKnown {
+                (Text("\(model.vitalityAge) ")
+                    .font(.arcMono(30))
+                    .foregroundColor(.arcCream)
+                    + Text("±\(model.vitalityBand)")
+                    .font(.arcMono(12))
+                    .foregroundColor(.arcMutedOnDark))
+                    .padding(.top, 8)
+                    .padding(.bottom, 4)
 
-            // Gentle downward vitality line (design polyline).
-            GeometryReader { geo in
-                let pts: [CGFloat] = [8, 12, 14, 18, 20]
-                let stepX = geo.size.width / CGFloat(pts.count - 1)
-                Path { path in
-                    for (i, y) in pts.enumerated() {
-                        let x = CGFloat(i) * stepX
-                        let yy = geo.size.height * (y / 28)
-                        if i == 0 { path.move(to: CGPoint(x: x, y: yy)) }
-                        else { path.addLine(to: CGPoint(x: x, y: yy)) }
+                // Gentle downward vitality line (design polyline).
+                GeometryReader { geo in
+                    let pts: [CGFloat] = [8, 12, 14, 18, 20]
+                    let stepX = geo.size.width / CGFloat(pts.count - 1)
+                    Path { path in
+                        for (i, y) in pts.enumerated() {
+                            let x = CGFloat(i) * stepX
+                            let yy = geo.size.height * (y / 28)
+                            if i == 0 { path.move(to: CGPoint(x: x, y: yy)) }
+                            else { path.addLine(to: CGPoint(x: x, y: yy)) }
+                        }
                     }
+                    .stroke(Color.arcPrimaryGreen, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
                 }
-                .stroke(Color.arcPrimaryGreen, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
-            }
-            .frame(height: 26)
+                .frame(height: 26)
 
-            Text(model.vitalityDelta)
-                .font(.arcSans(10.5))
-                .foregroundStyle(Color.arcRailLight)
-                .padding(.top, 8)
+                Text(model.vitalityDelta)
+                    .font(.arcSans(10.5))
+                    .foregroundStyle(Color.arcRailLight)
+                    .padding(.top, 8)
+            } else {
+                Text("Warming up")
+                    .font(.arcSerif(21))
+                    .foregroundStyle(Color.arcCream)
+                    .padding(.top, 8)
+                    .padding(.bottom, 4)
+                Text(model.vitalityDelta)
+                    .font(.arcSans(10.5))
+                    .foregroundStyle(Color.arcMutedOnDark)
+                    .lineSpacing(2)
+            }
 
             Spacer(minLength: 6)
 
@@ -378,24 +403,37 @@ struct WatchGlanceV3View: View {
                 .kerning(0.8)
                 .foregroundStyle(Color.arcHollowGold)
 
-            (Text("\(model.hrvLatest) ")
-                .font(.arcMono(28))
-                .foregroundColor(.arcCream)
-                + Text("ms")
-                .font(.arcMono(12))
-                .foregroundColor(.arcMutedOnDark))
-                .padding(.top, 10)
-                .padding(.bottom, 4)
+            if model.hrvLatest > 0 {
+                (Text("\(model.hrvLatest) ")
+                    .font(.arcMono(28))
+                    .foregroundColor(.arcCream)
+                    + Text("ms")
+                    .font(.arcMono(12))
+                    .foregroundColor(.arcMutedOnDark))
+                    .padding(.top, 10)
+                    .padding(.bottom, 4)
 
-            sparkline
-                .frame(height: 28)
+                sparkline
+                    .frame(height: 28)
 
-            Spacer(minLength: 6)
+                Spacer(minLength: 6)
 
-            Text(model.glanceCaption)
-                .font(.arcSans(11))
-                .foregroundStyle(Color.arcRailLight)
-                .lineSpacing(2)
+                Text(model.glanceCaption)
+                    .font(.arcSans(11))
+                    .foregroundStyle(Color.arcRailLight)
+                    .lineSpacing(2)
+            } else {
+                Text("Building your HRV baseline")
+                    .font(.arcSerif(19))
+                    .foregroundStyle(Color.arcCream)
+                    .lineSpacing(1)
+                    .padding(.top, 10)
+                Spacer(minLength: 6)
+                Text("Wear the Watch to sleep — your recovery trend appears on iPhone.")
+                    .font(.arcSans(10.5))
+                    .foregroundStyle(Color.arcRailLight)
+                    .lineSpacing(2)
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .padding(.horizontal, 14)
@@ -576,7 +614,7 @@ struct WatchResultReadyV3View: View {
                 .foregroundStyle(Color.arcCream)
                 .padding(.bottom, 7)
 
-            Text("Vitamin D is up since winter. One marker worth a look — no red numbers here.")
+            Text("When your bloods are reviewed, this lets you know — calmly, no red numbers. The full story lives on iPhone.")
                 .font(.arcSans(11.5))
                 .foregroundStyle(Color.arcRailLight)
                 .lineSpacing(2)

@@ -18,7 +18,7 @@ struct CriticalValueV3View: View {
                     .padding(.top, 16)
                     .padding(.bottom, 14)
 
-                Text("Dr. Nolan would like a word first.")
+                Text("A clinician would like a word first.")
                     .font(.arcSerif(29))
                     .lineSpacing(29 * 0.12)
                     .foregroundStyle(Color.ink)
@@ -31,7 +31,7 @@ struct CriticalValueV3View: View {
                     .padding(.bottom, 20)
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("She'll call today")
+                    Text("We'll call today")
                         .font(.arcSans(14, weight: .bold))
                         .foregroundStyle(Color.ink)
                     Text("Between 14:00–17:00 on 087 ··· ··21. From a Dublin number.")
@@ -54,7 +54,7 @@ struct CriticalValueV3View: View {
                 .padding(.bottom, 16)
 
                 Button {
-                    // The flagged value stays with Dr. Nolan; everything else
+                    // The flagged value stays with a clinician; everything else
                     // is readable now — straight to Results.
                     appState.activateMembership(tier)
                     appState.selectedTab = .results
@@ -83,7 +83,7 @@ struct CriticalValueV3View: View {
             Button("Tomorrow morning (09:00–12:00)", role: .none) {}
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("Dr. Nolan will call from a Dublin number at the window you pick.")
+            Text("A clinician will call from a Dublin number at the window you pick.")
         }
     }
 }

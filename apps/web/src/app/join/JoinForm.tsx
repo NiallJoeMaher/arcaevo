@@ -11,7 +11,7 @@
  *  - Resend throttle (60s) → server message surfaced under the resend button.
  *  - Expired / used links and password reset are handled on /verify.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import InboxCard from "@/components/account/InboxCard";
 import {
@@ -23,13 +23,38 @@ import {
   primaryBtnCls,
 } from "@/components/account/ui";
 
-export default function JoinForm() {
+export default function JoinForm({
+  initialRef = null,
+}: {
+  /** Referral code from `/join?ref=<code>` — attributed at signup. */
+  initialRef?: string | null;
+}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
+  // Validate the referral code so we only show the "invited" banner for a real
+  // code. The code is still POSTed to signup regardless — an unknown code is
+  // ignored server-side, so a stale banner never blocks anyone.
+  const [invited, setInvited] = useState(false);
+
+  useEffect(() => {
+    if (!initialRef) return;
+    let cancelled = false;
+    fetch(`/api/v1/referral/resolve?code=${encodeURIComponent(initialRef)}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (!cancelled) setInvited(Boolean(d?.valid));
+      })
+      .catch(() => {
+        /* validation is cosmetic — ignore failures */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [initialRef]);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -52,6 +77,7 @@ export default function JoinForm() {
         body: JSON.stringify({
           email,
           ...(password ? { password } : {}),
+          ...(initialRef ? { ref: initialRef } : {}),
           surface: "web",
         }),
       });
@@ -90,6 +116,13 @@ export default function JoinForm() {
         <p className="mb-[22px] text-[13px] text-caption">
           Free. No card, no commitment — Dublin or not.
         </p>
+
+        {invited && (
+          <p className="mb-[22px] rounded-[10px] bg-forest/10 px-3 py-2 text-[12.5px] font-semibold text-forest">
+            You&rsquo;ve been invited — a free month lands on your first year
+            when you join.
+          </p>
+        )}
 
         <label htmlFor="join-email" className={labelCls}>
           Email

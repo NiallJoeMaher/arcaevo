@@ -9,10 +9,15 @@ export const metadata: Metadata = {
   robots: { index: false },
 };
 
-export default function JoinPage() {
+export default async function JoinPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ ref?: string }>;
+}) {
+  const { ref } = await searchParams;
   return (
     <AuthShell>
-      <JoinForm />
+      <JoinForm initialRef={ref ?? null} />
     </AuthShell>
   );
 }

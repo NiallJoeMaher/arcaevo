@@ -67,6 +67,7 @@ vi.mock("@/lib/db", () => ({
     sessions: async () => col("sessions"),
     shareLinks: async () => col("shareLinks"),
     referralCodes: async () => col("referralCodes"),
+    referrals: async () => col("referrals"),
     giftCodes: async () => col("giftCodes"),
     supportTickets: async () => col("supportTickets"),
     waitlist: async () => col("waitlist"),
@@ -107,6 +108,14 @@ function seed() {
   ];
   col("shareLinks").docs = [{ _id: "sh1", userId: USER }];
   col("referralCodes").docs = [{ _id: "REF-1", userId: USER }];
+  col("referrals").docs = [
+    // the member was referred by OTHER …
+    { _id: USER, referredUserId: USER, referrerUserId: OTHER, status: "credited" },
+    // … and referred someone else in turn.
+    { _id: "mem_0100", referredUserId: "mem_0100", referrerUserId: USER, status: "pending" },
+    // an unrelated referral between two other members — must survive.
+    { _id: OTHER, referredUserId: OTHER, referrerUserId: "mem_0002", status: "pending" },
+  ];
   col("giftCodes").docs = [
     { _id: "GIFT-OWN", purchaserEmail: EMAIL, redeemedBy: null },
     { _id: "GIFT-RDM", purchaserEmail: "x@y.ie", redeemedBy: USER },
@@ -142,6 +151,10 @@ describe("eraseUserData", () => {
     expect(col("sessions").docs).toHaveLength(0);
     expect(col("shareLinks").docs).toHaveLength(0);
     expect(col("referralCodes").docs).toHaveLength(0);
+    // Referrals linking the member (either direction) are gone; the unrelated
+    // one between two other members survives.
+    expect(col("referrals").docs.map((d) => d._id)).toEqual([OTHER]);
+    expect(counts.referrals).toBe(2);
     expect(col("supportTickets").docs).toHaveLength(0);
     expect(col("waitlist").docs).toHaveLength(0);
     expect(col("magicLinkTokens").docs).toHaveLength(0);

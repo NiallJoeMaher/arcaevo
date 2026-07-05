@@ -4,8 +4,7 @@ import { notFound } from "next/navigation";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import { compareIndex, getVersusPage, versusSlugs } from "@/content/compare";
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+import { canonicalUrl, routeMetadata } from "@/lib/seo";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -19,10 +18,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const page = getVersusPage(slug);
   if (!page) return {};
-  return {
+  return routeMetadata({
+    path: `/compare/${page.slug}`,
     title: `Arcaevo vs ${page.name}: which should you choose?`,
     description: page.answer,
-  };
+  });
 }
 
 export default async function VersusPage({ params }: Props) {
@@ -46,18 +46,18 @@ export default async function VersusPage({ params }: Props) {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+      { "@type": "ListItem", position: 1, name: "Home", item: canonicalUrl("/") },
       {
         "@type": "ListItem",
         position: 2,
         name: "Compare",
-        item: `${SITE_URL}/compare`,
+        item: canonicalUrl("/compare"),
       },
       {
         "@type": "ListItem",
         position: 3,
         name: `Arcaevo vs ${page.name}`,
-        item: `${SITE_URL}/compare/${page.slug}`,
+        item: canonicalUrl(`/compare/${page.slug}`),
       },
     ],
   };
@@ -116,29 +116,53 @@ export default async function VersusPage({ params }: Props) {
             At a glance
           </h2>
           <div className="overflow-hidden rounded-card border border-hairline-soft bg-surface">
-            <div className="grid grid-cols-[1.3fr_1fr_1fr] gap-3 bg-ink px-6 py-4 text-bone-white">
-              <span className="font-mono text-[11px] tracking-[0.08em] text-muted-dark-soft">
-                DIMENSION
-              </span>
-              <span className="text-sm font-bold text-vitality-light">
-                Arcaevo
-              </span>
-              <span className="text-sm font-bold">{page.name}</span>
-            </div>
-            {page.rows.map((r) => (
-              <div
-                key={r.dim}
-                className="grid grid-cols-[1.3fr_1fr_1fr] items-start gap-3 border-b border-[rgba(28,38,32,0.07)] px-6 py-[15px]"
-              >
-                <span className="text-[13.5px] font-semibold text-muted">
-                  {r.dim}
-                </span>
-                <span className="text-[13.5px] font-semibold text-forest">
-                  {r.us}
-                </span>
-                <span className="text-[13.5px] text-muted">{r.them}</span>
-              </div>
-            ))}
+            <table className="w-full table-fixed border-collapse text-left">
+              <colgroup>
+                <col className="w-[38%]" />
+                <col className="w-[31%]" />
+                <col className="w-[31%]" />
+              </colgroup>
+              <thead>
+                <tr className="bg-ink text-bone-white">
+                  <th
+                    scope="col"
+                    className="px-6 py-4 font-mono text-[11px] font-normal tracking-[0.08em] text-muted-dark-soft"
+                  >
+                    DIMENSION
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-4 text-sm font-bold text-vitality-light"
+                  >
+                    Arcaevo
+                  </th>
+                  <th scope="col" className="px-6 py-4 text-sm font-bold">
+                    {page.name}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {page.rows.map((r) => (
+                  <tr
+                    key={r.dim}
+                    className="border-b border-[rgba(28,38,32,0.07)] align-top"
+                  >
+                    <th
+                      scope="row"
+                      className="px-6 py-[15px] text-[13.5px] font-semibold text-muted"
+                    >
+                      {r.dim}
+                    </th>
+                    <td className="px-6 py-[15px] text-[13.5px] font-semibold text-forest">
+                      {r.us}
+                    </td>
+                    <td className="px-6 py-[15px] text-[13.5px] text-muted">
+                      {r.them}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </section>
 

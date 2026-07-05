@@ -2,14 +2,19 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
-import { jsonLd, organizationJsonLd, membershipProductJsonLd } from "@/lib/seo";
+import {
+  jsonLd,
+  organizationJsonLd,
+  membershipProductJsonLd,
+  routeMetadata,
+} from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = routeMetadata({
+  path: "/pricing",
   title: "Pricing",
   description:
     "One annual membership. Tests included. Billed once a year, so your tests are covered upfront — the first one ships or gets booked the day you join. Fusion €119/yr · Essential €329/yr · Performance €399/yr.",
-  alternates: { canonical: "/pricing" },
-};
+});
 
 const COMPARISON_ROWS: {
   feature: string;
@@ -325,29 +330,66 @@ export default function PricingPage() {
             Compare the plans
           </h2>
           <div className="overflow-hidden rounded-card border border-hairline-soft bg-surface">
-            {COMPARISON_ROWS.map((row, i) => (
-              <div
-                key={i}
-                className="grid grid-cols-[1.6fr_1fr_1fr_1fr] items-center gap-3 border-b border-[rgba(28,38,32,0.07)] px-6 py-4"
-              >
-                <span
-                  className={`text-[14.5px] text-ink ${
-                    row.header ? "font-bold" : "font-medium"
-                  }`}
-                >
-                  {row.feature}
-                </span>
-                <span className="text-center text-[13.5px] text-muted">
-                  {row.a}
-                </span>
-                <span className="text-center text-[13.5px] font-semibold text-forest">
-                  {row.b}
-                </span>
-                <span className="text-center text-[13.5px] text-muted">
-                  {row.c}
-                </span>
-              </div>
-            ))}
+            <table className="w-full table-fixed border-collapse">
+              <colgroup>
+                <col className="w-[40%]" />
+                <col className="w-[20%]" />
+                <col className="w-[20%]" />
+                <col className="w-[20%]" />
+              </colgroup>
+              <thead>
+                <tr className="border-b border-[rgba(28,38,32,0.07)]">
+                  <th
+                    scope="col"
+                    className="px-6 py-4 text-left text-[14.5px] font-bold text-ink"
+                  >
+                    <span className="sr-only">Feature</span>
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-4 text-center text-[14.5px] font-bold text-ink"
+                  >
+                    Fusion
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-4 text-center text-[14.5px] font-bold text-forest"
+                  >
+                    Essential
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-4 text-center text-[14.5px] font-bold text-ink"
+                  >
+                    Performance
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {COMPARISON_ROWS.filter((row) => !row.header).map((row, i) => (
+                  <tr
+                    key={i}
+                    className="border-b border-[rgba(28,38,32,0.07)]"
+                  >
+                    <th
+                      scope="row"
+                      className="px-6 py-4 text-left text-[14.5px] font-medium text-ink"
+                    >
+                      {row.feature}
+                    </th>
+                    <td className="px-6 py-4 text-center text-[13.5px] text-muted">
+                      {row.a}
+                    </td>
+                    <td className="px-6 py-4 text-center text-[13.5px] font-semibold text-forest">
+                      {row.b}
+                    </td>
+                    <td className="px-6 py-4 text-center text-[13.5px] text-muted">
+                      {row.c}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </section>
 

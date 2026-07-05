@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
+import { routeMetadata } from "@/lib/seo";
 import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = routeMetadata({
+  path: "/careers",
   title: "Careers",
   description:
     "Build the layer that makes health data usable. We're a small, senior team in Dublin working at the intersection of clinical rigour and beautiful software — Dublin or remote-EU.",
-};
+});
 
 const PERKS = [
   {

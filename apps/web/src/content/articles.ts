@@ -317,3 +317,31 @@ export const articleSlugs: string[] = [
 export function getArticle(slug: string): Article | undefined {
   return articles[slug];
 }
+
+const MONTHS: Record<string, string> = {
+  january: "01",
+  february: "02",
+  march: "03",
+  april: "04",
+  may: "05",
+  june: "06",
+  july: "07",
+  august: "08",
+  september: "09",
+  october: "10",
+  november: "11",
+  december: "12",
+};
+
+/**
+ * Map an article's human "Reviewed <Month> <Year>" date line to an ISO 8601
+ * date (first of the month) for Article JSON-LD / OpenGraph timestamps.
+ * Returns undefined if the line doesn't match, so schema simply omits the date.
+ */
+export function articleIsoDate(date: string): string | undefined {
+  const m = date.match(/([A-Za-z]+)\s+(\d{4})/);
+  if (!m) return undefined;
+  const month = MONTHS[m[1].toLowerCase()];
+  if (!month) return undefined;
+  return `${m[2]}-${month}-01`;
+}

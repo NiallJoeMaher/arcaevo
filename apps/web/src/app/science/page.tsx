@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
+import { routeMetadata } from "@/lib/seo";
 import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = routeMetadata({
+  path: "/science",
   title: "Science",
   description:
     "The logic is deterministic. The AI only narrates. Rules written from peer-reviewed literature decide every clinical call — never a language model. That's our safety posture, and our trust story.",
-};
+});
 
 const PILLARS = [
   {

@@ -2,11 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
-import { jsonLd, organizationJsonLd, membershipProductJsonLd } from "@/lib/seo";
+import {
+  jsonLd,
+  organizationJsonLd,
+  membershipProductJsonLd,
+  routeMetadata,
+} from "@/lib/seo";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/" },
-};
+export const metadata: Metadata = routeMetadata({ path: "/" });
 
 /* ── Hero visual: health-score ring + ApoB band + insight chip ── */
 

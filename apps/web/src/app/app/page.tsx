@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
+import { routeMetadata } from "@/lib/seo";
 import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = routeMetadata({
+  path: "/app",
   title: "The app",
   description:
     "Your trends, in your pocket and on your wrist. Bloods fused with sleep, HRV and VO₂max on one timeline. The phone leads with synthesis; the Watch shows only the one action that matters now.",
-};
+});
 
 const FEATURES = [
   {

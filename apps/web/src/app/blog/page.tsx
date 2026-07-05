@@ -3,11 +3,13 @@ import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import { blogFeatured, blogIndexCards, blogIndexMeta } from "@/content/articles";
+import { routeMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = routeMetadata({
+  path: "/blog",
   title: "The Journal — clear answers about your health data",
   description: blogIndexMeta.intro,
-};
+});
 
 export default function BlogPage() {
   return (

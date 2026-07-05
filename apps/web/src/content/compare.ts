@@ -4,6 +4,11 @@
  *
  * All copy is verbatim from the design prototypes — do not edit wording,
  * prices or dates here without a matching design change.
+ *
+ * Exception: the `whoop` and `oura` versus entries are net-new SEO content
+ * (not from the design handoff), written to the same answer/table/wins/FAQ
+ * pattern. WHOOP/Oura are competitors here and integrations "on the roadmap";
+ * copy stays wellness-framed and factual per docs/STRATEGY.md.
  */
 
 /** One row of the "At a glance" table on a versus page. */
@@ -56,6 +61,96 @@ export interface CompareIndexEntry {
 }
 
 export const versusPages: Record<string, VersusPage> = {
+  whoop: {
+    slug: "whoop",
+    name: "WHOOP",
+    market: "United States",
+    answer:
+      "WHOOP Advanced Labs pairs its recovery, strain and sleep tracking with clinician-reviewed bloodwork — but the labs product is US-only and runs on WHOOP's own band. Arcaevo brings the same bloods-plus-wearable idea to Ireland and the EU: at-home tests read against your own baseline, fused with the Apple Watch you already own, with your data kept in the EU. Choose WHOOP for class-leading strain and recovery hardware in the US; choose Arcaevo for interpreted, EU-hosted, at-home testing that proves what changed.",
+    rows: [
+      { dim: "Where you test", us: "At home in Ireland (kit or nurse visit)", them: "US-only (Advanced Labs)" },
+      { dim: "Wearable", us: "Apple Watch & Apple Health", them: "WHOOP band (required)" },
+      { dim: "Blood biomarkers", us: "35–80 (prioritised)", them: "65–75+ (Advanced Labs)" },
+      { dim: "Interpretation", us: "Ranked plan + coach", them: "Clinician-reviewed report + insights" },
+      { dim: "Change detection", us: "Your baseline + RCV", them: "Recovery & strain trends" },
+      { dim: "‘Did it work?’ loop", us: "Yes (RCV verdicts)", them: "Retest" },
+      { dim: "Data residency", us: "EU, never sold", them: "USA" },
+      { dim: "Best for", us: "At-home EU testing", them: "US strain & recovery hardware" },
+    ],
+    usWins: [
+      "Available at home in Ireland — WHOOP's Advanced Labs bloodwork is US-only",
+      "Works with the Apple Watch you already own — no proprietary band to buy",
+      "EU data residency and a ranked, RCV-proven plan, not just trend lines",
+    ],
+    themWins: [
+      "Class-leading recovery, strain and sleep tracking hardware",
+      "Advanced Labs is clinician-reviewed and tied tightly to daily recovery",
+      "Large, established community and coaching ecosystem",
+    ],
+    paras: [
+      "WHOOP built one of the best recovery and strain wearables on the market, and Advanced Labs extends it into clinician-reviewed bloodwork tied to your daily data. In the US it's a strong, cohesive package — and WHOOP now offers free bloodwork PDF upload globally, so some fusion already reaches EU members.",
+      "Arcaevo's difference is that the whole loop is built for Ireland and the EU. We fulfil the test at home, keep your data in the EU, read every marker against your own baseline with Reference Change Value, and hand you a short plan — then check it at the next test. And you don't need a WHOOP band: Arcaevo fuses with the Apple Watch you already wear, with WHOOP support on the roadmap.",
+    ],
+    faqs: [
+      {
+        q: "Is WHOOP Advanced Labs available in Ireland?",
+        a: "WHOOP's Advanced Labs blood testing is US-only today. WHOOP does offer free bloodwork PDF upload globally, which gives EU members partial fusion. Arcaevo fulfils full at-home blood tests in Ireland with EU data residency.",
+      },
+      {
+        q: "Do I need a WHOOP band to use Arcaevo?",
+        a: "No. Arcaevo fuses with Apple Watch and Apple Health. WHOOP, Oura and Garmin support are on the roadmap.",
+      },
+      {
+        q: "How is Arcaevo's interpretation different from WHOOP's?",
+        a: "Both review bloods with a clinician. Arcaevo adds your-baseline change detection (RCV), a ranked two-lever plan, and a ‘did it work?’ verdict at your next test, rather than tying results mainly to recovery and strain scores.",
+      },
+    ],
+  },
+  oura: {
+    slug: "oura",
+    name: "Oura",
+    market: "United States",
+    answer:
+      "Oura Health Panels add a 50-biomarker blood test to the Oura ring, surfaced through Oura Advisor — but the panels are US-only, one-off, and clinician review covers critical values only. Arcaevo is built for Ireland and the EU: at-home bloods read against your own baseline, fused with your Apple Watch, clinician-reviewed on every panel, with your data kept in the EU. Choose Oura for its excellent sleep and readiness ring; choose Arcaevo for interpreted, EU-hosted testing with a plan and proof.",
+    rows: [
+      { dim: "Where you test", us: "At home in Ireland (kit or nurse visit)", them: "US-only (Health Panels)" },
+      { dim: "Wearable", us: "Apple Watch & Apple Health", them: "Oura ring (required)" },
+      { dim: "Blood biomarkers", us: "35–80 (prioritised)", them: "50 (Health Panels)" },
+      { dim: "Clinician review", us: "Every panel", them: "Critical values only" },
+      { dim: "Interpretation", us: "Ranked plan + coach", them: "Oura Advisor summaries" },
+      { dim: "Change detection", us: "Your baseline + RCV", them: "Readiness & sleep trends" },
+      { dim: "Data residency", us: "EU, never sold", them: "USA" },
+      { dim: "Best for", us: "At-home EU testing", them: "US sleep & readiness ring" },
+    ],
+    usWins: [
+      "Available at home in Ireland — Oura Health Panels are US-only",
+      "Every panel is clinician-reviewed, not just critical values",
+      "EU data residency, your-baseline RCV, and a ranked plan with proof",
+    ],
+    themWins: [
+      "Best-in-class sleep and readiness tracking in a discreet ring",
+      "Simple one-off panel with results surfaced in Oura Advisor",
+      "Fast-moving product with strong women's-health features",
+    ],
+    paras: [
+      "Oura makes arguably the best sleep and readiness ring, and Health Panels bring a 50-marker blood test into the same app via Oura Advisor. For a US user already wearing the ring, it's a convenient way to add bloodwork.",
+      "Arcaevo is the European, interpretation-first alternative. We fulfil the test at home in Ireland, review every panel with a clinician — not just critical values — read each marker against your own baseline with Reference Change Value, and give you a short plan we then check at your next test. You keep your Oura ring: Arcaevo fuses with Apple Watch today, with Oura support on the roadmap.",
+    ],
+    faqs: [
+      {
+        q: "Are Oura Health Panels available in Ireland or the EU?",
+        a: "No — Oura Health Panels are US-only today, with more countries said to be coming. Arcaevo fulfils at-home blood tests in Ireland now, with EU data residency.",
+      },
+      {
+        q: "Do I need an Oura ring to use Arcaevo?",
+        a: "No. Arcaevo fuses with Apple Watch and Apple Health. Oura, WHOOP and Garmin support are on the roadmap.",
+      },
+      {
+        q: "Does Oura interpret my blood results?",
+        a: "Oura Advisor surfaces panel results, and clinician review focuses on critical values. Arcaevo reviews every panel with a clinician and turns results into a ranked, RCV-proven plan.",
+      },
+    ],
+  },
   letsgetchecked: {
     slug: "letsgetchecked",
     name: "LetsGetChecked",
@@ -423,6 +518,22 @@ export const versusPages: Record<string, VersusPage> = {
  * (the prototype lists every competitor except the current one).
  */
 export const compareIndex: CompareIndexEntry[] = [
+  {
+    slug: "whoop",
+    name: "WHOOP",
+    tagline:
+      "Class-leading recovery hardware, now with US-only bloodwork. We bring bloods-plus-wearable fusion to the EU — on the Apple Watch you already own.",
+    market: "USA",
+    edge: "EU-HOSTED + FUSION",
+  },
+  {
+    slug: "oura",
+    name: "Oura",
+    tagline:
+      "Best-in-class sleep ring with a US-only $99 blood panel. We bring clinician-reviewed, EU-hosted bloods-plus-wearable fusion to Ireland.",
+    market: "USA",
+    edge: "EU-HOSTED + FUSION",
+  },
   {
     slug: "letsgetchecked",
     name: "LetsGetChecked",

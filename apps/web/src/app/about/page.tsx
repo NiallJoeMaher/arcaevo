@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
+import { routeMetadata } from "@/lib/seo";
 import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = routeMetadata({
+  path: "/about",
   title: "About",
   description:
     "Health data should belong to you — calm, clear, and yours. Arcaevo started in Dublin with a simple frustration: testing companies were brilliant at collecting biomarkers and useless at telling you what to do with them.",
-};
+});
 
 const VALUES = [
   {

@@ -3,17 +3,41 @@ import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import { helpCategories, helpGroups } from "@/content/help";
+import {
+  jsonLd,
+  routeMetadata,
+  faqPageJsonLd,
+  breadcrumbJsonLd,
+} from "@/lib/seo";
 import HelpAccordion from "./HelpAccordion";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = routeMetadata({
+  path: "/help",
   title: "Help centre",
   description:
     "How can we help? Answers on testing & samples, results & the app, billing & membership, and privacy & data. Our team replies within one working day — clinical questions go to our medical team.",
-};
+});
 
 export default function HelpPage() {
+  const faqJsonLd = faqPageJsonLd(
+    helpGroups.flatMap((g) => g.items.map((i) => ({ q: i.q, a: i.a })))
+  );
+  const breadcrumbList = breadcrumbJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Help centre", path: "/help" },
+  ]);
+
   return (
     <div className="w-full overflow-x-hidden bg-bone font-sans text-ink">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLd(faqJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbList) }}
+      />
+
       <SiteNav />
 
       <main>

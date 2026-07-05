@@ -6,10 +6,10 @@ import SiteFooter from "@/components/SiteFooter";
 import {
   articleSlugs,
   getArticle,
+  articleIsoDate,
   type ArticleBlock,
 } from "@/content/articles";
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+import { canonicalUrl, routeMetadata, breadcrumbJsonLd } from "@/lib/seo";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -23,10 +23,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const post = getArticle(slug);
   if (!post) return {};
-  return {
+  const published = articleIsoDate(post.date);
+  return routeMetadata({
+    path: `/blog/${post.slug}`,
     title: post.title,
     description: post.answer,
-  };
+    type: "article",
+    publishedTime: published,
+    modifiedTime: published,
+    authors: [post.author],
+  });
 }
 
 function ArticleBlockView({ block }: { block: ArticleBlock }) {
@@ -78,16 +84,35 @@ export default async function ArticlePage({ params }: Props) {
     .map((r) => getArticle(r))
     .filter((r) => r !== undefined);
 
+  const publishedIso = articleIsoDate(post.date);
+  const articleUrl = canonicalUrl(`/blog/${post.slug}`);
   const articleJsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
     headline: post.title,
     description: post.answer,
     author: { "@type": "Organization", name: post.author },
-    publisher: { "@type": "Organization", name: "Arcaevo" },
-    mainEntityOfPage: `${SITE_URL}/blog/${post.slug}`,
-    url: `${SITE_URL}/blog/${post.slug}`,
+    publisher: {
+      "@type": "Organization",
+      name: "Arcaevo",
+      logo: {
+        "@type": "ImageObject",
+        url: canonicalUrl("/opengraph-image"),
+      },
+    },
+    image: canonicalUrl("/opengraph-image"),
+    ...(publishedIso
+      ? { datePublished: publishedIso, dateModified: publishedIso }
+      : {}),
+    mainEntityOfPage: articleUrl,
+    url: articleUrl,
   };
+
+  const breadcrumbJson = breadcrumbJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Journal", path: "/blog" },
+    { name: post.title, path: `/blog/${post.slug}` },
+  ]);
 
   // Every article title is a question with a direct answer block (AEO).
   const faqJsonLd = {
@@ -114,6 +139,12 @@ export default async function ArticlePage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(faqJsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbJson).replace(/</g, "\\u003c"),
         }}
       />
 

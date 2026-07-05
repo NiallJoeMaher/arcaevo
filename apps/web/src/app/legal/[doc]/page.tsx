@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import { getLegalDoc, legalNav, legalSlugs } from "@/content/legal";
+import { jsonLd, routeMetadata, breadcrumbJsonLd } from "@/lib/seo";
 
 type Props = {
   params: Promise<{ doc: string }>;
@@ -17,10 +18,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { doc: slug } = await params;
   const doc = getLegalDoc(slug);
   if (!doc) return {};
-  return {
+  return routeMetadata({
+    path: `/legal/${doc.slug}`,
     title: doc.title,
     description: doc.intro,
-  };
+  });
 }
 
 export default async function LegalDocPage({ params }: Props) {
@@ -28,8 +30,18 @@ export default async function LegalDocPage({ params }: Props) {
   const doc = getLegalDoc(slug);
   if (!doc) notFound();
 
+  const breadcrumbList = breadcrumbJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Trust & legal", path: "/legal" },
+    { name: doc.title, path: `/legal/${doc.slug}` },
+  ]);
+
   return (
     <div className="w-full overflow-x-hidden bg-bone font-sans text-ink">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbList) }}
+      />
       <SiteNav />
 
       <main>

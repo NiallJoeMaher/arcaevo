@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
+import { routeMetadata } from "@/lib/seo";
 import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import ContactForm from "./ContactForm";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = routeMetadata({
+  path: "/contact",
   title: "Contact",
   description:
     "Talk to a human. Support, press, partnerships or a clinical question — we read everything and reply within one working day.",
-};
+});
 
 const CHANNELS = [
   {

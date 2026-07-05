@@ -39,6 +39,7 @@ const all = (q: Query = {}) =>
   [...adminsStore.values()].filter((a) => matches(a, q));
 
 vi.mock("@/lib/db", () => ({
+  PRIMARY_READ: { readPreference: "primary" },
   collections: {
     admins: async () => ({
       find: (q: Query = {}) => ({

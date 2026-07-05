@@ -21,7 +21,7 @@
 import { z } from "zod";
 import { AnalyticsEvent, capture } from "@/lib/analytics";
 import { logError } from "@/lib/log";
-import { collections } from "@/lib/db";
+import { collections, PRIMARY_READ } from "@/lib/db";
 import { verifyWebhookSecret } from "@/lib/env";
 import { constructWebhookEvent, type StripeEvent } from "@/lib/stripe-signature";
 import {
@@ -124,12 +124,18 @@ export async function POST(req: Request) {
   const { type, data } = parsed.data;
 
   const memberships = await collections.memberships();
-  // Prefer the live membership; fall back to a pending checkout.
+  // Read-after-write (money path, cross-request): POST /checkout wrote the
+  // "pending" membership; this webhook fires right after and MUST see it to
+  // activate. Pin to primary so a lagging secondary can't 404 the pending
+  // membership and drop the activation. (See db.ts.)
   const membership =
-    (await memberships.findOne({
-      memberId: data.memberId,
-      status: { $in: ["active", "past_due", "pending"] },
-    })) ?? (await memberships.findOne({ memberId: data.memberId }));
+    (await memberships.findOne(
+      {
+        memberId: data.memberId,
+        status: { $in: ["active", "past_due", "pending"] },
+      },
+      PRIMARY_READ
+    )) ?? (await memberships.findOne({ memberId: data.memberId }, PRIMARY_READ));
   if (!membership) {
     return Response.json(
       { error: "not_found", message: `No membership for ${data.memberId}.` },
@@ -286,16 +292,28 @@ async function findMembership(opts: {
   subscriptionId?: string;
 }): Promise<Membership | null> {
   const memberships = await collections.memberships();
+  // Read-after-write (money path, cross-request): the real Stripe webhook
+  // resolves the membership that POST /checkout just wrote as "pending" (and
+  // for renewals, one activated on a prior request). Pin every branch to
+  // primary so replica lag can't miss the membership the event must act on.
+  // (See db.ts.)
   if (opts.memberId) {
     const byMember =
-      (await memberships.findOne({
-        memberId: opts.memberId,
-        status: { $in: ["active", "past_due", "pending"] },
-      })) ?? (await memberships.findOne({ memberId: opts.memberId }));
+      (await memberships.findOne(
+        {
+          memberId: opts.memberId,
+          status: { $in: ["active", "past_due", "pending"] },
+        },
+        PRIMARY_READ
+      )) ??
+      (await memberships.findOne({ memberId: opts.memberId }, PRIMARY_READ));
     if (byMember) return byMember;
   }
   if (opts.subscriptionId) {
-    return memberships.findOne({ stripeSubscriptionId: opts.subscriptionId });
+    return memberships.findOne(
+      { stripeSubscriptionId: opts.subscriptionId },
+      PRIMARY_READ
+    );
   }
   return null;
 }

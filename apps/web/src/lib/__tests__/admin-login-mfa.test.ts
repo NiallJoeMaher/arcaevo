@@ -31,6 +31,7 @@ vi.mock("next/headers", () => ({
 }));
 
 vi.mock("@/lib/db", () => ({
+  PRIMARY_READ: { readPreference: "primary" },
   collections: {
     admins: async () => ({
       findOne: async (q: { email?: string; _id?: string }) => {

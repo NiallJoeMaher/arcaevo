@@ -17,7 +17,7 @@
  */
 import { requireConsentedMember } from "@/lib/consent-guard";
 import { parseJsonBody } from "@/lib/api";
-import { collections } from "@/lib/db";
+import { collections, PRIMARY_READ } from "@/lib/db";
 import { newId } from "@/lib/ids";
 import { BloodworkConfirmInput, type BiomarkerReading } from "@/lib/models";
 import {
@@ -36,10 +36,16 @@ export async function POST(req: Request) {
   const { uploadId, values, takenAt } = parsed.data;
 
   const uploads = await collections.bloodworkUploads();
-  const upload = await uploads.findOne({
-    _id: uploadId,
-    memberId: auth.member._id,
-  });
+  // Read-after-write (cross-request): POST /uploads/bloodwork wrote this upload
+  // a moment ago; the confirm screen posts straight back here. Pin to primary
+  // so a lagging secondary can't 404 the just-created upload. (See db.ts.)
+  const upload = await uploads.findOne(
+    {
+      _id: uploadId,
+      memberId: auth.member._id,
+    },
+    PRIMARY_READ
+  );
   if (!upload) {
     return Response.json(
       { error: "not_found", message: `No upload ${uploadId} on your account.` },

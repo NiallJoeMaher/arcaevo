@@ -75,6 +75,7 @@ const processedCol = {
 };
 
 vi.mock("@/lib/db", () => ({
+  PRIMARY_READ: { readPreference: "primary" },
   collections: {
     memberships: async () => membershipsCol,
     users: async () => usersCol,

@@ -84,6 +84,7 @@ const fake = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/db", () => ({
+  PRIMARY_READ: { readPreference: "primary" },
   collections: {
     biomarkerReadings: async () => fake.readings,
     biomarkerRules: async () => fake.rules,

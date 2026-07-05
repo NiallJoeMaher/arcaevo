@@ -25,6 +25,7 @@ class FakeCollection {
 
 const store = new FakeCollection();
 vi.mock("@/lib/db", () => ({
+  PRIMARY_READ: { readPreference: "primary" },
   collections: { consents: async () => store },
 }));
 

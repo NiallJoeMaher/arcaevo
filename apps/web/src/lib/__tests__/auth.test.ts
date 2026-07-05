@@ -16,6 +16,7 @@ vi.mock("next/headers", () => ({
   },
 }));
 vi.mock("@/lib/db", () => ({
+  PRIMARY_READ: { readPreference: "primary" },
   collections: {},
 }));
 

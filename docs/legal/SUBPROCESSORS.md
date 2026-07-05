@@ -4,7 +4,7 @@
 >
 > First-draft register of every third party the code integrates or plans to, generated from `docs/MOCKED_APIS.md`, the CDK/infra decisions in `docs/BUILD_STATE.md`, and the vendor adapters under `apps/web/src/lib/vendors/`. The public-facing version is `apps/web/src/content/legal.ts` ("Sub-processors" doc) — **that page currently describes categories, not named vendors, and the contracts behind it do not yet exist.** This register is the internal source of truth to close that gap.
 >
-> **Controller (interim): Codú Limited** — DPAs for the trial are signed **by Codú Limited as controller**. When a dedicated entity is formed on monetisation, DPAs must be **novated/re-signed** to the new controller. `SES` (AWS) appears as an email-sending option (`infra/cdk/SES_SETUP.md`, EU `eu-west-1`); if used instead of / alongside Scaleway/Postmark, **AWS is a US-parented processor → an AWS DPA + SCCs are required** (add it to the register below).
+> **Controller (interim): Codú Limited** — DPAs for the trial are signed **by Codú Limited as controller**. When a dedicated entity is formed on monetisation, DPAs must be **novated/re-signed** to the new controller. Data-protection / sub-processor-change contact: **`privacy@arcaevo.com`** (role-based, monitored — see [`../EMAIL_ADDRESSES.md`](../EMAIL_ADDRESSES.md)). **No DPO is appointed at trial scale** — see [`DPO_NOT_REQUIRED_MEMO.md`](./DPO_NOT_REQUIRED_MEMO.md); do not label the contact "DPO". `SES` (AWS) appears as an email-sending option (`infra/cdk/SES_SETUP.md`, EU `eu-west-1`); if used instead of / alongside Scaleway/Postmark, **AWS is a US-parented processor → an AWS DPA + SCCs are required** (add it to the register below).
 
 ## How to read this
 

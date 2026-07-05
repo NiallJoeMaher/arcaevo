@@ -154,6 +154,11 @@ struct PrivacyV3View: View {
                 .contentShape(RoundedRectangle(cornerRadius: 14))
             }
             .buttonStyle(.plain)
+
+            Text("Data-protection enquiries: privacy@arcaevo.com")
+                .font(.arcSans(11))
+                .foregroundStyle(Color.arcSecondaryLight)
+                .padding(.top, 14)
         }
         .task { await loadConsents() }
     }

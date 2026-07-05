@@ -97,7 +97,7 @@ export const helpGroups: HelpGroup[] = [
       },
       {
         q: "How do I export or delete everything?",
-        a: "In the app: Profile → Export my data for a full copy, or Delete all my data to permanently erase everything with no copies kept. You can also email privacy@arcaevo.health. See our data deletion & export page.",
+        a: "In the app: Profile → Export my data for a full copy, or Delete all my data to permanently erase everything with no copies kept. You can also email privacy@arcaevo.com. See our data deletion & export page.",
       },
     ],
   },

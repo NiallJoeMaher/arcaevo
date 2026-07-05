@@ -10,7 +10,7 @@
 
 - [ ] **Controller of record:** **Codú Limited** (interim controller for the trial) — the entity that notifies the DPC and data subjects. Confirm CRO number on file.
 - [ ] **Incident lead** named: [TBD — founder, Niall Maher, for Codú Limited]
-- [ ] **DPO / privacy contact** named + reachable: [TBD] (`privacy@arcaevo.health` per `legal.ts` — reconcile against the `arcaevo.com` SES sending domain and the interim `niall@codu.ie`; pick one contact and align all docs — see `RECORDS_OF_PROCESSING.md`)
+- [ ] **Privacy contact** named + reachable: **`privacy@arcaevo.com`** — the durable, role-based, monitored data-protection address (receiving-mailbox setup in [`../EMAIL_ADDRESSES.md`](../EMAIL_ADDRESSES.md)). **No DPO is appointed at trial scale** — see [`DPO_NOT_REQUIRED_MEMO.md`](./DPO_NOT_REQUIRED_MEMO.md); do NOT label this contact "DPO". Confirm the mailbox is actively monitored so a breach notification (Art. 33/34 clock) is not missed.
 - [ ] **DPC breach-notification portal** account/route confirmed: the Irish Data Protection Commission **Breach Notification Form** at forms.dataprotection.ie (verify current URL) — know how to reach it under time pressure
 - [ ] **Cyber / data-breach insurer** + 24/7 incident hotline: [TBD] (strongly advised for a health-data controller — `LAUNCH_READINESS.md` §7 Q14)
 - [ ] **Solicitor** (data-protection) on call: [TBD]

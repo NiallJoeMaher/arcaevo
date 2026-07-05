@@ -74,6 +74,12 @@ struct ConsentV3View: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+
+            Text("Questions or to exercise your rights: privacy@arcaevo.com")
+                .font(.arcSans(11))
+                .foregroundStyle(Color.arcSecondaryLight)
+                .frame(maxWidth: .infinity)
+                .multilineTextAlignment(.center)
         }
         .padding(EdgeInsets(top: 16, leading: 26, bottom: 16, trailing: 26))
     }

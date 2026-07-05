@@ -188,6 +188,12 @@ export default function ConsentSection({ initial }: { initial: Grants }) {
         {notice}
       </p>
 
+      <p className="mb-4 text-[12px] leading-[1.5] text-caption">
+        To access, export, erase or object to how we use your data, use the
+        controls here or email our privacy team at privacy@arcaevo.com — we
+        respond within one month.
+      </p>
+
       {/* W11 · DELETE ACCOUNT — THE HONEST EXIT (§10) */}
       <div className="mt-5 rounded-[16px] border border-[rgba(217,154,78,0.4)] bg-surface p-6">
         <h2 className="mb-2 font-serif text-[22px] font-normal leading-[1.15]">

@@ -78,7 +78,7 @@ export default async function LegalDocPage({ params }: Props) {
                 href="/contact"
                 className="font-mono text-[11px] text-forest no-underline"
               >
-                privacy@arcaevo.health →
+                privacy@arcaevo.com →
               </Link>
             </div>
           </aside>
@@ -126,10 +126,10 @@ export default async function LegalDocPage({ params }: Props) {
 
             <div className="mt-9 border-t border-hairline-mid pt-5 text-[13px] leading-[1.6] text-caption">
               This document is written in plain English for a product prototype
-              and is not legal advice. Arcaevo Health Ltd, Dublin 2, Ireland —
-              data controller for GDPR purposes. Questions:{" "}
+              and is not legal advice. Codú Limited, Dublin, Ireland — data
+              controller for GDPR purposes. Questions:{" "}
               <Link href="/contact" className="text-forest no-underline">
-                privacy@arcaevo.health
+                privacy@arcaevo.com
               </Link>
               .
             </div>

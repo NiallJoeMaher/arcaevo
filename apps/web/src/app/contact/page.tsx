@@ -29,7 +29,7 @@ const CHANNELS = [
     icon: "🔒",
     t: "Data & privacy",
     d: "Access, export or deletion requests.",
-    v: "privacy@arcaevo.health",
+    v: "privacy@arcaevo.com",
   },
   {
     icon: "📣",
@@ -81,10 +81,9 @@ export default function ContactPage() {
               ))}
             </div>
             <div className="mt-[34px] border-t border-hairline pt-6 text-[13.5px] leading-[1.6] text-caption">
-              Arcaevo Health Ltd · Dublin 2, Ireland
+              Codú Limited · Dublin, Ireland
               <br />
-              Company reg. pending · Data controller for GDPR purposes. See
-              our{" "}
+              Interim data controller for GDPR purposes. See our{" "}
               <Link href="/legal/privacy" className="text-forest no-underline">
                 privacy policy
               </Link>

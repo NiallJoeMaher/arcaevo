@@ -113,6 +113,25 @@ struct APIClient {
         try await get("config")
     }
 
+    /// `GET /biomarker-rules` (public, no auth) — the CANONICAL RCV thresholds.
+    /// The web side owns these numbers; the app prefers them over its hardcoded
+    /// `BiomarkerRuleLite.defaults` so web ↔ iOS can't disagree on what counts
+    /// as a "real" change. FAIL-SAFE: callers fall back to the matching
+    /// hardcoded defaults on any failure (offline / unreachable / bad payload).
+    func biomarkerRules() async throws -> BiomarkerRulesResponse {
+        try await get("biomarker-rules")
+    }
+
+    /// Convenience: the canonical rule table with server RCV % merged onto the
+    /// hardcoded defaults, or the pure defaults if the fetch fails. Never
+    /// throws — safe to call unconditionally before running the Vitality engine.
+    func biomarkerRulesOrDefaults() async -> [BiomarkerRuleLite] {
+        guard let response = try? await biomarkerRules() else {
+            return BiomarkerRuleLite.defaults
+        }
+        return BiomarkerRuleLite.merging(serverRcvPercent: response.rcvPercentByCode)
+    }
+
     func me() async throws -> User {
         try await get("members/me")
     }

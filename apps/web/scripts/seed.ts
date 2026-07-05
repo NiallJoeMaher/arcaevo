@@ -41,6 +41,7 @@ import {
 import { LAUNCH_ALLOWLIST } from "../src/lib/eligibility";
 import { bootstrapOwnerEmail } from "../src/lib/admin-auth";
 import { computeBaselineBand, computeRcvVerdict } from "../src/lib/rcv";
+import { CANONICAL_BIOMARKER_RULES } from "../src/lib/biomarker-rules";
 
 // --- determinism helpers ----------------------------------------------------
 
@@ -73,26 +74,14 @@ function round2(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
-// --- biomarker rules (plausible units + RCV%) --------------------------------
-
-const RULE_DEFS: Omit<BiomarkerRule, "_id">[] = [
-  { code: "apob", name: "ApoB", unit: "g/L", rcvPercent: 10, direction: "lower_is_better" },
-  { code: "ldl_c", name: "LDL-C", unit: "mmol/L", rcvPercent: 17, direction: "lower_is_better" },
-  { code: "hdl_c", name: "HDL-C", unit: "mmol/L", rcvPercent: 12, direction: "higher_is_better" },
-  { code: "triglycerides", name: "Triglycerides", unit: "mmol/L", rcvPercent: 40, direction: "lower_is_better" },
-  { code: "hba1c", name: "HbA1c", unit: "mmol/mol", rcvPercent: 6, direction: "lower_is_better" },
-  { code: "fasting_glucose", name: "Fasting glucose", unit: "mmol/L", rcvPercent: 11, direction: "lower_is_better" },
-  { code: "hs_crp", name: "hs-CRP", unit: "mg/L", rcvPercent: 85, direction: "lower_is_better" },
-  { code: "ferritin", name: "Ferritin", unit: "µg/L", rcvPercent: 30, direction: "higher_is_better" },
-  { code: "vitamin_d", name: "Vitamin D (25-OH)", unit: "nmol/L", rcvPercent: 25, direction: "higher_is_better" },
-  { code: "tsh", name: "TSH", unit: "mIU/L", rcvPercent: 20, direction: "lower_is_better" },
-  { code: "alt", name: "ALT", unit: "U/L", rcvPercent: 25, direction: "lower_is_better" },
-  { code: "creatinine", name: "Creatinine (eGFR basis)", unit: "µmol/L", rcvPercent: 9, direction: "lower_is_better" },
-  { code: "testosterone", name: "Testosterone (total)", unit: "nmol/L", rcvPercent: 20, direction: "higher_is_better" },
-  { code: "cortisol", name: "Cortisol (morning)", unit: "nmol/L", rcvPercent: 45, direction: "lower_is_better" },
-  { code: "omega3_index", name: "Omega-3 Index", unit: "%", rcvPercent: 15, direction: "higher_is_better" },
-];
-const RULES: BiomarkerRule[] = RULE_DEFS.map((r) => ({ _id: r.code, ...r }));
+// --- biomarker rules (canonical RCV%; see src/lib/biomarker-rules.ts) ---------
+//
+// The rule table (codes, units, RCV%, direction) is the SINGLE SOURCE OF TRUTH
+// in src/lib/biomarker-rules.ts — the same array served by
+// GET /api/v1/biomarker-rules and mirrored by the iOS fallback constants. Do
+// NOT re-declare the numbers here; edit the canonical module (and its parity
+// tests) instead.
+const RULES: BiomarkerRule[] = CANONICAL_BIOMARKER_RULES;
 
 const ruleByCode = new Map(RULES.map((r) => [r.code, r]));
 

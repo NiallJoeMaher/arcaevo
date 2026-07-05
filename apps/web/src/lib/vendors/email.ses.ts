@@ -10,7 +10,7 @@
  * Why prefer this over SMTP on Vercel serverless: there is no persistent SMTP
  * socket to keep alive across cold starts, it uses SES's native HTTPS + retry
  * surface, and it authenticates with the raw IAM keys the founder expects
- * (AWS_SES_ACCESS_KEY_ID / AWS_SES_SECRET_ACCESS_KEY) rather than an
+ * (ARCAEVO_AWS_ACCESS_KEY_ID / ARCAEVO_AWS_SECRET_ACCESS_KEY) rather than an
  * SMTP-specific derived credential.
  *
  * This is NOT a replacement for the Mongo outbox (email.mock.ts): the outbox
@@ -51,11 +51,16 @@ export interface SesCredentials {
  * The secret is returned but NEVER logged.
  */
 export function resolveSesCredentials(): SesCredentials | null {
+  // Generic app-wide AWS creds (reusable for any future AWS infra, not just SES).
+  // NOTE: the bare AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY/AWS_REGION names are
+  // RESERVED on Vercel's Lambda runtime and can't be set as project env vars —
+  // hence the ARCAEVO_AWS_* prefix. The bare names are kept only as a local
+  // fallback (dev machine / AWS CLI default chain).
   const accessKeyId =
-    process.env.AWS_SES_ACCESS_KEY_ID ?? process.env.AWS_ACCESS_KEY_ID;
+    process.env.ARCAEVO_AWS_ACCESS_KEY_ID ?? process.env.AWS_ACCESS_KEY_ID;
   const secretAccessKey =
-    process.env.AWS_SES_SECRET_ACCESS_KEY ?? process.env.AWS_SECRET_ACCESS_KEY;
-  const region = process.env.AWS_SES_REGION ?? process.env.AWS_REGION;
+    process.env.ARCAEVO_AWS_SECRET_ACCESS_KEY ?? process.env.AWS_SECRET_ACCESS_KEY;
+  const region = process.env.ARCAEVO_AWS_REGION ?? process.env.AWS_REGION;
   if (!accessKeyId || !secretAccessKey || !region) return null;
   return { accessKeyId, secretAccessKey, region };
 }
@@ -241,7 +246,7 @@ export async function sendViaSes(params: {
   const creds = resolveSesCredentials();
   if (!creds) {
     throw new Error(
-      "SES credentials missing: set AWS_SES_ACCESS_KEY_ID / AWS_SES_SECRET_ACCESS_KEY / AWS_SES_REGION"
+      "SES credentials missing: set ARCAEVO_AWS_ACCESS_KEY_ID / ARCAEVO_AWS_SECRET_ACCESS_KEY / ARCAEVO_AWS_REGION"
     );
   }
 

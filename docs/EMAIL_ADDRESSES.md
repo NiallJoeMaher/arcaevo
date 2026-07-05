@@ -95,9 +95,9 @@ The web app can deliver to SES **two ways** — pick one with `EMAIL_PROVIDER`. 
 
 ```bash
 EMAIL_PROVIDER=ses
-AWS_SES_REGION=eu-west-1                       # falls back to AWS_REGION
-AWS_SES_ACCESS_KEY_ID=AKIA…                    # falls back to AWS_ACCESS_KEY_ID
-AWS_SES_SECRET_ACCESS_KEY=…                    # falls back to AWS_SECRET_ACCESS_KEY (never logged)
+ARCAEVO_AWS_REGION=eu-west-1                       # falls back to AWS_REGION
+ARCAEVO_AWS_ACCESS_KEY_ID=AKIA…                    # falls back to AWS_ACCESS_KEY_ID
+ARCAEVO_AWS_SECRET_ACCESS_KEY=…                    # falls back to AWS_SECRET_ACCESS_KEY (never logged)
 EMAIL_FROM=Arcaevo <no-reply@arcaevo.com>      # or hello@arcaevo.com for human-answerable sends
 ```
 

@@ -133,9 +133,9 @@ describe("buildSendEmailBody (SES v2 SendEmail JSON)", () => {
 describe("provider selection + credential resolution", () => {
   const KEYS = [
     "EMAIL_PROVIDER",
-    "AWS_SES_ACCESS_KEY_ID",
-    "AWS_SES_SECRET_ACCESS_KEY",
-    "AWS_SES_REGION",
+    "ARCAEVO_AWS_ACCESS_KEY_ID",
+    "ARCAEVO_AWS_SECRET_ACCESS_KEY",
+    "ARCAEVO_AWS_REGION",
     "AWS_ACCESS_KEY_ID",
     "AWS_SECRET_ACCESS_KEY",
     "AWS_REGION",
@@ -167,9 +167,9 @@ describe("provider selection + credential resolution", () => {
   });
 
   it("prefers SES-specific creds", () => {
-    process.env.AWS_SES_ACCESS_KEY_ID = "AKIA_SES";
-    process.env.AWS_SES_SECRET_ACCESS_KEY = "secret_ses";
-    process.env.AWS_SES_REGION = "eu-west-1";
+    process.env.ARCAEVO_AWS_ACCESS_KEY_ID = "AKIA_SES";
+    process.env.ARCAEVO_AWS_SECRET_ACCESS_KEY = "secret_ses";
+    process.env.ARCAEVO_AWS_REGION = "eu-west-1";
     expect(resolveSesCredentials()).toEqual({
       accessKeyId: "AKIA_SES",
       secretAccessKey: "secret_ses",
@@ -189,8 +189,8 @@ describe("provider selection + credential resolution", () => {
   });
 
   it("returns null when any credential piece is missing", () => {
-    process.env.AWS_SES_ACCESS_KEY_ID = "AKIA_SES";
-    process.env.AWS_SES_REGION = "eu-west-1";
+    process.env.ARCAEVO_AWS_ACCESS_KEY_ID = "AKIA_SES";
+    process.env.ARCAEVO_AWS_REGION = "eu-west-1";
     expect(resolveSesCredentials()).toBeNull(); // no secret
   });
 });

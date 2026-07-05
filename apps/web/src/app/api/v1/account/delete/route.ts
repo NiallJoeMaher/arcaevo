@@ -17,6 +17,7 @@
  * not queue a duplicate erasure job.
  */
 import { requireMember } from "@/lib/auth";
+import { AnalyticsEvent, capture } from "@/lib/analytics";
 import { siteUrl } from "@/lib/api";
 import { suspendProcessingForWithdrawal } from "@/lib/consent-guard";
 import { recordConsents } from "@/lib/consents";
@@ -86,6 +87,13 @@ export async function POST(req: Request) {
     await jobs.insertOne(job);
   }
   const effectiveEraseAfter = existing?.eraseAfter ?? eraseAfter;
+
+  // Lifecycle: closure requested (erasure scheduled). Counts only, no PII.
+  capture(
+    AnalyticsEvent.AccountDeleted,
+    { sessionsRevoked, reScheduled: Boolean(existing) },
+    member._id
+  );
 
   // 4. Confirmation email — the +30d date, never a health value.
   await sendEmail("e12_closure_confirmation", member.email, {

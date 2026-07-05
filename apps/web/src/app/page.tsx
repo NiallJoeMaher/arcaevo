@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
@@ -194,6 +195,89 @@ function WatchVisual() {
     </div>
   );
 }
+
+/* ── Credibility: honest trust signals a brand-new health brand can make.
+   No testimonials, ratings or member counts — every line below is verifiable
+   today (method, EU residency, clinician sign-off, the hardware you own). ── */
+const TRUST_SIGNALS: {
+  index: string;
+  label: string;
+  title: string;
+  body: ReactNode;
+}[] = [
+  {
+    index: "01",
+    label: "YOUR OWN BASELINE",
+    title: "Judged against your own noise",
+    body: (
+      <>
+        Every result is read against your own biological baseline and the
+        test&rsquo;s own margin of error — the Reference Change Value — not a
+        one-size population range. If a shift is smaller than the noise, we say
+        so instead of alarming you.
+      </>
+    ),
+  },
+  {
+    index: "02",
+    label: "CLINICIAN-REVIEWED",
+    title: "A registered clinician signs every panel",
+    body: (
+      <>
+        Before a result reaches you, a registered clinician reviews and signs it
+        off. Wellness insight, never diagnosis — and if something warrants your
+        GP, we say so plainly.
+      </>
+    ),
+  },
+  {
+    index: "03",
+    label: "EU-NATIVE BY DESIGN",
+    title: "Hosted, encrypted, and yours to delete",
+    body: (
+      <>
+        Your data lives in the EU under GDPR, encrypted, and processed only with
+        consent you can withdraw. Export everything, or delete everything, in a
+        tap — no email, no wait.
+      </>
+    ),
+  },
+  {
+    index: "04",
+    label: "WELLNESS, NOT DIAGNOSIS",
+    title: "Honest about what we are",
+    body: (
+      <>
+        Arcaevo is a wellness membership, not a medical device. We publish our
+        method, show the workings behind every insight, and tell you at your
+        next test whether a change actually worked — or was just noise.
+      </>
+    ),
+  },
+  {
+    index: "05",
+    label: "FOUNDING COHORT",
+    title: "Brand new, and honest about it",
+    body: (
+      <>
+        We&rsquo;re just getting started — so no borrowed testimonials or
+        invented ratings. Join the founding cohort in Dublin and help shape what
+        we build next.
+      </>
+    ),
+  },
+  {
+    index: "06",
+    label: "NO NEW HARDWARE",
+    title: "The Apple Watch you already own",
+    body: (
+      <>
+        No €200 ring, no proprietary band. An at-home finger-prick and the watch
+        on your wrist — that&rsquo;s the whole kit, working from day one.
+      </>
+    ),
+  },
+];
 
 export default function Home() {
   return (
@@ -503,6 +587,57 @@ export default function Home() {
                   <br />
                   Everything in Essential
                 </div>
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* CREDIBILITY / TRUST */}
+        <section className="bg-surface px-10 py-[84px]">
+          <div className="mx-auto max-w-[1180px]">
+            <div className="mb-[52px] max-w-[62ch]">
+              <div className="mb-[14px] font-mono text-xs tracking-[0.14em] text-forest">
+                WHY YOU CAN BELIEVE THE NUMBER
+              </div>
+              <h2 className="mb-[14px] mt-0 font-serif text-[42px] font-normal tracking-[-0.01em]">
+                How we earn your trust — before you&rsquo;ve even tested.
+              </h2>
+              <p className="m-0 text-base leading-[1.6] text-muted">
+                We&rsquo;re a new Irish membership with no reviews to show yet,
+                so we won&rsquo;t invent any. Here&rsquo;s the honest case for
+                the number you&rsquo;ll see instead.
+              </p>
+            </div>
+            <div className="grid gap-6 md:grid-cols-3">
+              {TRUST_SIGNALS.map((signal) => (
+                <div
+                  key={signal.index}
+                  className="rounded-card-lg border border-hairline bg-bone p-[26px]"
+                >
+                  <div className="mb-[18px] font-mono text-[11px] tracking-[0.1em] text-forest">
+                    {signal.index} · {signal.label}
+                  </div>
+                  <h3 className="mb-[10px] mt-0 text-lg font-bold">
+                    {signal.title}
+                  </h3>
+                  <p className="m-0 text-sm leading-[1.55] text-muted">
+                    {signal.body}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-11 flex flex-wrap gap-5">
+              <Link
+                href="/science"
+                className="text-[15px] font-semibold text-forest no-underline"
+              >
+                Read the method →
+              </Link>
+              <Link
+                href="/legal/clinical-safety"
+                className="text-[15px] font-semibold text-forest no-underline"
+              >
+                Our wellness &amp; safety posture →
               </Link>
             </div>
           </div>

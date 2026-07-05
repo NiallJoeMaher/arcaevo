@@ -16,6 +16,8 @@
  * (checkout.session.completed) activates it and sends the E4 receipt.
  */
 import { memberFromRequest } from "@/lib/auth";
+import { AnalyticsEvent, capture } from "@/lib/analytics";
+import { logError } from "@/lib/log";
 import { parseJsonBody, siteUrl } from "@/lib/api";
 import { collections } from "@/lib/db";
 import { newId } from "@/lib/ids";
@@ -100,16 +102,24 @@ export async function POST(req: Request) {
     const users = await collections.users();
     member = await users.findOne({ email: email.toLowerCase() });
     if (!member) {
+      capture(AnalyticsEvent.SignupStarted, { source: "checkout" });
       member = await createMemberUser({ email, name });
       guestCreated = true;
+      capture(AnalyticsEvent.SignupCompleted, { source: "checkout" }, member._id);
       // Guest signup inline: the E1 verify email rides along with checkout.
-      const issued = await issueMagicLink(email, "verify");
-      if (!issued.throttled) {
-        await sendEmail("e1_verify", email.toLowerCase(), {
-          confirmUrl: `${siteUrl()}/verify?token=${issued.token}`,
-          code: issued.code,
-          codeUrl: `${siteUrl()}/signin?email=${encodeURIComponent(email.toLowerCase())}`,
-        });
+      // A failing mailer must NOT kill checkout — log it and continue (the
+      // member can still verify later); silent swallow is what we're fixing.
+      try {
+        const issued = await issueMagicLink(email, "verify");
+        if (!issued.throttled) {
+          await sendEmail("e1_verify", email.toLowerCase(), {
+            confirmUrl: `${siteUrl()}/verify?token=${issued.token}`,
+            code: issued.code,
+            codeUrl: `${siteUrl()}/signin?email=${encodeURIComponent(email.toLowerCase())}`,
+          });
+        }
+      } catch (err) {
+        logError("checkout.guest_verify_email", err, { memberId: member._id });
       }
     }
   }
@@ -161,6 +171,13 @@ export async function POST(req: Request) {
     { upsert: true, returnDocument: "after" }
   );
   const savedMembership = stored ?? membership;
+
+  // Funnel: checkout intent recorded. Enums/prices only — never PII/health.
+  capture(
+    AnalyticsEvent.CheckoutStarted,
+    { tier, cadenceUpgrade: Boolean(cadenceUpgrade), priceEur },
+    member._id
+  );
 
   // --- Stripe checkout session (subscription; card + Apple Pay on web) --------
   // Memberships are subscriptions: one Billing Price per tier, plus the

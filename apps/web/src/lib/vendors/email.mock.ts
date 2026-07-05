@@ -14,6 +14,7 @@
 // EU DPA) + real templates.
 import { collections } from "@/lib/db";
 import { newId } from "@/lib/ids";
+import { logError } from "@/lib/log";
 import { sendViaSmtp, smtpDeliveryEnabled } from "@/lib/vendors/email.smtp";
 import type { EmailVendor } from "@/lib/vendors/types";
 
@@ -48,11 +49,12 @@ class EmailMock implements EmailVendor {
         subject: params.subject,
         html: params.body,
       }).catch((err) => {
-        console.error(
-          `[email.smtp] delivery failed for ${outboxId} → ${params.to}: ${
-            err instanceof Error ? err.message : String(err)
-          }`
-        );
+        // Structured + PII-free (outbox id + template enum only; never the
+        // recipient address or body) so the failure shows in Vercel logs.
+        logError("email.smtp.delivery_failed", err, {
+          outboxId,
+          template: params.template,
+        });
       });
     }
 

@@ -9,6 +9,7 @@
  * Outside Dublin: honest fallback — Fusion + waitlist priority, or a refund.
  */
 import { requireMember } from "@/lib/auth";
+import { AnalyticsEvent, capture } from "@/lib/analytics";
 import { parseJsonBody } from "@/lib/api";
 import { collections } from "@/lib/db";
 import { newId } from "@/lib/ids";
@@ -109,6 +110,9 @@ export async function POST(req: Request) {
     { _id: gift._id },
     { $set: { redeemedBy: auth.member._id, redeemedAt: now } }
   );
+
+  // Lifecycle: gift converted to an active membership. Tier enum only.
+  capture(AnalyticsEvent.GiftRedeemed, { tier: gift.tier }, auth.member._id);
 
   // The buyer's one and only email — no health data, ever (design §16).
   await emailVendor.send({

@@ -7,6 +7,7 @@
  *         (position + county only — nothing sensitive).
  */
 import { requireMember } from "@/lib/auth";
+import { AnalyticsEvent, capture } from "@/lib/analytics";
 import { parseJsonBody, siteUrl } from "@/lib/api";
 import { collections } from "@/lib/db";
 import { checkEligibility } from "@/lib/eligibility";
@@ -68,6 +69,14 @@ export async function POST(req: Request) {
     createdAt: new Date(),
   };
   await waitlist.insertOne(entry);
+
+  // Funnel: a genuine new join (re-joins above return early, so no double-count).
+  // distinctId is the waitlist id (no member id yet); county is coarse geo.
+  capture(
+    AnalyticsEvent.WaitlistJoined,
+    { county, routingKey: result.routingKey, position },
+    entry._id
+  );
 
   // E10 — confirmation immediately; monthly updates + the county-open E11
   // (30-day founding-member window) come later from ops.

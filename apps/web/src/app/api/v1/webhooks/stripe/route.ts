@@ -19,6 +19,8 @@
  * See docs/MOCKED_APIS.md §2 and docs/STRIPE_SETUP.md.
  */
 import { z } from "zod";
+import { AnalyticsEvent, capture } from "@/lib/analytics";
+import { logError } from "@/lib/log";
 import { collections } from "@/lib/db";
 import { verifyWebhookSecret } from "@/lib/env";
 import { constructWebhookEvent, type StripeEvent } from "@/lib/stripe-signature";
@@ -81,6 +83,9 @@ export async function POST(req: Request) {
     );
     if (!event) {
       // Bad/expired signature, or unparseable body → 400 (Stripe retries).
+      // Surface it: a spike here means a rotated/mismatched signing secret.
+      logError("webhook.stripe.invalid_signature", new Error("signature verification failed"));
+      capture(AnalyticsEvent.WebhookVerificationFailed, { source: "stripe" }, "system");
       return Response.json(
         { error: "invalid_signature" },
         { status: 400 }
@@ -150,6 +155,11 @@ export async function POST(req: Request) {
       );
       // E4 — "You're a member — here's everything".
       if (member) await sendReceipt(member, membership, now);
+      capture(
+        AnalyticsEvent.CheckoutCompleted,
+        { tier: membership.tier, path: "mock" },
+        data.memberId
+      );
       break;
     }
     case "invoice.paid": {
@@ -347,6 +357,11 @@ async function handleRealEvent(event: StripeEvent): Promise<Response> {
       }
       const member = await users.findOne({ _id: membership.memberId });
       if (member) await sendReceipt(member, membership, now);
+      capture(
+        AnalyticsEvent.CheckoutCompleted,
+        { tier: membership.tier, path: "stripe" },
+        membership.memberId
+      );
       return Response.json({ ok: true, type: event.type, memberId: membership.memberId });
     }
 

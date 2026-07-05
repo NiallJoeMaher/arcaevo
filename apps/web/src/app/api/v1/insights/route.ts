@@ -7,11 +7,20 @@
  * `text` of each insight in warmer, member-specific language — but it would
  * ONLY narrate the deterministic verdict, never change it.
  *
+ * FUSION (docs/IMPROVEMENT_REVIEW.md #2): the response also carries a real,
+ * COMPUTED `fusion` insight when the member's own data supports one — a blood
+ * marker that improved beyond its RCV between two lab draws, paired with a
+ * wearable metric that shifted beneficially over the same weeks (lib/fusion.ts,
+ * the first real reader of `wearableSignals`). `null` when there isn't the
+ * data — never fabricated. Added as a SEPARATE top-level key so existing
+ * decoders of `insights`/`disclaimer` are unaffected.
+ *
  * Wellness language only — never diagnosis.
  */
 import { requireConsentedMember } from "@/lib/consent-guard";
 import { collections } from "@/lib/db";
 import { percentChange } from "@/lib/rcv";
+import { computeFusionInsight } from "@/lib/fusion";
 import type { BiomarkerReading } from "@/lib/models";
 
 const DISCLAIMER =
@@ -21,7 +30,7 @@ export async function GET(req: Request) {
   const auth = await requireConsentedMember(req);
   if (auth.denied) return auth.denied;
 
-  const [readings, rules] = await Promise.all([
+  const [readings, rules, labReadings, wearables] = await Promise.all([
     collections
       .biomarkerReadings()
       .then((c) =>
@@ -31,6 +40,16 @@ export async function GET(req: Request) {
           .toArray()
       ),
     collections.biomarkerRules().then((c) => c.find().toArray()),
+    // Fusion blood side: LAB readings only (self_reported never counts).
+    collections
+      .biomarkerReadings()
+      .then((c) =>
+        c.find({ memberId: auth.member._id, source: "lab" }).toArray()
+      ),
+    // Fusion wearable side: the first real reader of wearable_signals.
+    collections
+      .wearableSignals()
+      .then((c) => c.find({ memberId: auth.member._id }).toArray()),
   ]);
   const ruleByCode = new Map(rules.map((r) => [r.code, r]));
 
@@ -88,5 +107,27 @@ export async function GET(req: Request) {
       a.code.localeCompare(b.code)
   );
 
-  return Response.json({ insights, disclaimer: DISCLAIMER });
+  // Real, computed fusion insight (or null) — the one non-canned card.
+  const fusion = computeFusionInsight({
+    readings: labReadings.map((r) => ({
+      code: r.code,
+      value: r.value,
+      takenAt: r.takenAt,
+      source: r.source,
+    })),
+    wearables: wearables.map((w) => ({
+      type: w.type,
+      value: w.value,
+      date: w.date,
+    })),
+    rules: rules.map((r) => ({
+      code: r.code,
+      name: r.name,
+      unit: r.unit,
+      rcvPercent: r.rcvPercent,
+      direction: r.direction,
+    })),
+  });
+
+  return Response.json({ insights, fusion, disclaimer: DISCLAIMER });
 }

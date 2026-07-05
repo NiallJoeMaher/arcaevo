@@ -7,6 +7,7 @@ import Charts
 /// experiment. Amber "watch" tint, never red.
 struct MarkerDetailV3View: View {
     @Environment(AppState.self) private var appState
+    @Environment(AppModel.self) private var model
     @Environment(\.dismiss) private var dismiss
 
     init() {}
@@ -34,6 +35,11 @@ struct MarkerDetailV3View: View {
                 VStack(alignment: .leading, spacing: 0) {
                     Mv3BackLink(title: "Results") { dismiss() }
                         .padding(.bottom, 4)
+
+                    if model.showsBloodSample {
+                        Mv3SampleBanner(detail: "An example marker — not your reading. Your ApoB appears after your first blood test.")
+                            .padding(.bottom, 12)
+                    }
 
                     Mv3Eyebrow(text: "APOB · CARDIOVASCULAR")
                         .padding(.bottom, 6)

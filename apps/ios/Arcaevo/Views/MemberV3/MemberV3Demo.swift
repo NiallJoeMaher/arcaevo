@@ -218,7 +218,7 @@ enum MemberV3Demo {
                   answer: "Yes. Over 14 weeks your deep sleep rose 22 minutes a night and you fell asleep 18 minutes faster. CRP didn't move — that one was about sleep, not inflammation.",
                   flagged: false),
         Mv3ChatQA(key: "flagged", question: "What about my flagged value?",
-                  answer: "That one is with Dr. Nolan — she'll call today between 14:00 and 17:00. I don't coach on flagged results; a person reads them with you first.",
+                  answer: "That one is with a clinician — they'll call today between 14:00 and 17:00. I don't coach on flagged results; a person reads them with you first.",
                   flagged: true),
     ]
 
@@ -286,6 +286,6 @@ enum Mv3Narrator {
         }
 
         // Honest fallback — never invent, never diagnose.
-        return ("I can only narrate what's in your own data — your results, your Watch trends and your experiments. Try asking about ApoB, ferritin, sleep or your caffeine experiment. For anything clinical, Dr. Nolan is the right reader, not me.", false)
+        return ("I can only narrate what's in your own data — your results, your Watch trends and your experiments. Try asking about ApoB, ferritin, sleep or your caffeine experiment. For anything clinical, a registered clinician is the right reader, not me.", false)
     }
 }

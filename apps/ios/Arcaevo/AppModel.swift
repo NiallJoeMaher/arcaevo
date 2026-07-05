@@ -75,6 +75,19 @@ final class AppModel {
         feltCheckins = Self.loadCheckins()
     }
 
+    /// True once the member has at least one REAL blood reading from the API.
+    /// Blood-derived surfaces (Results, marker detail, Fusion's blood side, the
+    /// clinician note, blood-referencing Insights) are honest ONLY when this is
+    /// true; otherwise they must render an empty invite or a labelled Sample.
+    var hasRealBloods: Bool { !results.isEmpty && !isDemoMode }
+
+    /// Whether blood-derived content on this device is a Sample/example rather
+    /// than the member's real, clinician-reviewed results. True whenever there
+    /// are no real bloods yet (the pre-lab-partner reality) OR the demo story is
+    /// standing in — so every blood surface carries an unmissable Sample label
+    /// instead of presenting fiction as the member's own data.
+    var showsBloodSample: Bool { isDemoMode || !hasRealBloods }
+
     var latestInsight: Insight? {
         insights.max(by: { $0.createdAt < $1.createdAt })
     }

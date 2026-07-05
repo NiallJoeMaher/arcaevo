@@ -83,14 +83,18 @@ struct MemberTodayV3View: View {
 
     private var greeting: String {
         let hour = Calendar.current.component(.hour, from: Date())
-        let name = (model.user?.name ?? "Aoife Byrne").components(separatedBy: " ").first ?? "there"
         let opener: String
         switch hour {
         case 5..<12: opener = "GOOD MORNING"
         case 12..<18: opener = "GOOD AFTERNOON"
         default: opener = "GOOD EVENING"
         }
-        return "\(opener), \(name.uppercased())"
+        // Only greet by name once the real signed-in member is known — never a
+        // fabricated persona name before the session loads.
+        guard let first = model.user?.name.components(separatedBy: " ").first, !first.isEmpty else {
+            return opener
+        }
+        return "\(opener), \(first.uppercased())"
     }
 
     private var dateLine: String {
@@ -100,16 +104,25 @@ struct MemberTodayV3View: View {
         return formatter.string(from: Date()).uppercased()
     }
 
-    // MARK: Health-score ring — 74 · "Up 3 since June."
+    // MARK: Readiness ring — the member's real, wearable-derived score
+
+    /// The ring is honest: it shows a number only when the readiness engine has
+    /// enough real overnight data to stand behind one (§6). Before then it says
+    /// so rather than inventing a score.
+    private var showsReadinessScore: Bool {
+        model.readinessResult?.state.showsScore ?? false
+    }
 
     private var ringRow: some View {
         HStack(spacing: 18) {
             healthRing
             VStack(alignment: .leading, spacing: 4) {
-                Text("Up 3 since June.")
+                Text(showsReadinessScore ? "From your Watch this morning." : "Learning your normal.")
                     .font(.arcSans(14.5, weight: .bold))
                     .foregroundStyle(Color.arcCream)
-                Text("Sleep and ApoB did the lifting — the score follows your data, not your effort.")
+                Text(showsReadinessScore
+                     ? "Your readiness follows your own HRV, resting heart rate and sleep — not your effort."
+                     : "Wear your Watch to sleep for a few nights and your readiness appears here.")
                     .font(.arcSans(12))
                     .lineSpacing(3)
                     .foregroundStyle(Color.arcMutedOnDark)
@@ -123,14 +136,14 @@ struct MemberTodayV3View: View {
             Circle()
                 .stroke(Color.white.opacity(0.1), lineWidth: 8)
             Circle()
-                .trim(from: 0, to: CGFloat(model.readinessScore) / 100)
+                .trim(from: 0, to: showsReadinessScore ? CGFloat(model.readinessScore) / 100 : 0)
                 .stroke(Color.arcPrimaryGreen, style: StrokeStyle(lineWidth: 8, lineCap: .round))
                 .rotationEffect(.degrees(-90))
             VStack(spacing: 1) {
-                Text("\(model.readinessScore)")
-                    .font(.arcMono(27, weight: .medium))
+                Text(showsReadinessScore ? "\(model.readinessScore)" : "•••")
+                    .font(.arcMono(showsReadinessScore ? 27 : 20, weight: .medium))
                     .foregroundStyle(Color.arcCream)
-                Text("HEALTH SCORE")
+                Text(showsReadinessScore ? "READINESS" : "CALIBRATING")
                     .font(.arcSans(8.5))
                     .kerning(0.7)
                     .foregroundStyle(Color.arcMutedOnDark)
@@ -230,22 +243,29 @@ struct MemberTodayV3View: View {
         } label: {
             HStack {
                 VStack(alignment: .leading, spacing: 5) {
-                    Mv3Eyebrow(text: "JULY PANEL · REVIEWED", size: 9, color: .arcBrightGreen, kerning: 0.9)
-                    Text("38 markers in — one worth acting on")
+                    HStack(spacing: 7) {
+                        Mv3Eyebrow(text: model.showsBloodSample ? "RESULTS · SAMPLE PREVIEW" : "LATEST PANEL · REVIEWED",
+                                   size: 9, color: model.showsBloodSample ? .arcHollowGold : .arcBrightGreen, kerning: 0.9)
+                        if model.showsBloodSample { Mv3SampleTag() }
+                    }
+                    Text(model.showsBloodSample
+                         ? "No bloodwork yet — preview an example panel"
+                         : "38 markers in — one worth acting on")
                         .font(.arcSans(13.5, weight: .semibold))
                         .foregroundStyle(Color.arcCream)
                 }
                 Spacer()
                 Text("›")
                     .font(.arcSans(16))
-                    .foregroundStyle(Color.arcBrightGreen)
+                    .foregroundStyle(model.showsBloodSample ? Color.arcHollowGold : Color.arcBrightGreen)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 14)
-            .background(Color.arcPrimaryGreen.opacity(0.12), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .background((model.showsBloodSample ? Color.arcHollowGold : Color.arcPrimaryGreen).opacity(0.1),
+                        in: RoundedRectangle(cornerRadius: 16, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .strokeBorder(Color.arcPrimaryGreen.opacity(0.35), lineWidth: 1)
+                    .strokeBorder((model.showsBloodSample ? Color.arcHollowGold : Color.arcPrimaryGreen).opacity(0.35), lineWidth: 1)
             )
             .contentShape(RoundedRectangle(cornerRadius: 16))
         }
@@ -260,14 +280,17 @@ struct MemberTodayV3View: View {
             InsightsV3View()
         } label: {
             VStack(alignment: .leading, spacing: 6) {
-                HStack {
+                HStack(spacing: 7) {
                     Mv3Eyebrow(text: "FOCUS THIS WEEK", size: 9, kerning: 0.9)
+                    if model.showsBloodSample { Mv3SampleTag() }
                     Spacer()
-                    Text("WHY? ›")
+                    Text(model.showsBloodSample ? "SEE ›" : "WHY? ›")
                         .font(.arcMono(9, weight: .regular))
                         .foregroundStyle(Color.arcBrightGreen)
                 }
-                Text("Keep the evening walks — your ApoB is answering them.")
+                Text(model.showsBloodSample
+                     ? "See a sample of the weekly focus your data will earn."
+                     : "Keep the evening walks — your ApoB is answering them.")
                     .font(.arcSans(14, weight: .semibold))
                     .lineSpacing(3)
                     .foregroundStyle(Color.arcCream)
@@ -288,8 +311,7 @@ struct MemberTodayV3View: View {
             HStack(spacing: 14) {
                 watchStat("❤", value: rhrText, label: "rhr")
                 watchStat("☾", value: sleepText, label: "sleep")
-                // Steps aren't a modelled WearableMetric yet — design value.
-                watchStat("⚡", value: "8,940", label: "steps")
+                watchStat("⚡", value: stepsText, label: "steps")
             }
         }
         .mv3Card(radius: 16, vPad: 13)
@@ -311,13 +333,20 @@ struct MemberTodayV3View: View {
         if let latest = model.wearableSeries[.restingHeartRate]?.last?.value {
             return "\(Int(latest.rounded()))"
         }
-        return "54"
+        return "—" // no fabricated value before the Watch reports
     }
 
     private var sleepText: String {
-        let hours = model.wearableSeries[.sleepHours]?.last?.value ?? 7.2
+        guard let hours = model.wearableSeries[.sleepHours]?.last?.value else { return "—" }
         let total = Int((hours * 60).rounded())
         return "\(total / 60)h \(String(format: "%02d", total % 60))m"
+    }
+
+    /// Steps from the real HealthKit series when present; otherwise honest "—"
+    /// (steps aren't yet a modelled trend, so we never invent a figure).
+    private var stepsText: String {
+        guard let steps = model.wearableSeries[.steps]?.last?.value, steps > 0 else { return "—" }
+        return Int(steps.rounded()).formatted(.number.grouping(.automatic))
     }
 
     // MARK: "FUSION · APOB × RESTING HR" → Fusion timeline
@@ -327,8 +356,9 @@ struct MemberTodayV3View: View {
             FusionTimelineV3View()
         } label: {
             VStack(alignment: .leading, spacing: 8) {
-                HStack {
+                HStack(spacing: 7) {
                     Mv3Eyebrow(text: "FUSION · APOB × RESTING HR", size: 9, kerning: 0.9)
+                    if model.showsBloodSample { Mv3SampleTag() }
                     Spacer()
                     Text("OPEN ›")
                         .font(.arcMono(9, weight: .regular))
@@ -372,7 +402,7 @@ struct MemberTodayV3View: View {
         if let exp = appState.experiment, exp.verdict == nil {
             return "\(exp.what) · \(Mv3Adherence.percent(for: exp))% adherence"
         }
-        return "Evening walks · 87% adherence"
+        return "None yet — change one thing, we'll tell you if it worked"
     }
 
     // MARK: "VITALITY AGE · THE SLOW SCORE" → Vitality screen (§3)
@@ -402,10 +432,10 @@ struct MemberTodayV3View: View {
     }
 
     private var vitalityLine: String {
-        if let age = model.vitalityScore?.age {
-            return "\(age) — down 0.8 years since February"
+        if let score = model.vitalityScore {
+            return "\(score.age) ± \(score.band) — the slow score"
         }
-        return "Warming up — appears after your first panel"
+        return "Warming up — appears after your first blood panel"
     }
 }
 

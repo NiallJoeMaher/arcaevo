@@ -19,7 +19,8 @@ struct FreeHomeV3View: View {
 
                     // Apple Health summary card (real/mock Watch data).
                     VStack(alignment: .leading, spacing: 7) {
-                        ArcEyebrow(text: "Apple Health · Connected", size: 9.5, color: .arcBrightGreen)
+                        ArcEyebrow(text: healthConnected ? "Apple Health · Connected" : "Apple Health",
+                                   size: 9.5, color: healthConnected ? .arcBrightGreen : .arcMutedOnDark)
                         Text(healthSummary)
                             .font(.arcSans(14, weight: .semibold))
                             .lineSpacing(14 * 0.3)
@@ -105,8 +106,16 @@ struct FreeHomeV3View: View {
     private var greeting: String {
         let hour = Calendar.current.component(.hour, from: .now)
         let part = hour < 12 ? "Good morning" : (hour < 18 ? "Good afternoon" : "Good evening")
-        let first = (model.user?.name ?? "Aoife").split(separator: " ").first.map(String.init) ?? "Aoife"
+        // Only greet by name once the real member is known — never a persona.
+        guard let first = model.user?.name.split(separator: " ").first.map(String.init), !first.isEmpty else {
+            return part
+        }
         return "\(part), \(first)"
+    }
+
+    /// True only when at least one real/mock wearable reading is present.
+    private var healthConnected: Bool {
+        model.wearableSeries.values.contains { !$0.isEmpty }
     }
 
     private var rhrSeries: [WearableSignal] {
@@ -123,15 +132,15 @@ struct FreeHomeV3View: View {
         }
         let hrv = (model.wearableSeries[.hrv] ?? []).sorted { $0.date < $1.date }.last.map { "\(Int($0.value.rounded())) ms" }
         guard let rhr, let sleep, let hrv else {
-            // Series still loading — the design's demo line.
-            return "Resting HR 54 · Sleep 7h 12m · 8,940 steps"
+            // No Watch data yet — say so honestly, never a fabricated line.
+            return "Wear your Apple Watch to see your live readings here."
         }
         return "Resting HR \(rhr) · Sleep \(sleep) · HRV \(hrv)"
     }
 
     private var rhrCaption: String {
         guard let first = rhrValues.first, let last = rhrValues.last, rhrValues.count > 3 else {
-            return "Down 4 bpm since April — a good sign."
+            return "Your resting-heart-rate trend appears after a few days of wear."
         }
         let delta = Int((last - first).rounded())
         let monthFormatter = DateFormatter()

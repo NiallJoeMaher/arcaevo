@@ -224,6 +224,64 @@ struct Mv3GhostCTA: View {
     }
 }
 
+/// Persistent, unmissable "this is a Sample, not your data" banner for the
+/// blood-derived surfaces (Results, marker detail, Fusion, blood Insights).
+/// The member has no real bloods yet (no lab partner), so every blood screen
+/// that shows the example July-panel story wears this so it can NEVER be
+/// mistaken for the member's own, clinician-reviewed results.
+struct Mv3SampleBanner: View {
+    /// Short second line describing what the sample is (e.g. "example blood
+    /// panel — yours unlocks after your first test").
+    var detail: String = "An example, not your data — your own appears after your first blood test."
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Text("◆")
+                .font(.arcMono(11, weight: .regular))
+                .foregroundStyle(Color.arcHollowGold)
+            VStack(alignment: .leading, spacing: 3) {
+                Text("SAMPLE · EXAMPLE DATA")
+                    .font(.arcMono(9.5, weight: .regular))
+                    .kerning(0.9)
+                    .foregroundStyle(Color.arcHollowGold)
+                Text(detail)
+                    .font(.arcSans(11.5))
+                    .lineSpacing(2)
+                    .foregroundStyle(Mv3.bodyOnDark)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 11)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.arcHollowGold.opacity(0.1),
+                    in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 13, style: .continuous)
+                .strokeBorder(Color.arcHollowGold.opacity(0.45),
+                              style: StrokeStyle(lineWidth: 1, dash: [4, 3]))
+        )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Sample, example data. \(detail)")
+    }
+}
+
+/// Small inline "SAMPLE" pill for tagging an individual card as example data.
+struct Mv3SampleTag: View {
+    var body: some View {
+        Text("SAMPLE")
+            .font(.arcMono(8.5, weight: .regular))
+            .kerning(0.8)
+            .foregroundStyle(Color.arcHollowGold)
+            .padding(.vertical, 3)
+            .padding(.horizontal, 7)
+            .background(Color.arcHollowGold.opacity(0.14), in: Capsule())
+            .overlay(Capsule().strokeBorder(Color.arcHollowGold.opacity(0.4), lineWidth: 1))
+            .accessibilityLabel("Sample")
+    }
+}
+
 /// Simple left-aligned wrapping layout for chip rows (flex-wrap equivalent).
 struct Mv3Flow: Layout {
     var spacing: CGFloat = 8

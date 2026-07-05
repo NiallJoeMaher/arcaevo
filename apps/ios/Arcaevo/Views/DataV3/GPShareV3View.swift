@@ -31,7 +31,7 @@ struct GPShareV3View: View {
                 .lineSpacing(2)
                 .padding(.bottom, 8)
 
-            Text("A two-page clinician summary: results with dates and ranges, trend arrows, reviewed by Dr. Nolan (IMC 412887). No app needed on their end.")
+            Text("A two-page summary: results with dates and ranges, trend arrows, reviewed by a registered clinician on blood tiers. No app needed on their end.")
                 .font(.arcSans(13))
                 .foregroundStyle(Color.arcSecondaryDark)
                 .lineSpacing(4)

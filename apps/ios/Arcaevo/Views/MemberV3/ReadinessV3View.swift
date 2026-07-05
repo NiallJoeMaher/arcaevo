@@ -28,7 +28,14 @@ struct ReadinessV3View: View {
                         if result.state.showsScore {
                             scoreRow(result)
                             metricsCard(result)
-                            bloodLayerCard(result)
+                            // §6: with no real bloods the toggle has nothing
+                            // behind it — show the honest invite, never a fake
+                            // wearable-vs-blood comparison.
+                            if model.bloodLayerState == .noBloods {
+                                bloodInviteCard
+                            } else {
+                                bloodLayerCard(result)
+                            }
                             targetExertionCard(result)
                         } else {
                             degradedCard(result)
@@ -175,6 +182,34 @@ struct ReadinessV3View: View {
         case .positive: return .arcBrightGreen
         case .muted: return .arcMutedOnDark
         }
+    }
+
+    // MARK: Blood-layer invite (no bloods yet — §6 honest state)
+
+    /// With zero blood readings the blood layer is an invite, not a toggle:
+    /// readiness runs wearable-only and says so, rather than inventing a
+    /// blood-recalibrated comparison the member has no data for.
+    private var bloodInviteCard: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Mv3Eyebrow(text: "BLOOD LAYER · NOT YET ADDED", size: 9,
+                       color: Color.arcHollowGold, kerning: 0.9)
+            Text("This is your wearable-only readiness — real, from your own HRV, resting heart rate and sleep. Add a blood test and Arcaevo recalibrates it to what's happening under the surface.")
+                .font(.arcSans(12))
+                .foregroundStyle(Color.arcRailLight)
+                .lineSpacing(2)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.horizontal, 15)
+        .padding(.vertical, 13)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.arcHollowGold.opacity(0.08), in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 15, style: .continuous)
+                .strokeBorder(Color.arcHollowGold.opacity(0.3),
+                              style: StrokeStyle(lineWidth: 1, dash: [4, 3]))
+        )
+        .padding(.bottom, 9)
+        .accessibilityElement(children: .combine)
     }
 
     // MARK: Blood-layer ON/OFF toggle (71 ↔ 62)

@@ -124,6 +124,12 @@ You kept the loop going, so I added the last concrete hardening the admin surfac
 
 **Left as founder policy calls** (documented in `ADMIN_AUTH_OPTIONS.md`): whether to make MFA *mandatory* (at least for owners), the owner-driven reset for a locked-out admin, and `MFA_ENC_KEY` custody/rotation. And an owner can currently disable their own MFA without a code (break-glass for a lost authenticator) — a one-line change if you'd rather always require one.
 
+## 11. Round 6 — regression tests for the core IP
+
+The one real engineering gap left was test coverage: the blood-recalibrated scoring engines — Arcaevo's actual differentiator — were only covered by an ad-hoc harness. Now there's a formal **XCTest suite: 48 tests, 0 failures**, and critically **it confirmed there are no engine bugs** — the core maths matches the documented behaviour exactly.
+
+It locks in: the 71→62 ferritin story (core 71 / ceiling 88 / final 62 / band ±9 / go-easy / exertion 4-of-10), the floor-55 guarantee under stacked penalties, all four decision thresholds, the biomarker penalty rules + decay curve, the energy model, the §6 degraded states (calibrating / sparse-night / sick / no-bloods / stale), the cycle-phase no-false-alarm, the behaviour-impact coefficients with the n≥3 gate, and — most importantly — **RCV parity with the web engine** (same rounding, inclusive boundary, zero-prior guard), so the "did it work?" verdict is identical across phone and server. Runs as a hostless logic bundle (no simulator flake).
+
 ## Where things stand
 
 - ✅ Phase 22 built, integrated, verified

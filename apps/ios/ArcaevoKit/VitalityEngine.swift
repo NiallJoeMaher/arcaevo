@@ -42,16 +42,39 @@ struct BiomarkerRuleLite: Codable, Hashable {
         self.yearsWeight = yearsWeight
     }
 
-    /// Deterministic client defaults for the age-associated markers (§3
-    /// blood anchor) — used when the backend rule table isn't loaded.
-    /// Values mirror the seeded web rules' spirit; tune with clinician.
+    /// Deterministic client defaults for the age-associated markers (§3 blood
+    /// anchor) — the OFFLINE FALLBACK used when the backend rule table isn't
+    /// loaded. The `rcvPercent` values are the CANONICAL web thresholds (the
+    /// single source of truth is `apps/web/src/lib/biomarker-rules.ts`, served
+    /// by `GET /api/v1/biomarker-rules`); these constants MUST equal those
+    /// numbers, and `RCVParityTests` fails the build if they drift. The
+    /// `optimalLow/High` + `yearsWeight` are the iOS-only age-offset weights
+    /// (not part of the RCV threshold) — tune with a clinician.
     static let defaults: [BiomarkerRuleLite] = [
-        BiomarkerRuleLite(code: "apob", rcvPercent: 10.6, direction: .lowerIsBetter, optimalLow: 0.6, optimalHigh: 1.0, yearsWeight: 3.0),
-        BiomarkerRuleLite(code: "hba1c", rcvPercent: 4.5, direction: .lowerIsBetter, optimalLow: 4.8, optimalHigh: 5.4, yearsWeight: 2.5),
-        BiomarkerRuleLite(code: "hs_crp", rcvPercent: 46, direction: .lowerIsBetter, optimalLow: 0, optimalHigh: 1.0, yearsWeight: 1.0),
-        BiomarkerRuleLite(code: "vitamin_d", rcvPercent: 16, direction: .higherIsBetter, optimalLow: 50, optimalHigh: 125, yearsWeight: 0.8),
-        BiomarkerRuleLite(code: "ferritin", rcvPercent: 15, direction: .higherIsBetter, optimalLow: 45, optimalHigh: 150, yearsWeight: 1.7),
+        // rcvPercent mirrors the canonical web seed (apob 10, hba1c 6, hs_crp 85,
+        // vitamin_d 25, ferritin 30). Do not edit a % here without editing the
+        // web canonical module + both parity tests.
+        BiomarkerRuleLite(code: "apob", rcvPercent: 10, direction: .lowerIsBetter, optimalLow: 0.6, optimalHigh: 1.0, yearsWeight: 3.0),
+        BiomarkerRuleLite(code: "hba1c", rcvPercent: 6, direction: .lowerIsBetter, optimalLow: 4.8, optimalHigh: 5.4, yearsWeight: 2.5),
+        BiomarkerRuleLite(code: "hs_crp", rcvPercent: 85, direction: .lowerIsBetter, optimalLow: 0, optimalHigh: 1.0, yearsWeight: 1.0),
+        BiomarkerRuleLite(code: "vitamin_d", rcvPercent: 25, direction: .higherIsBetter, optimalLow: 50, optimalHigh: 125, yearsWeight: 0.8),
+        BiomarkerRuleLite(code: "ferritin", rcvPercent: 30, direction: .higherIsBetter, optimalLow: 45, optimalHigh: 150, yearsWeight: 1.7),
     ]
+
+    /// Returns a copy of `defaults` with each marker's `rcvPercent` overridden
+    /// by the server's canonical value (matched by `code`, case-insensitive)
+    /// when present. The iOS-only age-offset weights (`optimalLow/High`,
+    /// `yearsWeight`) are preserved — the server owns only the RCV threshold.
+    /// FAIL-SAFE: any code the server doesn't return keeps its hardcoded value,
+    /// so an empty or partial fetch can never widen or blank a threshold.
+    static func merging(serverRcvPercent: [String: Double]) -> [BiomarkerRuleLite] {
+        defaults.map { rule in
+            guard let pct = serverRcvPercent[rule.code.lowercased()] else { return rule }
+            var updated = rule
+            updated.rcvPercent = pct
+            return updated
+        }
+    }
 }
 
 /// Pure RCV verdict + baseline-band maths. Keep in lockstep with

@@ -28,6 +28,30 @@ struct AppConfig: Codable, Hashable {
     }
 }
 
+// MARK: Biomarker rules (public canonical RCV thresholds — no auth)
+
+/// One rule row from `GET /api/v1/biomarker-rules` — the CANONICAL RCV
+/// threshold (the % a marker must move before a change is "real"). The web
+/// side owns these numbers (`apps/web/src/lib/biomarker-rules.ts`); the app
+/// fetches them so the two engines can't disagree, and falls back to the
+/// matching hardcoded `BiomarkerRuleLite.defaults` when offline.
+struct ServerBiomarkerRule: Codable, Hashable {
+    var code: String
+    var rcvPercent: Double
+    var unit: String?
+    var direction: String?
+}
+
+/// `GET /api/v1/biomarker-rules` → `{ "rules": [...] }`.
+struct BiomarkerRulesResponse: Codable, Hashable {
+    var rules: [ServerBiomarkerRule]
+
+    /// `code → rcvPercent` (lowercased codes) for merging onto the defaults.
+    var rcvPercentByCode: [String: Double] {
+        Dictionary(rules.map { ($0.code.lowercased(), $0.rcvPercent) }, uniquingKeysWith: { _, last in last })
+    }
+}
+
 // MARK: Auth (magic link)
 
 /// `POST /auth/magic-link` → 202. Non-revealing: identical whether or not

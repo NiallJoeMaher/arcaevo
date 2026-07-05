@@ -48,6 +48,12 @@ final class AppModel {
     var feltCheckins: [FeltCheckin] = []
     /// Cycle phase — non-nil only when cycle-aware baselines are opted in.
     var cyclePhase: CyclePhase?
+    /// Canonical biomarker RCV thresholds. Prefers the server's values
+    /// (`GET /biomarker-rules`, the single source of truth shared with web) and
+    /// falls back to the matching hardcoded `BiomarkerRuleLite.defaults` when the
+    /// backend is unreachable, so the Vitality engine can never disagree with the
+    /// web on what counts as a "real" change.
+    @ObservationIgnored var biomarkerRules: [BiomarkerRuleLite] = BiomarkerRuleLite.defaults
 
     /// The "blood layer ON/OFF" toggle (readiness screen) — a real
     /// transparency feature AND the MDR fallback flag (ALGORITHM §5).
@@ -120,6 +126,12 @@ final class AppModel {
     func loadAll() async {
         isLoading = true
         defer { isLoading = false }
+
+        // Canonical RCV thresholds from the server (single source of truth,
+        // shared with web); silently keeps the matching hardcoded defaults on
+        // any failure. Fetched outside the throwing block so an unreachable
+        // rules endpoint never blanks real member data.
+        biomarkerRules = await api.biomarkerRulesOrDefaults()
 
         do {
             async let user = api.me()
@@ -302,7 +314,7 @@ final class AppModel {
             let month = calendar.date(from: calendar.dateComponents([.year, .month], from: now)) ?? now
             vitalityScore = VitalityEngine.compute(
                 readings: engineReadings,
-                rules: BiomarkerRuleLite.defaults,
+                rules: biomarkerRules,
                 wearables: WearableTrends(
                     vo2max: (wearableSeries[.vo2max] ?? []).dailyPoints,
                     rhr: rhrPoints

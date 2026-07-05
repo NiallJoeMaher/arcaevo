@@ -177,6 +177,29 @@ final class AppState {
     var waitlistPosition: Int?
     var waitlistCounty: String?
 
+    // MARK: Server-controlled feature gate — paid blood-testing tiers
+
+    /// Whether the paid BLOOD-TESTING tiers (Essential €329 / Performance €399)
+    /// and the testing journey (Eircode gate → activate-kit / nurse-booking /
+    /// venous draw) are offered. Sourced from `GET /api/v1/config`.
+    ///
+    /// FAIL-SAFE: defaults to `false` — until `/config` confirms otherwise the
+    /// app is Fusion-only, so the blood tiers are never rendered as purchasable
+    /// on an unknown/unreachable flag. In a DEBUG build the default is `true` so
+    /// local dev can walk the full flow without the backend (compile-time gated;
+    /// a Release build is always `false` until the endpoint says otherwise).
+    var bloodTiersEnabled: Bool = AppState.defaultBloodTiersEnabled
+
+    /// DEBUG → `true` (local dev walks the full flow offline); Release → `false`
+    /// (fail-safe: blood tiers hidden until `/config` explicitly enables them).
+    static var defaultBloodTiersEnabled: Bool {
+        #if DEBUG
+        return true
+        #else
+        return false
+        #endif
+    }
+
     @ObservationIgnored let api = APIClient()
 
     /// Shown when the backend is unreachable in a Release build (no demo
@@ -430,6 +453,21 @@ final class AppState {
             waitlistPosition = demo.position
             waitlistCounty = demo.county
             isDemoSession = true
+        }
+    }
+
+    // MARK: - App config (public feature gate — fetched on launch/foreground)
+
+    /// Refreshes `bloodTiersEnabled` from `GET /api/v1/config`. Called on launch
+    /// and every foreground. FAIL-SAFE: on any error (unreachable, non-2xx,
+    /// garbled body) it resets to `defaultBloodTiersEnabled` — Release `false`
+    /// (blood tiers hidden), DEBUG `true` (local dev stays walkable) — so an
+    /// unknown flag never leaves the blood tiers offered in production.
+    func loadAppConfig() async {
+        do {
+            bloodTiersEnabled = try await api.appConfig().bloodTiersEnabled
+        } catch {
+            bloodTiersEnabled = Self.defaultBloodTiersEnabled
         }
     }
 

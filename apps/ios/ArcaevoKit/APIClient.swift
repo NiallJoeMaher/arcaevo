@@ -104,6 +104,15 @@ struct APIClient {
 
     // MARK: - Endpoints
 
+    /// `GET /config` (public, no auth) — server-controlled feature gates.
+    /// The web side owns this endpoint; the app reads `bloodTiersEnabled` to
+    /// decide whether the paid blood-testing tiers are offered. FAIL-SAFE:
+    /// callers default `bloodTiersEnabled` to `false` on any failure, so the
+    /// blood tiers are never shown as purchasable on an unknown flag.
+    func appConfig() async throws -> AppConfig {
+        try await get("config")
+    }
+
     func me() async throws -> User {
         try await get("members/me")
     }

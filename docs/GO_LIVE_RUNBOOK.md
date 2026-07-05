@@ -6,8 +6,10 @@ Legend: **[you]** needs your decision/credential · **[done]** already built on 
 
 ---
 
+> **See also `docs/PRELAUNCH_CHECKLIST.md`** — the single owner-tagged, checkbox pre-launch checklist that consolidates this runbook with the legal, Apple, security and observability items. This runbook is the ordered narrative; the checklist is what you tick off.
+
 ## Phase 0 — Company & legal foundation (do first; gates real users)
-1. **[you] Confirm the legal entity** that is the GDPR data controller (registered company + CRO number). Put it in `docs/legal/` where marked TBD.
+1. **[you] Interim data controller = Codú Limited** (the founder's existing Irish company); record its CRO number in `docs/legal/RECORDS_OF_PROCESSING.md`. A dedicated entity is formed if the product monetises (then controller identity, DPAs and public privacy copy migrate). Reconcile the public copy (`legal.ts` still says "Arcaevo Health Ltd"). See `docs/legal/MEDICAL_DEVICE_POSITIONING.md` for the wellness/MDR line.
 2. **[you] DPO decision** — appoint one or document why not required. (`docs/legal/DPIA.md`)
 3. **[you] Commission the DPIA review** — the draft is ready at `docs/legal/DPIA.md`; a DPO/solicitor signs it off.
 4. **[you] Solicitor-review the privacy policy** (`/legal/privacy`) and the consent copy against Irish DPC / GDPR Art. 9.

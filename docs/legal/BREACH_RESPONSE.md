@@ -8,8 +8,9 @@
 
 ## 0. Pre-incident checklist (complete BEFORE real users)
 
-- [ ] **Incident lead** named: [TBD — founder]
-- [ ] **DPO / privacy contact** named + reachable: [TBD] (`privacy@arcaevo.health` per `legal.ts` — reconcile the domain vs `arcaevo.com`)
+- [ ] **Controller of record:** **Codú Limited** (interim controller for the trial) — the entity that notifies the DPC and data subjects. Confirm CRO number on file.
+- [ ] **Incident lead** named: [TBD — founder, Niall Maher, for Codú Limited]
+- [ ] **DPO / privacy contact** named + reachable: [TBD] (`privacy@arcaevo.health` per `legal.ts` — reconcile against the `arcaevo.com` SES sending domain and the interim `niall@codu.ie`; pick one contact and align all docs — see `RECORDS_OF_PROCESSING.md`)
 - [ ] **DPC breach-notification portal** account/route confirmed: the Irish Data Protection Commission **Breach Notification Form** at forms.dataprotection.ie (verify current URL) — know how to reach it under time pressure
 - [ ] **Cyber / data-breach insurer** + 24/7 incident hotline: [TBD] (strongly advised for a health-data controller — `LAUNCH_READINESS.md` §7 Q14)
 - [ ] **Solicitor** (data-protection) on call: [TBD]

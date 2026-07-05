@@ -3,6 +3,8 @@
 > **DRAFT — prepared for review by a Data Protection Officer / solicitor before reliance. Not legal advice.**
 >
 > First-draft register of every third party the code integrates or plans to, generated from `docs/MOCKED_APIS.md`, the CDK/infra decisions in `docs/BUILD_STATE.md`, and the vendor adapters under `apps/web/src/lib/vendors/`. The public-facing version is `apps/web/src/content/legal.ts` ("Sub-processors" doc) — **that page currently describes categories, not named vendors, and the contracts behind it do not yet exist.** This register is the internal source of truth to close that gap.
+>
+> **Controller (interim): Codú Limited** — DPAs for the trial are signed **by Codú Limited as controller**. When a dedicated entity is formed on monetisation, DPAs must be **novated/re-signed** to the new controller. `SES` (AWS) appears as an email-sending option (`infra/cdk/SES_SETUP.md`, EU `eu-west-1`); if used instead of / alongside Scaleway/Postmark, **AWS is a US-parented processor → an AWS DPA + SCCs are required** (add it to the register below).
 
 ## How to read this
 
@@ -53,7 +55,7 @@
 |---|---|
 | Data shared | Email address, name, transactional content (magic links/codes, receipts, reminders, closure confirmation) — **never health values / result numbers** by design |
 | Role | **Processor** |
-| Region | EU — candidates: **Scaleway TEM** (French processor, EU-resident) or **Postmark EU** (EU data region + DPA). **TBD — not chosen** |
+| Region | EU — candidates: **AWS SES** (`eu-west-1`; setup already scripted in `infra/cdk/SES_SETUP.md`, sending domain `arcaevo.com` — **US-parented → AWS DPA + SCCs required**), **Scaleway TEM** (French processor, EU-resident, adequacy — no transfer), or **Postmark EU** (EU data region + DPA, US parent → SCCs). **TBD — not chosen.** SES is the lowest-friction path given the existing CDK stack; Scaleway is the cleanest transfer posture. |
 | Live in code? | Adapter ready (`apps/web/src/lib/vendors/email.smtp.ts`, env-driven auth/TLS) — swapping in a real ESP is a config change; today only Mongo `outbox` + local MailHog |
 | Transfer basis | Prefer an EU-resident ESP (Scaleway = adequacy, no transfer). Postmark (US parent) → **SCCs** |
 | DPA status | ☐ **MUST SIGN before real users** (magic link is the only way in — health-adjacent PII crosses the ESP) |

@@ -3,6 +3,8 @@
 > **DRAFT — prepared for review by a Data Protection Officer / solicitor before reliance. Not legal advice.**
 >
 > First-draft retention schedule per data category, grounded in the erasure code (`apps/web/src/lib/erasure.ts`), the deletion flow (`/api/v1/account/delete`), and the models (`apps/web/src/lib/models.ts`). Retention **periods** for legally-mandated records (tax, clinical) are placeholders for the solicitor to fix. The deletion **mechanism** is real and coded.
+>
+> **Controller (interim): Codú Limited.** Statutory tax/VAT retention (row 2) attaches to **Codú Limited's** Revenue obligations for the trial; keep those records isolated from health data and confirm the period (typically ~6 years).
 
 ## Principles (already implemented)
 

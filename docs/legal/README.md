@@ -14,6 +14,9 @@
 | [DATA_RETENTION.md](./DATA_RETENTION.md) | Retention & minimisation schedule per data category | Draft — statutory periods TBD |
 | [BREACH_RESPONSE.md](./BREACH_RESPONSE.md) | Art. 33/34 personal-data breach runbook (72-hour DPC duty) | Draft — contacts TBD |
 | [ADMIN_AUTH_OPTIONS.md](./ADMIN_AUTH_OPTIONS.md) | Decision doc: replacing the shared-password admin | Recommendation (Option A now) |
+| [MEDICAL_DEVICE_POSITIONING.md](./MEDICAL_DEVICE_POSITIONING.md) | How to word/design the app to stay wellness, outside EU MDR/IVDR (claims, DO/DON'T table, risky-surface review, red lines, risk verdict) | Draft — best-estimate MDR risk **LOW** under current wellness framing |
+
+**Controller (interim): Codú Limited** — the founder's existing registered Irish company acts as the data controller for the early closed trial; a dedicated entity will be formed if the product monetises (at which point controller identity, DPAs and public privacy copy migrate). Companion readiness docs: [`../SOC2_READINESS.md`](../SOC2_READINESS.md), [`../PRELAUNCH_CHECKLIST.md`](../PRELAUNCH_CHECKLIST.md).
 
 Companion (existing) docs: [`../LAUNCH_READINESS.md`](../LAUNCH_READINESS.md) (the audit these draw on), [`../MOCKED_APIS.md`](../MOCKED_APIS.md), [`../BUILD_STATE.md`](../BUILD_STATE.md), [`../STRATEGY.md`](../STRATEGY.md).
 
@@ -27,7 +30,7 @@ The **GDPR architecture in the codebase is strong** for this stage — server-si
 
 ### The rest of the "before real users" shortlist (see DPIA §5)
 1. **Sign DPAs** with MongoDB Atlas, Vercel, the EU ESP, and PostHog (SCCs where the processor is US-parented).
-2. **Solicitor-review** the privacy policy / consent copy / terms / sub-processor page, and **confirm the controller entity** (Arcaevo Health Ltd, CRO number) + the **DPO decision**.
+2. **Solicitor-review** the privacy policy / consent copy / terms / sub-processor page, and **confirm the interim controller entity** (**Codú Limited**, CRO number) + the **DPO decision**. Note: the public privacy copy (`legal.ts`) still names "Arcaevo Health Ltd" — reconcile it to Codú Limited (or add an interim-controller notice) before real users.
 3. **Set `CRON_SECRET`, monitor the erasure cron**, and keep proof it ran; wire a **real EU ESP** for magic-link delivery.
 4. **Fill the breach-response contacts** (DPC portal, insurer, solicitor) and confirm **cyber-insurance**.
 5. **Paid tiers only:** a real IMC-registered clinician + clinical governance before any real blood result; extend erasure to lab copies + original upload files; DPAs with LGC/Stripe/phlebotomy/OCR.

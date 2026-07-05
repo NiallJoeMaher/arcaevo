@@ -143,10 +143,36 @@ export async function clearAdminSessionCookie(): Promise<void> {
   store.delete(ADMIN_COOKIE_NAME);
 }
 
-/** The current request's admin identity, or null when not signed in. */
+/**
+ * Synthetic admin identities that intentionally have no `admins` DB row:
+ * the env-based break-glass bootstrap owner and legacy pre-accounts cookies.
+ * These are validated purely by the HMAC signature (they can't be forged
+ * without SESSION_SECRET) and are exempt from the DB disabled/existence check.
+ */
+const SYNTHETIC_ADMIN_IDS = new Set(["bootstrap-owner", "legacy-owner"]);
+
+/**
+ * The current request's admin identity, or null when not signed in.
+ *
+ * For a real per-admin account the signed cookie is not enough — we also load
+ * the `admins` record and reject a session whose account is missing or
+ * `disabledAt` is set, so disabling an admin (offboarding a leaver / containing
+ * a compromised account) revokes their live 12h session immediately rather than
+ * leaving it valid until expiry. The account's current role is taken from the
+ * DB record, so a role downgrade also takes effect at once. Synthetic
+ * (break-glass / legacy) identities skip the lookup.
+ */
 export async function currentAdmin(): Promise<AdminSession | null> {
   const store = await cookies();
-  return readAdminSession(store.get(ADMIN_COOKIE_NAME)?.value);
+  const session = readAdminSession(store.get(ADMIN_COOKIE_NAME)?.value);
+  if (!session) return null;
+  if (SYNTHETIC_ADMIN_IDS.has(session.adminId)) return session;
+
+  const admins = await collections.admins();
+  const record = await admins.findOne({ _id: session.adminId });
+  if (!record || record.disabledAt) return null;
+  // Trust the live DB role over the (possibly stale) signed one.
+  return { ...session, role: record.role };
 }
 
 /** Is the current request an authenticated admin? (route handlers + pages) */

@@ -128,19 +128,50 @@ describe("requireAdminRole (role gate)", () => {
   });
 
   it("allows a permitted role (owner on a clinician|owner action)", async () => {
+    await createAdmin({ _id: "adm_owner", email: "o@a.local", password: "x", role: "owner" });
     cookieValue = createAdminSessionValue({ adminId: "adm_owner", role: "owner" });
     expect(await requireAdminRole("clinician", "owner")).toBeNull();
   });
 
   it("allows the clinician role on the clinician sign-off gate", async () => {
+    await createAdmin({ _id: "adm_clinician", email: "c@a.local", password: "x", role: "clinician" });
     cookieValue = createAdminSessionValue({ adminId: "adm_clinician", role: "clinician" });
     expect(await requireAdminRole("clinician", "owner")).toBeNull();
   });
 
   it("403s a disallowed role (ops on a clinician-only action)", async () => {
+    await createAdmin({ _id: "adm_ops", email: "ops@a.local", password: "x", role: "ops" });
     cookieValue = createAdminSessionValue({ adminId: "adm_ops", role: "ops" });
     const res = await requireAdminRole("clinician", "owner");
     expect(res?.status).toBe(403);
+  });
+
+  it("takes the live DB role over a stale signed one (downgrade takes effect at once)", async () => {
+    // Cookie was minted while owner; the account has since been downgraded to ops.
+    await createAdmin({ _id: "adm_dg", email: "dg@a.local", password: "x", role: "ops" });
+    cookieValue = createAdminSessionValue({ adminId: "adm_dg", role: "owner" });
+    const res = await requireAdminRole("clinician", "owner");
+    expect(res?.status).toBe(403);
+  });
+
+  it("revokes a disabled admin's live session immediately (offboarding / compromise)", async () => {
+    const a = await createAdmin({ _id: "adm_fired", email: "f@a.local", password: "x", role: "owner" });
+    cookieValue = createAdminSessionValue({ adminId: "adm_fired", role: "owner" });
+    // Session works while enabled…
+    expect(await requireAdminRole("clinician", "owner")).toBeNull();
+    // …and stops the instant the account is disabled, without waiting for expiry.
+    adminsStore.set(a._id, { ...a, disabledAt: new Date() });
+    expect((await requireAdminRole("clinician", "owner"))?.status).toBe(401);
+  });
+
+  it("revokes a session whose account no longer exists", async () => {
+    cookieValue = createAdminSessionValue({ adminId: "adm_ghost", role: "owner" });
+    expect((await requireAdminRole("clinician", "owner"))?.status).toBe(401);
+  });
+
+  it("keeps the synthetic bootstrap-owner session valid (env break-glass, no DB row)", async () => {
+    cookieValue = createAdminSessionValue({ adminId: "bootstrap-owner", role: "owner" });
+    expect(await requireAdminRole("clinician", "owner")).toBeNull();
   });
 });
 

@@ -76,13 +76,17 @@ import { createAdmin } from "@/lib/admin-auth";
 import {
   generateBackupCodes,
   generateTotpSecret,
+  readMfaEnrollToken,
   sealSecret,
   totpNow,
+  MFA_ENROLL_COOKIE_NAME,
   MFA_PENDING_COOKIE_NAME,
 } from "@/lib/admin-mfa";
 import { ADMIN_COOKIE_NAME, readAdminSession } from "@/lib/auth";
 import { POST as loginPOST } from "@/app/api/v1/admin/login/route";
 import { POST as loginMfaPOST } from "@/app/api/v1/admin/login/mfa/route";
+import { POST as enrollSetupPOST } from "@/app/api/v1/admin/mfa/enroll/setup/route";
+import { POST as enrollCompletePOST } from "@/app/api/v1/admin/mfa/enroll/complete/route";
 
 function jsonReq(url: string, body: unknown): Request {
   return new Request(`http://localhost${url}`, {
@@ -119,7 +123,7 @@ beforeEach(async () => {
 afterEach(() => vi.unstubAllEnvs());
 
 describe("two-step admin login", () => {
-  it("NO-MFA admin: one-step login issues the session immediately (default path)", async () => {
+  it("MANDATORY MFA: real account without MFA is forced to enrol, NOT given a session", async () => {
     await createAdmin({
       _id: "adm_plain",
       email: "plain@a.local",
@@ -136,12 +140,108 @@ describe("two-step admin login", () => {
     const body = await res.json();
 
     expect(res.status).toBe(200);
-    expect(body).toEqual({ ok: true, role: "ops" });
-    expect(body.mfaRequired).toBeUndefined();
-    // The admin session cookie is set right away — nothing changed for e2e.
+    expect(body).toEqual({ enrollMfaRequired: true });
+    // Crucially: NO admin session — only the scoped enrol cookie.
+    expect(cookieJar.get(ADMIN_COOKIE_NAME)).toBeUndefined();
+    const enroll = cookieJar.get(MFA_ENROLL_COOKIE_NAME);
+    expect(enroll).toBeTruthy();
+    // The enrol token resolves to the account but is NOT a valid admin session.
+    expect(readMfaEnrollToken(enroll)?.adminId).toBe("adm_plain");
+    expect(readAdminSession(enroll)).toBeNull();
+  });
+
+  it("MANDATORY MFA: enrol setup + complete seals MFA and only THEN issues the session", async () => {
+    await createAdmin({
+      _id: "adm_enrol",
+      email: "enrol@a.local",
+      password: "correct-horse-battery",
+      role: "owner",
+    });
+
+    // Step 1: password → enrol challenge (sets the enrol cookie).
+    await loginPOST(
+      jsonReq("/api/v1/admin/login", {
+        email: "enrol@a.local",
+        password: "correct-horse-battery",
+      })
+    );
+    expect(cookieJar.get(MFA_ENROLL_COOKIE_NAME)).toBeTruthy();
+    expect(cookieJar.get(ADMIN_COOKIE_NAME)).toBeUndefined();
+
+    // Step 2: enrol setup returns a fresh secret (authorised by the enrol cookie).
+    const setupRes = await enrollSetupPOST(
+      jsonReq("/api/v1/admin/mfa/enroll/setup", {})
+    );
+    expect(setupRes.status).toBe(200);
+    const { secret } = await setupRes.json();
+    expect(typeof secret).toBe("string");
+
+    // Step 3: a wrong code is rejected — still no session.
+    const badRes = await enrollCompletePOST(
+      jsonReq("/api/v1/admin/mfa/enroll/complete", { secret, code: "000000" })
+    );
+    expect(badRes.status).toBe(400);
+    expect(cookieJar.get(ADMIN_COOKIE_NAME)).toBeUndefined();
+
+    // Step 4: a valid TOTP seals MFA, issues the session, clears the enrol cookie.
+    const okRes = await enrollCompletePOST(
+      jsonReq("/api/v1/admin/mfa/enroll/complete", {
+        secret,
+        code: totpNow(secret),
+      })
+    );
+    const okBody = await okRes.json();
+    expect(okRes.status).toBe(200);
+    expect(okBody.ok).toBe(true);
+    expect(Array.isArray(okBody.backupCodes)).toBe(true);
     const session = readAdminSession(cookieJar.get(ADMIN_COOKIE_NAME));
-    expect(session?.adminId).toBe("adm_plain");
-    expect(cookieJar.get(MFA_PENDING_COOKIE_NAME)).toBeUndefined();
+    expect(session?.adminId).toBe("adm_enrol");
+    expect(cookieJar.get(MFA_ENROLL_COOKIE_NAME)).toBeUndefined();
+    // MFA is now persisted on the account.
+    expect(adminsStore.get("adm_enrol")?.mfa).toBeTruthy();
+  });
+
+  it("enrol setup/complete without the enrol cookie is rejected (no session leak)", async () => {
+    // No prior login → no enrol cookie.
+    const setupRes = await enrollSetupPOST(
+      jsonReq("/api/v1/admin/mfa/enroll/setup", {})
+    );
+    expect(setupRes.status).toBe(401);
+    const completeRes = await enrollCompletePOST(
+      jsonReq("/api/v1/admin/mfa/enroll/complete", {
+        secret: generateTotpSecret(),
+        code: "123456",
+      })
+    );
+    expect(completeRes.status).toBe(401);
+    expect(cookieJar.get(ADMIN_COOKIE_NAME)).toBeUndefined();
+  });
+
+  it("bootstrap password-only login still works by default (break-glass, exempt)", async () => {
+    vi.stubEnv("ADMIN_PASSWORD", "change-me-local");
+    // No admin matches the bootstrap email → synthetic bootstrap-owner, MFA-exempt.
+    const res = await loginPOST(
+      jsonReq("/api/v1/admin/login", { password: "change-me-local" })
+    );
+    const body = await res.json();
+    expect(res.status).toBe(200);
+    expect(body).toEqual({ ok: true, role: "owner" });
+    // Full session issued immediately — no enrol, no MFA (this is what e2e uses).
+    const session = readAdminSession(cookieJar.get(ADMIN_COOKIE_NAME));
+    expect(session?.adminId).toBe("bootstrap-owner");
+    expect(cookieJar.get(MFA_ENROLL_COOKIE_NAME)).toBeUndefined();
+  });
+
+  it("ADMIN_BOOTSTRAP_DISABLED rejects the password-only bootstrap login (A-1)", async () => {
+    vi.stubEnv("ADMIN_PASSWORD", "change-me-local");
+    vi.stubEnv("ADMIN_BOOTSTRAP_DISABLED", "true");
+    const res = await loginPOST(
+      jsonReq("/api/v1/admin/login", { password: "change-me-local" })
+    );
+    expect(res.status).toBe(401);
+    // Rejected entirely — no session, no enrol state.
+    expect(cookieJar.get(ADMIN_COOKIE_NAME)).toBeUndefined();
+    expect(cookieJar.get(MFA_ENROLL_COOKIE_NAME)).toBeUndefined();
   });
 
   it("MFA admin: step 1 challenges (no session), step 2 with a valid TOTP signs in", async () => {

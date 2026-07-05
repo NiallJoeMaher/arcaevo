@@ -5,20 +5,20 @@ import { useState } from "react";
 
 const MONO = "var(--font-mono)";
 
-export default function LoginForm() {
+export default function LoginForm({ basePath }: { basePath: string }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   // Second-factor step: shown only when step 1 returns { mfaRequired: true }.
-  // The default (no-MFA) path never enters this state — it redirects straight
-  // to /admin, exactly as before (keeps the e2e password login unchanged).
+  // The bootstrap password path (no MFA) redirects straight to the dashboard,
+  // exactly as before (keeps the e2e password login unchanged).
   const [mfaRequired, setMfaRequired] = useState(false);
   const [code, setCode] = useState("");
 
   function goToDashboard() {
-    router.push("/admin");
+    router.push(basePath);
     router.refresh();
   }
 
@@ -39,9 +39,18 @@ export default function LoginForm() {
         ),
       });
       if (res.ok) {
-        const data: { ok?: boolean; mfaRequired?: boolean } = await res
-          .json()
-          .catch(() => ({}));
+        const data: {
+          ok?: boolean;
+          mfaRequired?: boolean;
+          enrollMfaRequired?: boolean;
+        } = await res.json().catch(() => ({}));
+        if (data.enrollMfaRequired) {
+          // Password verified but this account has no MFA — enrolment is
+          // MANDATORY. No session yet; go set up two-factor auth.
+          router.push(`${basePath}/enroll-mfa`);
+          router.refresh();
+          return;
+        }
         if (data.mfaRequired) {
           // Password verified; a second factor is now required. No session yet.
           setMfaRequired(true);

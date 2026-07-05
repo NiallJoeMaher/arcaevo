@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { adminPath } from "@/lib/admin-path";
 import {
   CARD,
   DbDownNotice,
@@ -263,7 +264,7 @@ function Demand({ data }: { data: WaitlistDemandData }) {
           >
             Waitlist entries store the routing key only — never a full Eircode
             or address. Rejected checkout checks are logged separately on the{" "}
-            <a href="/admin/eligibility" style={{ color: "#1E5C45" }}>
+            <a href={adminPath("eligibility")} style={{ color: "#1E5C45" }}>
               Eligibility
             </a>{" "}
             view.

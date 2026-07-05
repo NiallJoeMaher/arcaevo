@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { isAdmin } from "@/lib/auth";
+import { currentAdminEnrollment, isAdmin } from "@/lib/auth";
+import { adminBasePath, adminPath } from "@/lib/admin-path";
 import LoginForm from "./LoginForm";
 
 export const metadata: Metadata = { title: "Sign in" };
@@ -11,7 +12,9 @@ const MONO = "var(--font-mono)";
 
 export default async function AdminLoginPage() {
   // Already signed in ⇒ straight to the dashboard.
-  if (await isAdmin()) redirect("/admin");
+  if (await isAdmin()) redirect(adminBasePath());
+  // Mid-enrolment (passed password, MFA not yet set up) ⇒ resume enrolment.
+  if (await currentAdminEnrollment()) redirect(adminPath("enroll-mfa"));
 
   return (
     <div
@@ -79,7 +82,7 @@ export default async function AdminLoginPage() {
           >
             Sign in to continue
           </h1>
-          <LoginForm />
+          <LoginForm basePath={adminBasePath()} />
         </div>
         <Link
           href="/"

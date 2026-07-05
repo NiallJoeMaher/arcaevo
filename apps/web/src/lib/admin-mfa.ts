@@ -398,6 +398,123 @@ export function readMfaPendingToken(
 }
 
 // ---------------------------------------------------------------------------
+// mfa-ENROLL step token (mandatory enrolment — NOT an admin session).
+//
+// Issued after a REAL admin passes the password step but has NO MFA yet: it is
+// a scoped "must enrol MFA" state that lets them reach ONLY the enrolment flow
+// (setup + complete), never any data route. Like the pending token it carries
+// only {adminId, exp, purpose} and no role, so readAdminSession() rejects it and
+// it can never stand in for a session. Slightly longer TTL than the login-time
+// pending token — long enough to install an authenticator app and enrol.
+// ---------------------------------------------------------------------------
+
+export const MFA_ENROLL_COOKIE_NAME = "arcaevo_admin_mfa_enroll";
+/** Enrolment window: 15 minutes (install an app, scan, confirm a code). */
+export const MFA_ENROLL_TTL_MS = 15 * 60 * 1000;
+
+interface MfaEnrollPayload {
+  adminId: string;
+  exp: number;
+  purpose: "mfa_enroll";
+}
+
+/**
+ * Mint a signed mfa-enroll token. Carries NO role — it authorises the enrolment
+ * flow only and can never be mistaken for an admin session.
+ */
+export function createMfaEnrollToken(
+  adminId: string,
+  now: Date = new Date()
+): string {
+  const body: MfaEnrollPayload = {
+    adminId,
+    exp: now.getTime() + MFA_ENROLL_TTL_MS,
+    purpose: "mfa_enroll",
+  };
+  const payload = Buffer.from(JSON.stringify(body)).toString("base64url");
+  return `${payload}.${pendingHmac(payload)}`;
+}
+
+/**
+ * Verify + decode an mfa-enroll token. Returns the adminId, or null when the
+ * signature is bad, the shape is wrong, the purpose is not mfa_enroll, or it
+ * has expired.
+ */
+export function readMfaEnrollToken(
+  value: string | undefined,
+  now: Date = new Date()
+): { adminId: string } | null {
+  if (!value) return null;
+  const dot = value.lastIndexOf(".");
+  if (dot <= 0) return null;
+  const payload = value.slice(0, dot);
+  const sig = value.slice(dot + 1);
+  const expected = pendingHmac(payload);
+  const sb = Buffer.from(sig);
+  const eb = Buffer.from(expected);
+  if (sb.length !== eb.length || !timingSafeEqual(sb, eb)) return null;
+  try {
+    const parsed = JSON.parse(
+      Buffer.from(payload, "base64url").toString()
+    ) as Partial<MfaEnrollPayload>;
+    if (parsed.purpose !== "mfa_enroll") return null;
+    if (typeof parsed.adminId !== "string" || !parsed.adminId) return null;
+    if (typeof parsed.exp !== "number" || parsed.exp <= now.getTime()) return null;
+    return { adminId: parsed.adminId };
+  } catch {
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Build a fresh MFA config from a candidate secret + a proving code. PURE: it
+// validates the base32 secret, verifies the TOTP, then seals the secret and
+// mints backup codes — but does NOT touch the DB. Shared by /mfa/enable
+// (self-service) and /mfa/enroll/complete (mandatory enrolment) so the enrol
+// logic lives in exactly one place.
+// ---------------------------------------------------------------------------
+
+export type BuildMfaResult =
+  | {
+      ok: true;
+      backupCodes: string[];
+      mfa: NonNullable<Admin["mfa"]>;
+    }
+  | { ok: false; error: "bad_secret" | "bad_code"; message: string };
+
+export function buildMfaEnrollment(
+  secret: string,
+  code: string,
+  now: Date = new Date()
+): BuildMfaResult {
+  let secretBytes: Buffer;
+  try {
+    secretBytes = base32Decode(secret);
+  } catch {
+    return { ok: false, error: "bad_secret", message: "Invalid secret." };
+  }
+  if (secretBytes.length < 16) {
+    return { ok: false, error: "bad_secret", message: "Secret is too short." };
+  }
+  if (!verifyTotp(secret, code, now)) {
+    return {
+      ok: false,
+      error: "bad_code",
+      message: "That code didn't match — check your authenticator and retry.",
+    };
+  }
+  const { codes, hashes } = generateBackupCodes();
+  // sealSecret() throws in production if MFA_ENC_KEY is unset (fail-closed) — the
+  // caller surfaces that as a 500 rather than storing an unsealed secret.
+  const secretEnc = sealSecret(secret);
+  return {
+    ok: true,
+    backupCodes: codes,
+    mfa: { enabledAt: now, secretEnc, backupCodeHashes: hashes },
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Persistence helpers (the only writers of admin.mfa).
 // ---------------------------------------------------------------------------
 

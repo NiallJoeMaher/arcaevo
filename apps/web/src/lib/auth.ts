@@ -19,6 +19,10 @@ import { collections } from "@/lib/db";
 // forge an admin cookie). demoTokenEnabled() gates the demo bearer token.
 import { demoTokenEnabled, sessionSecret } from "@/lib/env";
 import {
+  MFA_ENROLL_COOKIE_NAME,
+  readMfaEnrollToken,
+} from "@/lib/admin-mfa";
+import {
   memberFromSessionToken,
   sessionTokenFromCookies,
 } from "@/lib/member-auth";
@@ -152,6 +156,16 @@ export async function clearAdminSessionCookie(): Promise<void> {
 const SYNTHETIC_ADMIN_IDS = new Set(["bootstrap-owner", "legacy-owner"]);
 
 /**
+ * Is this a synthetic (env break-glass / legacy) admin id with no `admins` DB
+ * row? Synthetic identities are the MFA-exempt bootstrap owner — they are NOT
+ * forced through mandatory MFA enrolment (that gate is for real per-admin
+ * accounts). The bootstrap path is instead gated by `ADMIN_BOOTSTRAP_DISABLED`.
+ */
+export function isSyntheticAdminId(adminId: string): boolean {
+  return SYNTHETIC_ADMIN_IDS.has(adminId);
+}
+
+/**
  * The current request's admin identity, or null when not signed in.
  *
  * For a real per-admin account the signed cookie is not enough — we also load
@@ -178,6 +192,19 @@ export async function currentAdmin(): Promise<AdminSession | null> {
 /** Is the current request an authenticated admin? (route handlers + pages) */
 export async function isAdmin(): Promise<boolean> {
   return (await currentAdmin()) !== null;
+}
+
+/**
+ * The current request's MANDATORY-MFA-ENROLMENT state, or null. This is the
+ * scoped "signed in but MFA not yet enrolled" step: a real admin passed the
+ * password step but has no MFA, so instead of a full session they hold a
+ * short-lived, signed mfa-enroll cookie. It grants access to the enrolment flow
+ * ONLY — it is NOT an admin session (currentAdmin() never reads it, and it
+ * carries no role, so it can reach no data route). Returns the adminId to enrol.
+ */
+export async function currentAdminEnrollment(): Promise<{ adminId: string } | null> {
+  const store = await cookies();
+  return readMfaEnrollToken(store.get(MFA_ENROLL_COOKIE_NAME)?.value);
 }
 
 function unauthorized(): Response {

@@ -10,13 +10,7 @@
  */
 import { currentAdmin, requireAdmin } from "@/lib/auth";
 import { findAdminById } from "@/lib/admin-auth";
-import {
-  base32Decode,
-  enableAdminMfa,
-  generateBackupCodes,
-  sealSecret,
-  verifyTotp,
-} from "@/lib/admin-mfa";
+import { buildMfaEnrollment, enableAdminMfa } from "@/lib/admin-mfa";
 import { logAdminAccess } from "@/lib/admin-audit";
 import { parseJsonBody } from "@/lib/api";
 import { clientIp } from "@/lib/rate-limit";
@@ -43,42 +37,17 @@ export async function POST(req: Request) {
   if (!parsed.ok) return parsed.response;
   const { secret, code } = parsed.data;
 
-  // Reject a malformed / too-short secret before trusting it.
-  let secretBytes: Buffer;
-  try {
-    secretBytes = base32Decode(secret);
-  } catch {
+  // Validate the secret + prove the authenticator (verify the code), then seal
+  // the secret and mint backup codes. Shared with the mandatory-enrolment route.
+  const built = buildMfaEnrollment(secret, code);
+  if (!built.ok) {
     return Response.json(
-      { error: "bad_secret", message: "Invalid secret." },
-      { status: 400 }
-    );
-  }
-  if (secretBytes.length < 16) {
-    return Response.json(
-      { error: "bad_secret", message: "Secret is too short." },
+      { error: built.error, message: built.message },
       { status: 400 }
     );
   }
 
-  if (!verifyTotp(secret, code)) {
-    return Response.json(
-      {
-        error: "bad_code",
-        message: "That code didn't match — check your authenticator and retry.",
-      },
-      { status: 400 }
-    );
-  }
-
-  const { codes, hashes } = generateBackupCodes();
-  // sealSecret() throws in production if MFA_ENC_KEY is unset (fail-closed) —
-  // that surfaces as a 500 rather than storing an unsealed/weakly-sealed secret.
-  const secretEnc = sealSecret(secret);
-  await enableAdminMfa(me.adminId, {
-    enabledAt: new Date(),
-    secretEnc,
-    backupCodeHashes: hashes,
-  });
+  await enableAdminMfa(me.adminId, built.mfa);
 
   logAdminAccess({
     action: "admin.mfa.enable",
@@ -89,5 +58,5 @@ export async function POST(req: Request) {
 
   // Backup codes are returned exactly once — the client must show + let the
   // admin save them now.
-  return Response.json({ ok: true, backupCodes: codes });
+  return Response.json({ ok: true, backupCodes: built.backupCodes });
 }

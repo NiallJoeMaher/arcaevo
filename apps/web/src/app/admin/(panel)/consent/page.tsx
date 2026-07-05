@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { CSSProperties } from "react";
+import { adminPath } from "@/lib/admin-path";
 import { ConsentPurpose } from "@/lib/models";
 import {
   CARD,
@@ -140,7 +141,7 @@ function Audit({
         style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}
       >
         <Link
-          href="/admin/consent"
+          href={adminPath("consent")}
           style={purpose === null ? FILTER_ACTIVE : FILTER_IDLE}
         >
           All {data.totalDecisions.toLocaleString("en-IE")}
@@ -148,7 +149,7 @@ function Audit({
         {ConsentPurpose.options.map((p) => (
           <Link
             key={p}
-            href={`/admin/consent?purpose=${p}`}
+            href={`${adminPath("consent")}?purpose=${p}`}
             style={purpose === p ? FILTER_ACTIVE : FILTER_IDLE}
           >
             {purposeLabel(p)} {data.countsByPurpose[p]}

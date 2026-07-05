@@ -91,6 +91,7 @@ vi.mock("@/lib/db", () => ({
     shareLinks: async () => col("shareLinks"),
     biomarkerReadings: async () => col("biomarkerReadings"),
     biomarkerRules: async () => col("biomarkerRules"),
+    testOrders: async () => col("testOrders"),
     sessions: async () => col("sessions"),
   },
 }));
@@ -148,6 +149,11 @@ describe("GET /api/v1/share/[token] — W-1 consent enforcement", () => {
     expect(body.member.name).toBe("Aoife Byrne");
     expect(body.rows).toHaveLength(1);
     expect(body.rows[0].current.value).toBe(34);
+    // HONESTY (GAP_REVIEW_2 #2): no registered clinician onboarded ⇒ no named
+    // reviewer/IMC is presented, and the GP-facing disclaimer is always sent.
+    expect(body.reviewer).toBeNull();
+    expect(body.disclaimer).toContain("not a diagnosis");
+    expect(JSON.stringify(body)).not.toContain("412887");
   });
 
   it("refuses (410) when the owning member is processingSuspended", async () => {

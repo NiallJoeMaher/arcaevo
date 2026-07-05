@@ -6,15 +6,19 @@ import PrintActions from "./PrintActions";
 /**
  * G2 · WHAT THE GP SEES — arcaevo.com/s/… (design §15).
  *
- * Read-only, no account needed, IMC number visible — everything a GP needs
- * to trust it in a 10-minute consult. Deliberately NOT wrapped in SiteNav /
- * SiteFooter: this is a clinical document surface, not a marketing page.
- * The PDF is one tap away — generated fresh from this live page via the
- * print stylesheet. Revoked/expired links get the designed 410 state.
+ * Read-only, no account needed — everything a GP needs to read it in context in
+ * a 10-minute consult. Deliberately NOT wrapped in SiteNav / SiteFooter: this is
+ * a document surface, not a marketing page. The PDF is one tap away — generated
+ * fresh from this live page via the print stylesheet. Revoked/expired links get
+ * the designed 410 state.
+ *
+ * HONESTY (GAP_REVIEW_2 #2): presented as an AUTOMATED wellness summary with a
+ * visible disclaimer. A named reviewer + IMC appears ONLY when a real registered
+ * clinician has signed a panel (data-driven) — never a fabricated persona.
  */
 
 export const metadata: Metadata = {
-  title: "Clinician summary",
+  title: "Wellness summary",
   robots: { index: false },
 };
 
@@ -35,7 +39,10 @@ interface ShareData {
   member: { name: string };
   sharedAt: string;
   expiresAt: string;
-  reviewedBy: string;
+  /** Named reviewer + IMC ONLY when a real registered clinician has signed;
+   *  null until one is onboarded (then the automated-summary framing shows). */
+  reviewer: { name: string; imcNumber: string } | null;
+  disclaimer: string;
   labNote: string;
   rows: ShareRow[];
 }
@@ -134,9 +141,23 @@ export default async function SharePage({
               SHARED {shortDate(data.sharedAt)} · EXPIRES {shortDate(data.expiresAt)}
             </span>
           </div>
-          <p className="mb-[18px] text-[12px] text-caption">
-            {data.labNote} · reviewed by {data.reviewedBy}
+          <p className="mb-2 text-[12px] text-caption">
+            {data.labNote}
+            {data.reviewer
+              ? ` · reviewed by ${data.reviewer.name}, IMC ${data.reviewer.imcNumber}`
+              : " · not reviewed by a named clinician"}
           </p>
+          <p className="mb-[6px] rounded-[8px] bg-bone-white px-3 py-2 text-[11.5px] leading-[1.55] text-muted">
+            {data.disclaimer}
+          </p>
+          {!data.reviewer && (
+            <p className="mb-[18px] text-[11px] leading-[1.55] text-caption">
+              On Arcaevo&rsquo;s blood-testing tiers, a registered clinician
+              reviews results once one is onboarded. This summary has not been
+              reviewed by a named clinician.
+            </p>
+          )}
+          {data.reviewer && <div className="mb-[18px]" />}
 
           <div
             className="mb-[6px] grid grid-cols-[1.4fr_1fr_1fr_0.9fr] gap-2 rounded-[8px] bg-bone-white px-3 py-2 text-[12px] font-bold"

@@ -39,14 +39,12 @@ const SAMPLES: { [K in EmailTemplateId]: EmailTemplates[K] } = {
     trackingUrl: "https://track.anpost.ie/CE447188203IE",
   },
   e6_sample_received: {
-    clinicianName: "Dr. Nolan",
     journeyUrl: "https://arcaevo.com/account",
   },
   e7_results_ready: {
     firstName: "Aoife",
     panelMonthLabel: "July",
     previousMonthLabel: "January",
-    clinicianName: "Dr. Nolan",
     resultsUrl: "https://arcaevo.com/account",
   },
   e8_renewal: {
@@ -127,11 +125,27 @@ describe("E1/E2 carry the prefetch-safe sign-in code", () => {
   );
 });
 
-describe("E7 results ready — NEVER contains values", () => {
-  it("renders the invitation, not the results", () => {
+describe("E6 sample received — HONEST framing, no fabricated clinician", () => {
+  it("frames a wellness summary and names no fictional reviewer / IMC", () => {
+    const { html } = renderEmail("e6_sample_received", SAMPLES.e6_sample_received);
+    expect(html).toContain("wellness summary");
+    expect(html).toContain("registered clinician reviews results on our blood-testing tiers once one is onboarded");
+    // GAP_REVIEW_2 #2: no "Dr. S. Nolan" / IMC held out as a real reviewer.
+    expect(html).not.toContain("Dr.");
+    expect(html).not.toContain("412887");
+  });
+});
+
+describe("E7 results ready — NEVER contains values, HONEST framing", () => {
+  it("renders the invitation, not the results, and claims no fabricated clinician", () => {
     const { subject, html } = renderEmail("e7_results_ready", SAMPLES.e7_results_ready);
     expect(subject).toBe("Your results are ready, Aoife");
-    expect(html).toContain("Reviewed, signed off, and waiting for you.");
+    expect(html).toContain("Your wellness summary is ready and waiting for you.");
+    expect(html).toContain("automated wellness summary");
+    expect(html).toContain("not a diagnosis");
+    // HONESTY (GAP_REVIEW_2 #2): no fabricated named clinician / IMC in the email.
+    expect(html).not.toContain("Dr.");
+    expect(html).not.toContain("412887");
     expect(html).toContain("We never include health values in email");
 
     // No biomarker names, units or numeric values anywhere in the body.

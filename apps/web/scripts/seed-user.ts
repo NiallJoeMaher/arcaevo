@@ -382,8 +382,9 @@ async function seedUser() {
   await cols.readings.insertMany(readings);
 
   // Clinician notes (Phase 22): every fully-reviewed panel carries a short,
-  // wellness-framed note from the MOCK reviewer persona (Dr. S. Nolan,
-  // IMC 412887 — docs/MOCKED_APIS.md §15), read the day after results landed.
+  // wellness-framed note. HONESTY (GAP_REVIEW_2 #2): no registered clinician is
+  // onboarded yet, so composeClinicianNote is called WITHOUT a `clinician` —
+  // these are AUTOMATED wellness summaries with NO fabricated name/IMC.
   let clinicianNoteCount = 0;
   for (const order of orders) {
     const panel = readings.filter((r) => r.orderId === order._id);
@@ -449,7 +450,7 @@ async function seedUser() {
   console.log(`  consents:    3 granted (research ON) · version ${CONSENT_VERSION}`);
   console.log(`  orders:      ${orders.length} (results_ready ×2 + shipped recheck)`);
   console.log(`  readings:    ${readings.length} (${Object.keys(SELF_REPORTED).length} self-reported hollow-gold + 2 lab draws)`);
-  console.log(`  notes:       ${clinicianNoteCount} reviewed panels signed by Dr. S. Nolan, IMC 412887 (MOCK persona)`);
+  console.log(`  notes:       ${clinicianNoteCount} reviewed panels, automated wellness summaries (no clinician onboarded — no name/IMC)`);
   console.log(`  wearables:   ${wearables.length} (90 days × 4 types)`);
   console.log(`  share link:  /s/${share.token} (active, 1 open logged)`);
   console.log(`  referral:    ${referral._id}`);

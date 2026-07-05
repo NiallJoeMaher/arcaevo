@@ -13,6 +13,23 @@
 <dict>
 	<key>ARCAEVO_API_BASE_URL</key>
 	<string>$(ARCAEVO_API_BASE_URL)</string>
+	<!-- Crash/error observability DSN (Sentry). Empty by default → Sentry stays
+	     OFF. Supply via the SENTRY_DSN build setting per config to enable. -->
+	<key>SENTRY_DSN</key>
+	<string>$(SENTRY_DSN)</string>
+	<!-- Background HealthKit refresh: BGAppRefreshTask identifier + the
+	     background modes it needs (fetch for app-refresh, processing for longer
+	     work). Paired with HKObserverQuery/enableBackgroundDelivery so the
+	     morning readiness snapshot lands without the app being opened. -->
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>co.arcaevo.app.health.refresh</string>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>processing</string>
+	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

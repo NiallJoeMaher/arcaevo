@@ -11,6 +11,10 @@ import HealthKit
 final class HealthKitProvider: HealthDataProviding {
     private let store = HKHealthStore()
 
+    /// Retained observer queries — HealthKit stops delivering the moment these
+    /// are released, so they must outlive `enableBackgroundDelivery`.
+    private var observerQueries: [HKObserverQuery] = []
+
     /// The MAIN read set — everything the primer screen enumerates, and
     /// nothing else. No cycle types here, ever.
     private var readTypes: Set<HKObjectType> {
@@ -293,6 +297,50 @@ final class HealthKitProvider: HealthDataProviding {
         case .elliptical: return "Elliptical"
         case .coreTraining: return "Core"
         default: return "Workout"
+        }
+    }
+
+    // MARK: - Background delivery (HKObserverQuery + enableBackgroundDelivery)
+    //
+    // The daily hook can't wait for an app open: overnight HRV / resting HR /
+    // sleep land while the phone is on the charger. We register an observer for
+    // each key type and ask HealthKit to wake us (frequency .hourly — the
+    // finest allowed for these types) so the readiness/energy snapshot is fresh
+    // by the time the member glances at a widget or complication (ALGORITHM
+    // §1/§4: "readiness locked at wake"). Real device only — see the mock.
+
+    var supportsBackgroundDelivery: Bool { HKHealthStore.isHealthDataAvailable() }
+
+    /// The types worth waking for — the overnight acute drivers of the score.
+    private var backgroundTypes: [HKSampleType] {
+        [
+            HKQuantityType(.heartRateVariabilitySDNN),
+            HKQuantityType(.restingHeartRate),
+            HKCategoryType(.sleepAnalysis),
+        ]
+    }
+
+    func enableBackgroundDelivery(onUpdate: @escaping @Sendable () async -> Void) async {
+        guard HKHealthStore.isHealthDataAvailable() else { return }
+        guard observerQueries.isEmpty else { return } // idempotent
+
+        for type in backgroundTypes {
+            let query = HKObserverQuery(sampleType: type, predicate: nil) { _, completionHandler, _ in
+                // New overnight data (or an initial delivery). Recompute, then
+                // ALWAYS tell HealthKit we're done so background wake-ups keep
+                // being delivered — even if the refresh threw or was skipped.
+                Task {
+                    await onUpdate()
+                    completionHandler()
+                }
+            }
+            store.execute(query)
+            observerQueries.append(query)
+
+            // Ask iOS to wake us in the background when this type gets new data.
+            // Failure here (e.g. entitlement missing) is non-fatal: the observer
+            // still fires while the app is foregrounded.
+            store.enableBackgroundDelivery(for: type, frequency: .hourly) { _, _ in }
         }
     }
 

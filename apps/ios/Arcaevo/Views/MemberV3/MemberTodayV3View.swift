@@ -36,6 +36,13 @@ struct MemberTodayV3View: View {
         .task {
             if model.user == nil { await model.loadAll() }
         }
+        // The dashboard readiness card is a first-score surface: once it shows a
+        // real number, cancel the one-time first-reading activation nudge.
+        .task(id: model.readinessResult?.state.showsScore) {
+            if model.readinessResult?.state.showsScore == true {
+                appState.markFirstScoreViewed()
+            }
+        }
     }
 
     // MARK: Header — "GOOD MORNING, AOIFE" · "WED 2 JUL" · ✳ chat · ◍ account

@@ -13,6 +13,15 @@ settings:
     CURRENT_PROJECT_VERSION: "1"
     MARKETING_VERSION: "0.1.0"
 
+# Swift Package dependencies. Sentry (crash + error observability) is pinned to
+# a recent 8.x. It is only ever INITIALISED when a SENTRY_DSN is configured
+# (see Telemetry.swift + the per-config SENTRY_DSN build setting) — the package
+# links, but does nothing without a DSN.
+packages:
+  Sentry:
+    url: https://github.com/getsentry/sentry-cocoa
+    from: "8.40.0"
+
 targets:
   # ---------------------------------------------------------------
   # iOS app
@@ -43,6 +52,9 @@ targets:
       # app-extension products auto-embed into the host app's "Embed
       # Foundation Extensions" copy phase.
       - target: ArcaevoWidgets
+      # Crash + error observability (privacy-first; DSN-gated, OFF without one).
+      - package: Sentry
+        product: Sentry
     entitlements:
       path: Arcaevo/Arcaevo.entitlements
       properties:
@@ -70,9 +82,14 @@ targets:
         Debug:
           INFOPLIST_FILE: Arcaevo/Info-Debug.plist
           ARCAEVO_API_BASE_URL: http://localhost:3000/api/v1
+          # Empty by default → Sentry stays OFF. Set per-developer/CI to enable.
+          SENTRY_DSN: ""
         Release:
           INFOPLIST_FILE: Arcaevo/Info-Release.plist
           ARCAEVO_API_BASE_URL: https://arcaevo.com/api/v1
+          # Empty by default → Sentry stays OFF. Supply the production DSN here
+          # (or via an xcconfig / CI secret) to turn on crash reporting.
+          SENTRY_DSN: ""
 
   # ---------------------------------------------------------------
   # watchOS companion app (single-target watchOS app, watchOS 10+)

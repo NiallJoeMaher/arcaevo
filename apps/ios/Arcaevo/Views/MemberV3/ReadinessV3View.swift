@@ -11,6 +11,7 @@ import SwiftUI
 struct ReadinessV3View: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(AppModel.self) private var model
+    @Environment(AppState.self) private var appState
 
     init() {}
 
@@ -45,6 +46,9 @@ struct ReadinessV3View: View {
         }
         .toolbar(.hidden, for: .navigationBar)
         .task { if model.readinessResult == nil { await model.loadAll() } }
+        // Opening the readiness surface counts as viewing the first score —
+        // cancels the one-time first-reading activation nudge.
+        .onAppear { appState.markFirstScoreViewed() }
     }
 
     // MARK: Score ring + decision

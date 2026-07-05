@@ -162,6 +162,10 @@ final class AppState {
     var eircodeGate: EircodeGateState = .unchecked { didSet { save() } }
     var notificationPrefs = NotificationPrefs() { didSet { save() } }
     var researchConsent = false { didSet { save() } }
+    /// First-run activation: true once the member has opened their readiness
+    /// surface at least once. Persisted — drives the one-time "unlock your first
+    /// reading" nudge (scheduled while false, cancelled on view).
+    var hasViewedFirstScore = false { didSet { save() } }
     var experiment: ActiveExperiment? { didSet { save() } }
     var uploadConfirm: UploadConfirmState? { didSet { save() } }
     var waitlistPosition: Int?
@@ -195,6 +199,17 @@ final class AppState {
     /// Onboarding done → free tier, unless a plan is already active.
     func completeOnboarding() {
         phase = plan.map(AppPhase.member) ?? .freeTier
+    }
+
+    // MARK: - First-run activation
+
+    /// Marks the readiness surface as viewed and cancels the one-time
+    /// activation nudge. Idempotent — safe to call from every score-surface
+    /// appearance.
+    func markFirstScoreViewed() {
+        guard !hasViewedFirstScore else { return }
+        hasViewedFirstScore = true
+        FirstReadingNudge.cancel()
     }
 
     // MARK: - Auth (email + magic link ONLY)
@@ -488,6 +503,7 @@ final class AppState {
         var eircodeGate: EircodeGateState
         var notificationPrefs: NotificationPrefs
         var researchConsent: Bool
+        var hasViewedFirstScore: Bool?
         var experiment: ActiveExperiment?
     }
 
@@ -503,6 +519,7 @@ final class AppState {
             eircodeGate: eircodeGate,
             notificationPrefs: notificationPrefs,
             researchConsent: researchConsent,
+            hasViewedFirstScore: hasViewedFirstScore,
             experiment: experiment
         )
         if let data = try? JSONEncoder().encode(snapshot) {
@@ -521,6 +538,7 @@ final class AppState {
         eircodeGate = snapshot.eircodeGate
         notificationPrefs = snapshot.notificationPrefs
         researchConsent = snapshot.researchConsent
+        hasViewedFirstScore = snapshot.hasViewedFirstScore ?? false
         experiment = snapshot.experiment
         restoring = false
     }

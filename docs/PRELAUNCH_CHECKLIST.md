@@ -11,6 +11,22 @@
 
 ---
 
+## ✅ Completed in the 2026-07-05 engineering session (branch `post-launch-improvements`)
+
+These are **done and verified** (web 352 vitest + iOS 48 XCTests green; app + widgets + watch BUILD SUCCEEDED):
+- **AWS SES email deployed to the sandbox AWS account + proven end-to-end** — CDK stack live, `niall@codu.ie` verified, a real email sent through the SES SMTP creds; IAM keys written to a git-ignored `.env.local` (interim sender = `niall@codu.ie`; production path = a `mail.arcaevo.com` subdomain, ready in CDK). *Remaining founder step: leave the SES sandbox (§4.3).*
+- **Full security audit — 0 Critical / 0 High**, no unauthenticated path to health data, all 52 routes guarded, no IDOR (`docs/SECURITY_AUDIT.md`). Fixed the one real GDPR gap (W-1: consent withdrawal now revokes GP share links + the public share page refuses when the owner is suspended) plus W-2/3/4.
+- **Admin hardening** — **mandatory TOTP 2FA** now enforced for real admin accounts, the `/admin` dashboard moved behind a secret `ADMIN_PATH_SLUG` (direct `/admin` → 404 in prod), and a `ADMIN_BOOTSTRAP_DISABLED` flag closes the bootstrap-owner MFA-bypass (audit A-1).
+- **Payment-gating bug fixed** — live checkout now redirects to real Stripe (was activating memberships without charging); `invoice.paid`/`invoice.payment_failed` made idempotent; DB indexes added; ingestion baseline/RCV correctness fixed.
+- **Fusion made real** on the insights API — a genuine wearable×blood co-movement computed from stored data (first real reader of the wearable signals).
+- **iOS background layer** — background HealthKit refresh (scores/widgets update without opening the app), DSN-gated privacy-scrubbed **Sentry (iOS)**, and a first-visit re-engagement nudge.
+- **Observability (web, dep-free)** — PostHog funnel events + a `logError` helper wired into previously-silent catches (off until the key/DSN is set); Sentry-web plan in `docs/OBSERVABILITY.md`.
+- **Credibility layer** — honest trust signals (RCV methodology, EU-GDPR-native, clinician-reviewed, founding cohort) replacing the (absent) testimonials.
+- **SEO** — canonicals, schema, `/compare/whoop` + `/compare/oura`, `lang=en-IE`, `llms.txt` (`docs/SEO_AUDIT.md`).
+- **Legal/positioning docs** — `MEDICAL_DEVICE_POSITIONING.md` (MDR risk: **LOW**), `SOC2_READINESS.md`, Codú Limited set as interim controller, `legal.ts` controller name + "Vitality Age" copy reconciled.
+
+---
+
 ## 1. Legal / entity / data protection (do first — gates real users)
 
 | # | Item | Owner | Status |
@@ -65,7 +81,7 @@
 | 4.1 | ⛔ **Pick the ESP.** Recommended for this trial: **AWS SES** (`eu-west-1`) — the CDK stack + walkthrough already exist (`infra/cdk/SES_SETUP.md`), sending domain **`arcaevo.com`**. Cleanest EU-transfer alternative: **Scaleway TEM**. Sign the DPA. | 👤 | ☐ |
 | 4.2 | ⛔ **Verify the sending domain** — add DKIM CNAMEs + custom MAIL FROM (`mail.arcaevo.com`) + SPF/DMARC to the `arcaevo.com` DNS zone; wait for SES "Verified". | 👤 | ☐ |
 | 4.3 | ⛔ **Leave the SES sandbox** — request production access (otherwise you can only send to pre-verified addresses). | 👤 | ☐ |
-| 4.4 | ⛔ **Wire it** — set `EMAIL_PROVIDER=smtp`, `SMTP_*`, `EMAIL_FROM` (a mailbox on the verified domain). Adapter supports auth+TLS; it's a config change. | 🛠 | ☐ |
+| 4.4 | **Wire it** — set `EMAIL_PROVIDER=smtp`, `SMTP_*`, `EMAIL_FROM`. **DONE in the sandbox** (SES SMTP creds in `.env.local`, real send verified `niall@codu.ie`). Re-do with the production domain creds when 4.1/4.2 land. Adapter supports auth+TLS. | 🛠 | ☑ |
 | 4.5 | Decide the **interim `From`/reply-to** — `no-reply@arcaevo.com` for sends, `privacy@arcaevo.com` and/or `niall@codu.ie` for contact. Align with §1.6. | 👤 | ☐ |
 | 4.6 | Confirm **IP rate-limiting** on magic-link request/verify/signin (already on — `rate-limit.ts`). | 🛠 | ☑ |
 
@@ -88,10 +104,10 @@
 
 | # | Item | Owner | Status |
 |---|---|---|---|
-| 6.1 | ⛔ **Error monitoring** — wire **Sentry** (app + API errors). Today nothing alerts you if the app breaks. | 🛠 | ☐ |
+| 6.1 | **Error monitoring** — **Sentry (iOS) wired** (DSN-gated, PII/health-scrubbed) — set `SENTRY_DSN`. **Web Sentry** needs `@sentry/nextjs` installed (repo forbade the install) — plan in `docs/OBSERVABILITY.md`; `logError` already writes structured errors to Vercel logs meanwhile. | 🛠 | ◐ |
 | 6.2 | ⛔ **Erasure-cron success alerting** — alert if the daily drain fails or doesn't run; retain the run record as DPC proof. | 🛠 | ☐ |
 | 6.3 | **Uptime / health-check monitoring** on the prod domain. | 🛠 | ☐ |
-| 6.4 | **Analytics decision** — PostHog EU on at launch (needs DPA + consent gating) or off. Health data must **never** reach analytics (invariant). | 👥 | ☐ |
+| 6.4 | **Analytics decision** — funnel events now **wired** (ids/counts/enums only, no health values — the invariant is coded); no-op until `NEXT_PUBLIC_POSTHOG_KEY` set. Decide EU-on (needs DPA §2.4 + consent gating) or off. | 👥 | ◐ |
 
 ---
 
@@ -101,9 +117,9 @@
 |---|---|---|---|
 | 7.1 | **Per-admin accounts + roles + `admin_access_log` + IP rate-limiting** — shipped (`ADMIN_AUTH_OPTIONS.md`). | 🛠 | ☑ |
 | 7.2 | ⛔ **First admin bootstrap** — deploy, log in with `ADMIN_PASSWORD`, create real per-admin accounts at `/admin/admins`, then consider disabling the bootstrap-password path. | 👤 | ☐ |
-| 7.3 | ⛔ **Enable MFA** for every admin at `/admin/security`; decide **mandatory-for-owners** policy + owner-driven **recovery** flow. | 👤 | ☐ |
+| 7.3 | **MFA now MANDATORY** for real admin accounts (enforced enrollment gate — shipped). Founder step: enroll each admin at `/admin/security`; decide the owner-driven **recovery** flow for a lost authenticator. | 👥 | ◐ |
 | 7.4 | **Fail-closed secrets** (`SESSION_SECRET`/`ADMIN_PASSWORD`/`MFA_ENC_KEY`/`CRON_SECRET`) — enforced in code; just set them (see 3.5). | 🛠 | ☑ |
-| 7.5 | ⛔ **Disable mock AI bloodwork extraction** for real users — `ALLOW_MOCK_EXTRACTION` unset in prod → **manual hand-entry only** (that path is real). Do not let fabricated numbers reach a real user. | 🛠 | ◐ |
+| 7.5 | **Mock AI bloodwork extraction is gated** — `ALLOW_MOCK_EXTRACTION` unset in prod ⇒ honest manual-entry-only (shipped). Just don't set the flag in prod (§3.6). | 🛠 | ☑ |
 | 7.6 | Two security reviews passed. Consider a **third-party pen test** before any wider (non-internal) launch. | 👤 | ⏭ |
 
 ---

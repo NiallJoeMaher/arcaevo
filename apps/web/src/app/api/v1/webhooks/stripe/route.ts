@@ -34,6 +34,7 @@ import { sendEmail } from "@/lib/emails";
 import { siteUrl } from "@/lib/api";
 import type { Membership, User } from "@/lib/models";
 import { mockSubscriptionId } from "@/lib/vendors/stripe.mock";
+import { creditReferralOnActivation } from "@/lib/referral";
 
 const WebhookPayload = z.object({
   type: z.enum([
@@ -153,6 +154,11 @@ export async function POST(req: Request) {
           },
         }
       );
+      // Referral reward — give-a-month / get-a-month. Idempotent: credits at
+      // most once even if this mock event is re-delivered (guarded in
+      // src/lib/referral.ts). Runs after activation so there's a live
+      // membership to extend.
+      await creditReferralOnActivation(data.memberId);
       // E4 — "You're a member — here's everything".
       if (member) await sendReceipt(member, membership, now);
       capture(
@@ -355,6 +361,10 @@ async function handleRealEvent(event: StripeEvent): Promise<Response> {
           { $set: { stripeCustomerId: customerId } }
         );
       }
+      // Referral reward — give-a-month / get-a-month. Idempotent (see
+      // src/lib/referral.ts): a re-delivered checkout.session.completed credits
+      // at most once. Runs after activation so the membership is live to extend.
+      await creditReferralOnActivation(membership.memberId);
       const member = await users.findOne({ _id: membership.memberId });
       if (member) await sendReceipt(member, membership, now);
       capture(

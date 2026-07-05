@@ -163,6 +163,26 @@ export const UserSchema = z.object({
    * dev/e2e, which uses the MOCK vendor). See src/lib/vendors/stripe.live.ts.
    */
   stripeCustomerId: z.string().nullable().optional(),
+  // --- Referral attribution ("give a month / get a month", design §16) ------
+  /**
+   * The referrer's userId, resolved from the `?ref=<code>` the member arrived
+   * on at signup. Null/absent when they joined without a valid referral code.
+   * Additive/optional so pre-referral users stay valid. Never leaked back to
+   * the referrer (GDPR posture — counts only, no referee identity). See
+   * src/lib/referral.ts.
+   */
+  referredBy: z.string().nullable().optional(),
+  /** The referral code (ReferralCode._id) the member joined with. */
+  referredByCode: z.string().nullable().optional(),
+  /** When the referral was attributed (signup time). */
+  referredAt: z.date().nullable().optional(),
+  /**
+   * HELD referrer reward: +1-month referral credits earned while this member
+   * had no active membership to extend yet. Consumed (applied to the
+   * membership renewalDate, then reset to 0) at their next PAID activation.
+   * See creditReferralOnActivation in src/lib/referral.ts.
+   */
+  referralCreditMonths: z.number().int().optional(),
 });
 export type User = z.infer<typeof UserSchema>;
 
@@ -450,6 +470,33 @@ export const ReferralCodeSchema = z.object({
   createdAt: z.date(),
 });
 export type ReferralCode = z.infer<typeof ReferralCodeSchema>;
+
+/** Lifecycle of one attributed referral. */
+export const ReferralStatus = z.enum(["pending", "credited", "rejected"]);
+export type ReferralStatus = z.infer<typeof ReferralStatus>;
+
+/**
+ * One attributed referral — created at the REFERRED member's signup when they
+ * arrive on a valid `?ref=<code>`. `_id` IS the referred member's userId, so
+ * Mongo's unique `_id` index guarantees a referred member can credit a referrer
+ * AT MOST ONCE (no repeat / loop). The reward ("give a month / get a month") is
+ * applied ONCE, idempotently, when the referred member's membership becomes
+ * genuinely PAID/active — the status then flips `pending` → `credited`. The
+ * referrer never learns the referred member's identity (GDPR — counts only).
+ */
+export const ReferralSchema = z.object({
+  _id: z.string(), // == referredUserId (one referral per referred member)
+  referrerUserId: z.string(),
+  referrerCode: z.string(),
+  referredUserId: z.string(),
+  status: ReferralStatus.default("pending"),
+  createdAt: z.date(),
+  /** Set when the reward is applied (status → credited). */
+  creditedAt: z.date().nullable().default(null),
+  /** Set when the referral is rejected instead of credited (anti-abuse). */
+  rejectedReason: z.string().nullable().default(null),
+});
+export type Referral = z.infer<typeof ReferralSchema>;
 
 export const ShareLinkAccessSchema = z.object({
   at: z.date(),
@@ -769,6 +816,12 @@ export const SignupInput = z.object({
   /** Optional — a magic link covers everyone (design §03 W1). */
   password: z.string().min(10).optional(),
   surface: ConsentSurface.default("web"),
+  /**
+   * Optional referral code carried from `/join?ref=<code>` (give-a-month /
+   * get-a-month). Attributed to a NEW account only; unknown/expired codes are
+   * ignored gracefully. Capped so a hostile client can't send a huge blob.
+   */
+  ref: z.string().max(64).optional(),
 });
 export type SignupInput = z.infer<typeof SignupInput>;
 
@@ -836,6 +889,10 @@ export const CheckoutInput = z.object({
   name: z.string().optional(),
   /** DOB is a lab requirement, collected at checkout step 2. */
   dob: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  /** Referral code, when a guest checks out straight from a `?ref=<code>` link
+   * without first creating an account on /join. Attributed to the inline guest
+   * account only; ignored for existing/signed-in members. */
+  ref: z.string().max(64).optional(),
 });
 
 export const GiftCreateInput = z.object({

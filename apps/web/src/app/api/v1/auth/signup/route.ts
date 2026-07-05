@@ -11,18 +11,20 @@
  */
 import { parseJsonBody, siteUrl } from "@/lib/api";
 import { sendEmail } from "@/lib/emails";
+import { logError } from "@/lib/log";
 import {
   createMemberUser,
   findUserByEmail,
   hashPassword,
   issueMagicLink,
 } from "@/lib/member-auth";
+import { recordAttribution } from "@/lib/referral";
 import { SignupInput } from "@/lib/models";
 
 export async function POST(req: Request) {
   const parsed = await parseJsonBody(req, SignupInput);
   if (!parsed.ok) return parsed.response;
-  const { email, password, surface } = parsed.data;
+  const { email, password, surface, ref } = parsed.data;
   void surface; // consent surface is recorded at the consent gate, not here
 
   const existing = await findUserByEmail(email);
@@ -40,7 +42,17 @@ export async function POST(req: Request) {
     }
   } else {
     const passwordHash = password ? await hashPassword(password) : null;
-    await createMemberUser({ email, passwordHash });
+    const user = await createMemberUser({ email, passwordHash });
+    // Referral attribution — NEW accounts only (never for an existing email, so
+    // the non-revealing response holds and self-referral by re-signup is out).
+    // Best-effort: a bad/unknown code is ignored and never blocks signup.
+    if (ref) {
+      try {
+        await recordAttribution({ referredUser: user, code: ref });
+      } catch (err) {
+        logError("signup.referral_attribution", err, { memberId: user._id });
+      }
+    }
     const issued = await issueMagicLink(email, "verify");
     if (!issued.throttled) {
       await sendEmail("e1_verify", email.toLowerCase(), {

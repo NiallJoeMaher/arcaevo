@@ -24,6 +24,7 @@ import { newId } from "@/lib/ids";
 import { checkEligibility } from "@/lib/eligibility";
 import { sendEmail } from "@/lib/emails";
 import { createMemberUser, issueMagicLink } from "@/lib/member-auth";
+import { recordAttribution } from "@/lib/referral";
 import {
   CADENCE_UPGRADE_EUR,
   CheckoutInput,
@@ -36,7 +37,7 @@ import { STRIPE_SKUS, skuForTier } from "@/lib/vendors/stripe-config";
 export async function POST(req: Request) {
   const parsed = await parseJsonBody(req, CheckoutInput);
   if (!parsed.ok) return parsed.response;
-  const { tier, cadenceUpgrade, eircode, email, name } = parsed.data;
+  const { tier, cadenceUpgrade, eircode, email, name, ref } = parsed.data;
 
   // --- step 1: eligibility (Essential/Performance only — Fusion never gated)
   if (tier !== "fusion") {
@@ -105,6 +106,16 @@ export async function POST(req: Request) {
       capture(AnalyticsEvent.SignupStarted, { source: "checkout" });
       member = await createMemberUser({ email, name });
       guestCreated = true;
+      // Referral attribution for a guest who checks out straight from a
+      // `?ref=<code>` link (never for an existing/signed-in member). Best-effort
+      // — a bad code is ignored and must not break checkout.
+      if (ref) {
+        try {
+          await recordAttribution({ referredUser: member, code: ref });
+        } catch (err) {
+          logError("checkout.referral_attribution", err, { memberId: member._id });
+        }
+      }
       capture(AnalyticsEvent.SignupCompleted, { source: "checkout" }, member._id);
       // Guest signup inline: the E1 verify email rides along with checkout.
       // A failing mailer must NOT kill checkout — log it and continue (the

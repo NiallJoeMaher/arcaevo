@@ -31,6 +31,8 @@ export interface ErasureCounts {
   sessions: number;
   shareLinks: number;
   referralCodes: number;
+  /** Attributed referrals where the member is the referred OR the referrer. */
+  referrals: number;
   giftCodes: number;
   supportTickets: number;
   waitlist: number;
@@ -59,6 +61,7 @@ export async function eraseUserData(
     sessions,
     shareLinks,
     referralCodes,
+    referrals,
     giftCodes,
     supportTickets,
     waitlist,
@@ -74,6 +77,7 @@ export async function eraseUserData(
     collections.sessions(),
     collections.shareLinks(),
     collections.referralCodes(),
+    collections.referrals(),
     collections.giftCodes(),
     collections.supportTickets(),
     collections.waitlist(),
@@ -85,6 +89,13 @@ export async function eraseUserData(
   const [giftPurchased, giftRedeemed] = await Promise.all([
     giftCodes.deleteMany({ purchaserEmail: lowerEmail }),
     giftCodes.deleteMany({ redeemedBy: userId }),
+  ]);
+
+  // Referrals where the member is the referred party OR the referrer — both
+  // link this member's id; delete both directions so no dangling link remains.
+  const [referralsReferred, referralsReferrer] = await Promise.all([
+    referrals.deleteMany({ referredUserId: userId }),
+    referrals.deleteMany({ referrerUserId: userId }),
   ]);
 
   const [
@@ -127,6 +138,7 @@ export async function eraseUserData(
     sessions: sessionsDel.deletedCount,
     shareLinks: sharesDel.deletedCount,
     referralCodes: referralsDel.deletedCount,
+    referrals: referralsReferred.deletedCount + referralsReferrer.deletedCount,
     giftCodes: giftPurchased.deletedCount + giftRedeemed.deletedCount,
     supportTickets: ticketsDel.deletedCount,
     waitlist: waitlistDel.deletedCount,

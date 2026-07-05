@@ -19,6 +19,7 @@ import type {
   WaitlistEntry,
   GiftCode,
   ReferralCode,
+  Referral,
   ShareLink,
   MagicLinkToken,
   Session,
@@ -122,6 +123,8 @@ export const collections = {
   waitlist: () => collection<WaitlistEntry>("waitlist"),
   giftCodes: () => collection<GiftCode>("gift_codes"),
   referralCodes: () => collection<ReferralCode>("referral_codes"),
+  /** Attributed referrals (one per referred member — see src/lib/referral.ts). */
+  referrals: () => collection<Referral>("referrals"),
   shareLinks: () => collection<ShareLink>("share_links"),
   magicLinkTokens: () => collection<MagicLinkToken>("magic_link_tokens"),
   sessions: () => collection<Session>("sessions"),

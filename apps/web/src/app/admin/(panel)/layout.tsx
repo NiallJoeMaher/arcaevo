@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { isAdmin } from "@/lib/auth";
+import { currentAdmin } from "@/lib/auth";
 import AdminSidebar from "./AdminSidebar";
 import { loadSidebarBadges } from "./data";
 
@@ -16,7 +16,10 @@ export const dynamic = "force-dynamic";
 export default async function AdminPanelLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  if (!(await isAdmin())) redirect("/admin/login");
+  // currentAdmin() also gives the live DB role, so the sidebar can show the
+  // owner-only tabs (Admins / Access log) to owners only.
+  const admin = await currentAdmin();
+  if (!admin) redirect("/admin/login");
 
   // Badge counts for the sidebar (review queue + open tickets). Null when
   // Mongo is unreachable — the sidebar simply hides the badges.
@@ -34,7 +37,7 @@ export default async function AdminPanelLayout({
         gridTemplateColumns: "236px 1fr",
       }}
     >
-      <AdminSidebar badges={badges} />
+      <AdminSidebar badges={badges} role={admin.role} />
       <main style={{ padding: 0, minWidth: 0 }}>{children}</main>
     </div>
   );

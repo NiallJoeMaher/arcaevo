@@ -145,6 +145,31 @@ export function DbDownNotice() {
   );
 }
 
+/** Rendered on an owner-only page when the current admin isn't an owner. */
+export function OwnerOnlyNotice() {
+  return (
+    <div style={{ ...CARD, padding: "20px 22px", borderLeft: "4px solid #B5483A" }}>
+      <div
+        style={{
+          fontFamily: MONO,
+          fontSize: 10,
+          letterSpacing: "0.08em",
+          color: "#B5483A",
+        }}
+      >
+        OWNER ONLY
+      </div>
+      <div style={{ fontSize: 14, fontWeight: 600, margin: "8px 0 4px" }}>
+        This area is restricted to owner accounts.
+      </div>
+      <div style={{ fontSize: 13.5, color: "#4A554D", lineHeight: 1.5 }}>
+        Admin-account management and the access log are visible only to owners.
+        Ask an owner if you need access.
+      </div>
+    </div>
+  );
+}
+
 /** Rendered when the database is reachable but has no data yet. */
 export function EmptyDbNotice() {
   return (

@@ -12,6 +12,7 @@ import { LAUNCH_ALLOWLIST } from "@/lib/eligibility";
 import {
   CADENCE_UPGRADE_EUR,
   CONSENT_VERSION,
+  type AdminRole,
   type BiomarkerReading,
   type BiomarkerRule,
   type Consent,
@@ -475,6 +476,89 @@ export async function loadConsentAudit(
       reconsentDue,
       currentVersion: CONSENT_VERSION,
     };
+  } catch {
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Admin accounts + access log (owner-only management views)
+// ---------------------------------------------------------------------------
+
+/** One row of the /admin/admins table — NEVER carries passwordHash. */
+export interface AdminAccountRow {
+  id: string;
+  email: string;
+  role: AdminRole;
+  name: string | null;
+  createdAt: Date;
+  disabledAt: Date | null;
+}
+
+/** All admin accounts (oldest first), secret-free. Null when Mongo is down. */
+export async function loadAdmins(): Promise<AdminAccountRow[] | null> {
+  try {
+    const admins = await withTimeout(
+      collections
+        .admins()
+        .then((c) => c.find().sort({ createdAt: 1 }).toArray())
+    );
+    return admins.map((a) => ({
+      id: a._id,
+      email: a.email,
+      role: a.role,
+      name: a.name ?? null,
+      createdAt: a.createdAt,
+      disabledAt: a.disabledAt ?? null,
+    }));
+  } catch {
+    return null;
+  }
+}
+
+/** One access-log row for the viewer — the member name is resolved for
+ * readability; there are no health values in the log. */
+export interface AccessLogRow {
+  id: string;
+  at: Date;
+  action: string;
+  adminId: string | null;
+  email: string | null;
+  role: AdminRole | null;
+  outcome: "success" | "failure";
+  targetMemberId: string | null;
+  targetMemberName: string | null;
+  ip: string | null;
+}
+
+/** Recent access-log rows, newest first (capped). Null when Mongo is down. */
+export async function loadAccessLog(
+  limit = 200
+): Promise<AccessLogRow[] | null> {
+  try {
+    const [rows, users] = await withTimeout(
+      Promise.all([
+        collections
+          .adminAccessLog()
+          .then((c) => c.find().sort({ at: -1 }).limit(limit).toArray()),
+        collections.users().then((c) => c.find().toArray()),
+      ])
+    );
+    const nameById = new Map(users.map((u) => [u._id, u.name]));
+    return rows.map((r) => ({
+      id: r._id,
+      at: r.at,
+      action: r.action,
+      adminId: r.adminId ?? null,
+      email: r.email ?? null,
+      role: r.role ?? null,
+      outcome: r.outcome,
+      targetMemberId: r.targetMemberId ?? null,
+      targetMemberName: r.targetMemberId
+        ? (nameById.get(r.targetMemberId) ?? r.targetMemberId)
+        : null,
+      ip: r.ip ?? null,
+    }));
   } catch {
     return null;
   }

@@ -683,6 +683,23 @@ export const AdminLoginInput = z.object({
   password: z.string().min(1),
 });
 
+/**
+ * Owner-only admin-management inputs (POST /api/v1/admin/admins …). The temp
+ * password reuses the member 10-char minimum (member-auth scrypt). `email` is
+ * lowercased by the route before use.
+ */
+export const AdminCreateInput = z.object({
+  email: z.string().email(),
+  role: AdminRole,
+  name: z.string().min(1).max(120).optional(),
+  password: z.string().min(10),
+});
+export type AdminCreateInput = z.infer<typeof AdminCreateInput>;
+
+/** Change an admin's role (owner-only; last-owner guard enforced in the route). */
+export const AdminRoleChangeInput = z.object({ role: AdminRole });
+export type AdminRoleChangeInput = z.infer<typeof AdminRoleChangeInput>;
+
 export const CreateSupportTicketInput = z.object({
   memberId: z.string().nullable().optional(),
   subject: z.string().min(1),

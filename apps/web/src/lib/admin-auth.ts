@@ -77,6 +77,77 @@ export async function resolveBootstrapOwner(): Promise<AdminIdentity> {
   return { adminId: "bootstrap-owner", role: "owner", email };
 }
 
+// ---------------------------------------------------------------------------
+// Owner-only management helpers (list / lookup / role / disable). These are the
+// only sanctioned readers/writers of the `admins` collection outside login, and
+// each is deliberately tiny so the route handlers stay declarative + testable.
+// ---------------------------------------------------------------------------
+
+/**
+ * The safe, secret-free projection of an admin for API responses + the
+ * management UI. NEVER includes `passwordHash` (or any other field the schema
+ * might grow) — the shape is built explicitly, so a new sensitive field can't
+ * leak by accident.
+ */
+export interface PublicAdmin {
+  id: string;
+  email: string;
+  role: AdminRole;
+  name: string | null;
+  createdAt: Date;
+  disabledAt: Date | null;
+}
+
+export function publicAdmin(admin: Admin): PublicAdmin {
+  return {
+    id: admin._id,
+    email: admin.email,
+    role: admin.role,
+    name: admin.name ?? null,
+    createdAt: admin.createdAt,
+    disabledAt: admin.disabledAt ?? null,
+  };
+}
+
+/** All admins, oldest first (management table order). */
+export async function listAdmins(): Promise<Admin[]> {
+  const admins = await collections.admins();
+  return admins.find().sort({ createdAt: 1 }).toArray();
+}
+
+export async function findAdminById(id: string): Promise<Admin | null> {
+  const admins = await collections.admins();
+  return admins.findOne({ _id: id });
+}
+
+/**
+ * How many owner accounts are still enabled. Drives the last-owner guard: the
+ * UI must never let the final owner disable/demote themselves into a lockout.
+ */
+export async function countEnabledOwners(): Promise<number> {
+  const admins = await collections.admins();
+  return admins.countDocuments({ role: "owner", disabledAt: null });
+}
+
+/** Set or clear `disabledAt` (disable = revoke the account's live session). */
+export async function setAdminDisabled(
+  id: string,
+  disabled: boolean,
+  now: Date = new Date()
+): Promise<void> {
+  const admins = await collections.admins();
+  await admins.updateOne(
+    { _id: id },
+    { $set: { disabledAt: disabled ? now : null } }
+  );
+}
+
+/** Change an admin's role (last-owner guard is enforced by the caller). */
+export async function setAdminRole(id: string, role: AdminRole): Promise<void> {
+  const admins = await collections.admins();
+  await admins.updateOne({ _id: id }, { $set: { role } });
+}
+
 /** Create an admin account (used by seed + any future admin-management UI). */
 export async function createAdmin(params: {
   _id?: string;

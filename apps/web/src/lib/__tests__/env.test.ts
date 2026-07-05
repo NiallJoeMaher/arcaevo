@@ -6,6 +6,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   assertRequiredSecrets,
+  bloodTiersEnabled,
   demoTokenEnabled,
   isProduction,
   sessionSecret,
@@ -68,6 +69,36 @@ describe("demoTokenEnabled()", () => {
     vi.stubEnv("NODE_ENV", "production");
     vi.stubEnv("ALLOW_DEMO_TOKEN", "true");
     expect(demoTokenEnabled()).toBe(true);
+  });
+});
+
+describe("bloodTiersEnabled()", () => {
+  it("is enabled ONLY when the value is exactly 'true'", () => {
+    vi.stubEnv("BLOOD_TIERS_ENABLED", "true");
+    expect(bloodTiersEnabled()).toBe(true);
+  });
+
+  it("is DISABLED when unset (fail-safe default, even outside production)", () => {
+    // Unlike the mock/demo gates, this is NOT auto-on in dev — it must be set
+    // explicitly, so prod defaults OFF and never sells an unfulfillable tier.
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("BLOOD_TIERS_ENABLED", "");
+    expect(bloodTiersEnabled()).toBe(false);
+  });
+
+  it("is DISABLED for any non-'true' value (1 / yes / TRUE)", () => {
+    for (const v of ["1", "yes", "TRUE", "on", "enabled"]) {
+      vi.stubEnv("BLOOD_TIERS_ENABLED", v);
+      expect(bloodTiersEnabled()).toBe(false);
+    }
+  });
+
+  it("stays OFF by default in production until explicitly turned on", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("BLOOD_TIERS_ENABLED", "");
+    expect(bloodTiersEnabled()).toBe(false);
+    vi.stubEnv("BLOOD_TIERS_ENABLED", "true");
+    expect(bloodTiersEnabled()).toBe(true);
   });
 });
 

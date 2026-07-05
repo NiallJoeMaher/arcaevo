@@ -22,6 +22,7 @@ import { parseJsonBody, siteUrl } from "@/lib/api";
 import { collections } from "@/lib/db";
 import { newId } from "@/lib/ids";
 import { checkEligibility } from "@/lib/eligibility";
+import { bloodTiersEnabled } from "@/lib/env";
 import { sendEmail } from "@/lib/emails";
 import { createMemberUser, issueMagicLink } from "@/lib/member-auth";
 import { recordAttribution } from "@/lib/referral";
@@ -38,6 +39,22 @@ export async function POST(req: Request) {
   const parsed = await parseJsonBody(req, CheckoutInput);
   if (!parsed.ok) return parsed.response;
   const { tier, cadenceUpgrade, eircode, email, name, ref } = parsed.data;
+
+  // --- step 0: blood-tier feature gate (the real, server-side enforcement) ---
+  // Essential/Performance are BLOOD tiers (kits/nurse/venous + clinician). When
+  // the flag is off (no lab partner / clinician live yet) they cannot be bought,
+  // even by a crafted request that skips the pricing-page UI. Fusion (watch +
+  // user-uploaded bloods) is always available.
+  if (tier !== "fusion" && !bloodTiersEnabled()) {
+    return Response.json(
+      {
+        error: "blood_tiers_unavailable",
+        message:
+          "Essential and Performance aren't available to buy yet — they open once our lab partner and clinician are live. Start Fusion (€119/yr) now, or join the waitlist.",
+      },
+      { status: 403 }
+    );
+  }
 
   // --- step 1: eligibility (Essential/Performance only — Fusion never gated)
   if (tier !== "fusion") {

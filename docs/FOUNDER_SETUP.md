@@ -16,6 +16,8 @@ Everything backend is built. To stand up a real **Dev** environment I need exact
 
 Stripe test keys are already in, so a sandbox card charge works on dev with zero extra credentials. Everything below the dev line is what turns dev into a **public production** launch.
 
+> **Blood tiers are OFF by default (a feature flag), so you can launch Fusion-only NOW.** The paid blood tiers — **Essential (€329)** and **Performance (€399)**, plus the kit/nurse/venous orders, gifting and clinician review — need a real lab/phlebotomy partner and a registered clinician you don't have yet. They're gated behind `BLOOD_TIERS_ENABLED` (fail-safe OFF): while unset, `/pricing` shows those two as **"Coming soon" + a waitlist link** (so the roadmap still sells), the checkout/order routes reject them server-side, and only **Fusion (€119)** is buyable. On **dev/pre-prod**, set `BLOOD_TIERS_ENABLED=true` **and** `NEXT_PUBLIC_BLOOD_TIERS_ENABLED=true` (in Vercel env, both scoped to that environment) to demo the full paid flow. In **production leave both UNSET** until the lab partner + clinician are onboarded — then flip both to `true` (no code change, no rebuild for the iOS app, which reads `GET /api/v1/config`).
+
 ---
 
 # PART A — What unblocks DEV (test on your own devices for ~a week)

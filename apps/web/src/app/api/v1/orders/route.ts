@@ -6,6 +6,7 @@
  */
 import { requireConsentedMember } from "@/lib/consent-guard";
 import { collections } from "@/lib/db";
+import { bloodTiersEnabled } from "@/lib/env";
 import { newId } from "@/lib/ids";
 import {
   ADDON_PRICE_EUR,
@@ -39,6 +40,22 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  // Blood-tier feature gate (server-side enforcement). EVERY test order here is
+  // a blood order — finger-prick kit (full/recheck) or in-home venous draw — so
+  // when blood tiers are off (no lab partner / clinician live) no order can be
+  // placed, add-on or included, regardless of the caller's UI. Fusion members
+  // simply have no tests to order.
+  if (!bloodTiersEnabled()) {
+    return Response.json(
+      {
+        error: "blood_tiers_unavailable",
+        message:
+          "Blood tests aren't available yet — they open once our lab partner and clinician are live.",
+      },
+      { status: 403 }
+    );
+  }
+
   // Ordering a test also needs clinician_review consent (a clinician signs off).
   const auth = await requireConsentedMember(req, { clinicianReview: true });
   if (auth.denied) return auth.denied;

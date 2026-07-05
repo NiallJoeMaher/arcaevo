@@ -10,6 +10,7 @@
 import { randomBytes } from "node:crypto";
 import { parseJsonBody } from "@/lib/api";
 import { collections } from "@/lib/db";
+import { bloodTiersEnabled } from "@/lib/env";
 import { CODE_ALPHABET } from "@/lib/member-auth";
 import { GiftCreateInput, TIER_PRICE_EUR, type GiftCode } from "@/lib/models";
 import { getPaymentsVendor } from "@/lib/vendors/stripe";
@@ -36,6 +37,19 @@ function giftCode(): string {
 }
 
 export async function POST(req: Request) {
+  // Blood-tier feature gate — gifting is Essential-only (a blood tier), so
+  // when blood tiers are off we can't sell an unfulfillable gift year.
+  if (!bloodTiersEnabled()) {
+    return Response.json(
+      {
+        error: "blood_tiers_unavailable",
+        message:
+          "Gift memberships aren't available yet — the Essential gift year opens once our lab partner and clinician are live.",
+      },
+      { status: 403 }
+    );
+  }
+
   const parsed = await parseJsonBody(req, GiftCreateInput);
   if (!parsed.ok) return parsed.response;
   const { purchaserEmail, recipientEmail, note, delivery } = parsed.data;

@@ -69,6 +69,7 @@ These are **done and verified** (web 352 vitest + iOS 48 XCTests green; app + wi
 | 3.4 | ⛔ Point **`arcaevo.com`** (or chosen domain) at Vercel; HTTPS enforced. | 👤 | ☐ |
 | 3.5 | ⛔ **Production env vars set:** `MONGODB_URI`, `SESSION_SECRET` (long random), `ADMIN_PASSWORD` (initial owner password), `ADMIN_EMAIL` (e.g. `accounts@arcaevo.com` — **required** so the first-boot owner auto-seed runs), `MFA_ENC_KEY` (long random), `CRON_SECRET` (long random), `NEXT_PUBLIC_SITE_URL`. | 👤 | ☐ |
 | 3.6 | ⛔ **Do NOT set** `ALLOW_DEMO_TOKEN`, `ALLOW_OPEN_WEBHOOKS`, `ALLOW_MOCK_EXTRACTION`, `RATE_LIMIT_DISABLED`, `STRIPE_FORCE_MOCK` in prod. | 🛠 | ☐ |
+| 3.6a | ⛔ **Leave `BLOOD_TIERS_ENABLED` + `NEXT_PUBLIC_BLOOD_TIERS_ENABLED` UNSET in prod** until the lab partner + registered clinician are live (§8.5a) — blood tiers stay off (Fusion still sells). A **pre-prod / staging** environment sets BOTH `=true` to exercise the paid flow. Flip prod to `=true` only when partners are onboarded. | 🛠 | ☐ |
 | 3.7 | ⛔ **Erasure cron** live — `vercel.json` (`0 3 * * *` → `/api/v1/cron/run-erasure`) with `CRON_SECRET` set; **monitor success + keep proof it ran** (§6). Runner is built. | 👥 | ◐ |
 | 3.8 | Confirm PostHog **account region is EU** (not just ingest host), or keep analytics off. | 👥 | ☐ |
 
@@ -132,7 +133,8 @@ These are **done and verified** (web 352 vitest + iOS 48 XCTests green; app + wi
 | 8.2 | ⛔ **Insights / Ask-Arcaevo** — ship real generated (rules-decide/AI-narrates) content **or clearly label as "coming"** so users aren't shown fabricated insights about real data. Constrain any narration to the wellness/MDR line. | 👥 | ☐ |
 | 8.3 | ⛔ Confirm **critical/flagged values never enter the scoring engine** (`BiomarkerPenalty.derive` excludes them) and route to the human clinician-first flow. Verify in code before real bloods. | 🛠 | ☐ |
 | 8.4 | Verify **cycle/menstrual data** is never synced unless cycle-aware baselines are enabled (only if cycle features ship). | 🛠 | ⏭ |
-| 8.5 | Confirm the **blood-layer ON/OFF toggle** behaves as a true config flag (the MDR fallback). | 🛠 | ☐ |
+| 8.5 | Confirm the **blood-layer ON/OFF toggle** behaves as a true config flag (the MDR fallback). | 🛠 | ☑ |
+| 8.5a | **Blood-tier flag shipped** — `BLOOD_TIERS_ENABLED` (+ `NEXT_PUBLIC_` mirror) gates Essential/Performance + kit/nurse/venous orders + gifting + clinician review; **Fusion always on**. Fail-safe OFF (enabled only when exactly `"true"`). Server-enforced in checkout/orders/gift routes (403 `blood_tiers_unavailable`), UI shows "Coming soon"+waitlist on `/pricing`, and `GET /api/v1/config` (`{ bloodTiersEnabled }`) is the iOS source of truth (flip with no rebuild). **Prod: leave BOTH UNSET until the lab partner + registered clinician are live (§8.6, MOCKED_APIS §19); then set both `=true`.** Pre-prod/dev set both `=true`. Prices unchanged. | 🛠 | ☑ |
 | 8.6 | ⏭ **Real IMC-registered clinician + medical-ops partner** — replaces the mock "Dr. S. Nolan." **Must not reach real users on paid tiers.** Basic tier doesn't gate on this (self-reported bloods are never shown as clinician-reviewed). | 👤 | ⏭ |
 
 ---

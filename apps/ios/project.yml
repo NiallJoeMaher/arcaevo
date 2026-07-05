@@ -107,9 +107,11 @@ targets:
     platform: watchOS
     deploymentTarget: "10.0"
     sources:
-      # Includes ArcaevoWatch/Assets.xcassets (BrandMark vector) — bundled as
-      # a resource so the wrist can show the real brand chip on its black setup
-      # screen. No AppIcon here (the watch icon is out of scope for this change).
+      # Includes ArcaevoWatch/Assets.xcassets — BrandMark vector (the wrist
+      # brand chip on its black setup screen) AND AppIcon.appiconset (single
+      # 1024 "A"-on-cream, the same mark as the phone; the watch home screen
+      # circular-masks it). A directory source pulls the .xcassets in and
+      # xcodegen auto-assigns it to the resources phase so actool compiles it.
       - path: ArcaevoWatch
       - path: ArcaevoKit
       - path: Fonts
@@ -157,10 +159,10 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: co.arcaevo.app.watchkitapp
-        # The watch catalog carries only BrandMark (no AppIcon — the watch
-        # icon is out of scope here). Clear the default "AppIcon" name so
-        # actool doesn't fail looking for an app-icon set that isn't there.
-        ASSETCATALOG_COMPILER_APPICON_NAME: ""
+        # Compile the watch AppIcon (single-size 1024 "A"-on-cream) from
+        # ArcaevoWatch/Assets.xcassets/AppIcon.appiconset. Required for App
+        # Store Connect upload/validation — a watch app with no icon is rejected.
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
       configs:
         Debug:
           ARCAEVO_API_BASE_URL: http://localhost:3000/api/v1

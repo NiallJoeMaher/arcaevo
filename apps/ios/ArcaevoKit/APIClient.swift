@@ -108,6 +108,22 @@ struct APIClient {
         try await get("members/me")
     }
 
+    /// Authed activation check for the post-checkout return path. Decodes ONLY
+    /// the membership `status` from `GET /members/me` (backend shape:
+    /// `{ member, membership: { status, … } }`), so it works independently of
+    /// the fuller `me()` decode. Returns the raw status string — `"active"`
+    /// means a backend-confirmed *paid* membership; `nil` means the member has
+    /// no membership row yet (checkout not completed / webhook not landed).
+    /// The client-side plan is only ever flipped when this returns `"active"`.
+    func membershipStatus() async throws -> String? {
+        struct MeResponse: Decodable {
+            struct MembershipStatus: Decodable { var status: String? }
+            var membership: MembershipStatus?
+        }
+        let response: MeResponse = try await get("members/me")
+        return response.membership?.status
+    }
+
     func results() async throws -> [BiomarkerReading] {
         try await get("results")
     }

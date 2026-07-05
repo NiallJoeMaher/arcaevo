@@ -235,7 +235,12 @@ describe("mfa-pending step token", () => {
     expect(readMfaPendingToken("")).toBeNull();
     expect(readMfaPendingToken("no-dot")).toBeNull();
     const token = createMfaPendingToken("adm_owner");
-    expect(readMfaPendingToken(token.slice(0, -1) + "0")).toBeNull();
+    // Flip the last char to a DIFFERENT one so the tamper is deterministic
+    // (appending "0" was a no-op ~1/16 of the time when the last char was "0").
+    const lastChar = token.slice(-1);
+    expect(
+      readMfaPendingToken(token.slice(0, -1) + (lastChar === "0" ? "1" : "0"))
+    ).toBeNull();
   });
 
   it("is NOT a valid admin session (readAdminSession rejects it)", () => {

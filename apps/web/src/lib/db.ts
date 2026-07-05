@@ -73,6 +73,20 @@ export interface RateLimitRecord extends Document {
   expiresAt: Date;
 }
 
+/**
+ * Webhook idempotency ledger. One doc per Stripe event id we've fully applied,
+ * so an at-least-once retry (Stripe re-delivers on any non-2xx, or on its own
+ * schedule) can't re-run a side-effecting handler — most importantly the
+ * `invoice.paid` renewal, which would otherwise push the period forward a whole
+ * year on every duplicate. `_id` IS the event id, so Mongo's built-in unique
+ * `_id` index does the deduplication (no extra index needed).
+ */
+export interface ProcessedWebhookEvent extends Document {
+  _id: string; // Stripe event id, e.g. "evt_1PxYz…"
+  type: string;
+  processedAt: Date;
+}
+
 /** Mock-vendor internal state (LetsGetChecked fake order machine). */
 export interface LgcMockOrder extends Document {
   _id: string; // vendor order id, e.g. "lgc_mock_0001"
@@ -126,6 +140,9 @@ export const collections = {
   admins: () => collection<Admin>("admins"),
   /** Per-record admin access log (DPIA R4). See src/lib/admin-audit.ts. */
   adminAccessLog: () => collection<AdminAccessLog>("admin_access_log"),
+  /** Stripe webhook idempotency ledger. See webhooks/stripe/route.ts. */
+  processedWebhookEvents: () =>
+    collection<ProcessedWebhookEvent>("processed_webhook_events"),
 };
 
 /** Close the shared client (used by scripts like seed.ts; not by the app). */

@@ -10,15 +10,21 @@
  *  - Confirmed values become BiomarkerReadings with source "self_reported":
  *    hollow gold dots forever, excluded from clinician-reviewed claims,
  *    clinicianReviewed stays false.
- *  - Baseline bands + RCV verdicts are computed against the member's history
- *    exactly like lab readings — history is the whole point of uploading.
+ *  - Baseline bands + RCV verdicts are computed against the member's
+ *    SELF-REPORTED history only (kept separate from the clinician-track lab
+ *    baseline), against the chronologically-prior reading, excluding this one —
+ *    history is the whole point of uploading (see lib/rcv.ts).
  */
 import { requireConsentedMember } from "@/lib/consent-guard";
 import { parseJsonBody } from "@/lib/api";
 import { collections } from "@/lib/db";
 import { newId } from "@/lib/ids";
 import { BloodworkConfirmInput, type BiomarkerReading } from "@/lib/models";
-import { computeBaselineBand, computeRcvVerdict } from "@/lib/rcv";
+import {
+  baselineInputsForIngest,
+  computeBaselineBand,
+  computeRcvVerdict,
+} from "@/lib/rcv";
 import { CONFIDENCE_THRESHOLD } from "@/lib/vendors/ai-extraction.mock";
 
 export async function POST(req: Request) {
@@ -106,8 +112,15 @@ export async function POST(req: Request) {
     const extracted = extractedByCode.get(confirmed.code)!;
     const rule = ruleByCode.get(confirmed.code);
     const history = historyByCode.get(confirmed.code) ?? [];
-    const prior = history.at(-1) ?? null;
-    const series = [...history.map((h) => h.value), confirmed.value];
+    // Self-reported readings are verdicted/banded against the member's
+    // self-reported history ONLY (kept separate from the clinician-track lab
+    // baseline), against the chronologically-prior reading (so backfilled old
+    // bloodwork isn't compared to today's), excluding this reading. See
+    // lib/rcv.ts baselineInputsForIngest.
+    const { prior, series } = baselineInputsForIngest(history, {
+      takenAt: takenAtDate,
+      source: "self_reported",
+    });
     docs.push({
       _id: newId("read"), // collision-free (see lib/ids)
       memberId: auth.member._id,

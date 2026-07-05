@@ -241,6 +241,30 @@ function invoiceSubscriptionId(
   return details ? str(details, "subscription") : undefined;
 }
 
+/**
+ * Claim a Stripe event id in the idempotency ledger. Returns true when the
+ * event has ALREADY been processed (caller must no-op), false on the first,
+ * winning delivery. Atomic via `$setOnInsert` upsert (upsertedCount===1 wins).
+ *
+ * When no event id is present (should not happen for genuine Stripe events —
+ * `constructWebhookEvent` parses `id` from the body) we conservatively treat it
+ * as fresh so we never drop a real renewal on a missing id.
+ */
+async function alreadyProcessed(
+  eventId: string | undefined,
+  type: string
+): Promise<boolean> {
+  if (!eventId) return false;
+  const ledger = await collections.processedWebhookEvents();
+  const res = await ledger.updateOne(
+    { _id: eventId },
+    { $setOnInsert: { type, processedAt: new Date() } },
+    { upsert: true }
+  );
+  // First delivery inserts (upsertedCount 1); a retry matches the existing doc.
+  return res.upsertedCount === 0;
+}
+
 async function findMembership(opts: {
   memberId?: string;
   subscriptionId?: string;
@@ -377,6 +401,15 @@ async function handleRealEvent(event: StripeEvent): Promise<Response> {
     }
 
     case "invoice.paid": {
+      // Idempotency (CRITICAL): Stripe delivers webhooks at-least-once and
+      // retries on any non-2xx. Renewal advances the period by a WHOLE YEAR, so
+      // a re-delivered `invoice.paid` would hand the member free years. Claim
+      // the event id first; a duplicate delivery is a no-op. The claim is an
+      // upsert with $setOnInsert (atomic, race-safe) keyed on the event id, so
+      // even simultaneous duplicate deliveries can only apply the renewal once.
+      if (await alreadyProcessed(event.id, event.type)) {
+        return Response.json({ ok: true, type: event.type, deduped: true });
+      }
       const subscriptionId = invoiceSubscriptionId(obj);
       const membership = await findMembership({
         memberId: meta(obj, "memberId"),

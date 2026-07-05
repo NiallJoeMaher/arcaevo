@@ -9,12 +9,16 @@
  */
 import { describe, expect, it } from "vitest";
 import {
+  baselineInputsForIngest,
   computeBaselineBand,
   computeRcvVerdict,
   isWithinBand,
   percentChange,
+  type IngestHistoryReading,
   type RcvRuleLike,
 } from "@/lib/rcv";
+
+const d = (iso: string): Date => new Date(iso);
 
 const lower: RcvRuleLike = { rcvPercent: 20, direction: "lower_is_better" };
 const higher: RcvRuleLike = { rcvPercent: 20, direction: "higher_is_better" };
@@ -138,5 +142,107 @@ describe("isWithinBand", () => {
   it("is false outside the band", () => {
     expect(isWithinBand(79.99, band)).toBe(false);
     expect(isWithinBand(120.01, band)).toBe(false);
+  });
+});
+
+/**
+ * Ingestion-time correctness (the three real-route bugs from the Tech-CEO
+ * review §3/§7). baselineInputsForIngest is the single source of truth both the
+ * LGC webhook and the upload/confirm route now call, so proving it here is a
+ * regression guard for both routes.
+ */
+describe("baselineInputsForIngest — ingestion correctness", () => {
+  const reading = (
+    value: number,
+    iso: string,
+    source: string
+  ): IngestHistoryReading => ({ value, takenAt: d(iso), source });
+
+  it("bug (a): excludes the incoming reading from its OWN baseline", () => {
+    // Two prior lab readings; ingesting a third today. The band must be built
+    // from the two priors only — the incoming value must not be in its series.
+    const history = [
+      reading(100, "2026-01-01", "lab"),
+      reading(120, "2026-03-01", "lab"),
+    ];
+    const { prior, series } = baselineInputsForIngest(history, {
+      takenAt: d("2026-06-01"),
+      source: "lab",
+    });
+    expect(series).toEqual([100, 120]); // NOT [100, 120, <incoming>]
+    expect(prior?.value).toBe(120);
+    // With no history at all, a first reading has an empty baseline (null band),
+    // never a band drawn around itself.
+    const first = baselineInputsForIngest([], {
+      takenAt: d("2026-06-01"),
+      source: "lab",
+    });
+    expect(first.series).toEqual([]);
+    expect(first.prior).toBeNull();
+    expect(computeBaselineBand(first.series, 20)).toBeNull();
+  });
+
+  it("bug (b): self-reported values never pollute the lab baseline/prior", () => {
+    // A self-reported (hollow-gold) value sits chronologically between two lab
+    // draws. When a NEW lab result lands, the self-reported value must be
+    // excluded from both the lab prior and the lab baseline series.
+    const history = [
+      reading(40, "2026-01-01", "lab"),
+      reading(999, "2026-02-01", "self_reported"), // must be ignored for lab
+      reading(44, "2026-03-01", "lab"),
+    ];
+    const { prior, series } = baselineInputsForIngest(history, {
+      takenAt: d("2026-06-01"),
+      source: "lab",
+    });
+    expect(series).toEqual([40, 44]); // 999 self-reported is excluded
+    expect(prior?.value).toBe(44); // prior is the last LAB reading, not 999
+  });
+
+  it("bug (b, mirror): lab values never pollute a self-reported baseline", () => {
+    const history = [
+      reading(40, "2026-01-01", "lab"),
+      reading(50, "2026-02-01", "self_reported"),
+    ];
+    const { prior, series } = baselineInputsForIngest(history, {
+      takenAt: d("2026-06-01"),
+      source: "self_reported",
+    });
+    expect(series).toEqual([50]);
+    expect(prior?.value).toBe(50);
+  });
+
+  it("bug (c): backfilled old bloodwork is verdicted against the prior in TIME, not today's reading", () => {
+    // History already holds an old (2024) and a recent (2026) self-reported
+    // reading. The member now backfills a 2025 reading that sits BETWEEN them.
+    // Its prior must be the 2024 reading — never the chronologically-later 2026
+    // one — and the 2026 value must not be in its baseline.
+    const history = [
+      reading(30, "2024-01-01", "self_reported"),
+      reading(80, "2026-01-01", "self_reported"),
+    ];
+    const { prior, series } = baselineInputsForIngest(history, {
+      takenAt: d("2025-06-01"),
+      source: "self_reported",
+    });
+    expect(prior?.value).toBe(30); // the 2024 reading, not the 2026 one
+    expect(series).toEqual([30]); // 2026 (later) reading excluded
+
+    // And the resulting verdict is computed against that correct prior.
+    const rule: RcvRuleLike = { rcvPercent: 20, direction: "higher_is_better" };
+    expect(computeRcvVerdict(prior!.value, 45, rule)).toBe("improved"); // 30→45
+  });
+
+  it("history order does not matter (filtered + sorted internally)", () => {
+    const history = [
+      reading(120, "2026-03-01", "lab"),
+      reading(100, "2026-01-01", "lab"),
+    ];
+    const { prior, series } = baselineInputsForIngest(history, {
+      takenAt: d("2026-06-01"),
+      source: "lab",
+    });
+    expect(series).toEqual([100, 120]);
+    expect(prior?.value).toBe(120);
   });
 });

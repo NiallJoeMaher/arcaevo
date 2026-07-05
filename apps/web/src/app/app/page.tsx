@@ -52,33 +52,36 @@ function PhoneMock() {
           GOOD MORNING, AOIFE
         </div>
         <div className="mb-[18px] flex items-center gap-[14px]">
-          <svg viewBox="0 0 120 120" className="h-[86px] w-[86px]">
-            <circle
-              cx="60"
-              cy="60"
-              r="50"
-              fill="none"
-              stroke="rgba(255,255,255,0.1)"
-              strokeWidth="10"
-            />
-            <circle
-              cx="60"
-              cy="60"
-              r="50"
-              fill="none"
-              stroke="#34A07C"
-              strokeWidth="10"
-              strokeLinecap="round"
-              strokeDasharray="314"
-              strokeDashoffset="60"
-              transform="rotate(-90 60 60)"
-            />
-          </svg>
-          <div className="-ml-[74px] w-[86px] text-center">
-            <div className="font-mono text-[26px] font-medium leading-none">
-              81
+          {/* Handoff's -74px offset undershot the ring; overlay centers for real. */}
+          <div className="relative h-[86px] w-[86px] shrink-0">
+            <svg viewBox="0 0 120 120" className="h-[86px] w-[86px]">
+              <circle
+                cx="60"
+                cy="60"
+                r="50"
+                fill="none"
+                stroke="rgba(255,255,255,0.1)"
+                strokeWidth="10"
+              />
+              <circle
+                cx="60"
+                cy="60"
+                r="50"
+                fill="none"
+                stroke="#34A07C"
+                strokeWidth="10"
+                strokeLinecap="round"
+                strokeDasharray="314"
+                strokeDashoffset="60"
+                transform="rotate(-90 60 60)"
+              />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+              <div className="font-mono text-[26px] font-medium leading-none">
+                81
+              </div>
+              <div className="text-[8px] text-muted-dark-soft">HEALTH SCORE</div>
             </div>
-            <div className="text-[8px] text-muted-dark-soft">HEALTH SCORE</div>
           </div>
         </div>
         <div className="mb-[10px] rounded-[14px] bg-[rgba(255,255,255,0.06)] p-[13px]">

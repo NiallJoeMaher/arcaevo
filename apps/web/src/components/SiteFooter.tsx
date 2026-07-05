@@ -104,12 +104,6 @@ export default function SiteFooter({
           <span className="max-w-[62ch] text-xs leading-[1.5] text-[#7E8E84]">
             {m.copyright}
           </span>
-          <Link
-            href="/admin"
-            className="font-mono text-[11px] tracking-[0.06em] text-[#79897F] no-underline"
-          >
-            {m.staffLogin}
-          </Link>
         </div>
       </div>
     </footer>

@@ -340,6 +340,26 @@ struct APIClient {
 
     private struct EmptyRequestBody: Encodable {}
 
+    // MARK: - v3 endpoints — GDPR Art. 20 data export
+
+    /// `GET /account/export` — the member's OWN data-portability bundle as raw
+    /// JSON bytes (member-auth via the resolved bearer; the backend resolves the
+    /// signed-in member's own userId, never a param). Returned as `Data` so the
+    /// caller can write it to a file and hand it to a share sheet — the backend
+    /// NEVER emails health data (authenticated in-app download only). Satisfies
+    /// GAP_REVIEW_2 #8.
+    func exportMyData() async throws -> Data {
+        let req = request(for: "account/export", method: "GET")
+        let (data, response) = try await session.data(for: req)
+        if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
+            if let body = try? JSONDecoder().decode(ServerErrorBody.self, from: data) {
+                throw APIError.server(status: http.statusCode, code: body.error, message: body.message)
+            }
+            throw APIError.badStatus(http.statusCode)
+        }
+        return data
+    }
+
     // MARK: - Plumbing
 
     private func get<T: Decodable>(_ path: String) async throws -> T {

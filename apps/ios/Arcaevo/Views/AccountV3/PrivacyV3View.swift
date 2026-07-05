@@ -11,7 +11,11 @@ struct PrivacyV3View: View {
     @State private var research = false
     @State private var cycleAware = CyclePreferences.isEnabled
     @State private var requestingCycle = false
-    @State private var exportRequested = false
+    @State private var exporting = false
+    /// Set once the export bundle has been fetched + written to a temp file —
+    /// drives the real system share sheet (ShareLink) so the member can save it.
+    @State private var exportFileURL: URL?
+    @State private var exportError = false
     @State private var loadedConsents = false
 
     var body: some View {
@@ -78,19 +82,21 @@ struct PrivacyV3View: View {
             .padding(.bottom, 14)
 
             Button {
-                requestExport()
+                Task { await runExport() }
             } label: {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Export my data")
                             .font(.arcSans(13, weight: .bold))
                             .foregroundStyle(Color.ink)
-                        Text("Everything as CSV + clinician PDF, within the hour")
+                        Text(exportError
+                            ? "Couldn't build the export — tap to retry"
+                            : "Everything we hold about you, as a machine-readable JSON download")
                             .font(.arcSans(11))
                             .foregroundStyle(Color.arcSecondaryLight)
                     }
                     Spacer()
-                    Text(exportRequested ? "Requested ✓ — arriving by email" : "Request export")
+                    Text(exporting ? "Preparing…" : "Export")
                         .font(.arcSans(12, weight: .semibold))
                         .foregroundStyle(Color.arcDeepGreen)
                         .multilineTextAlignment(.trailing)
@@ -102,8 +108,25 @@ struct PrivacyV3View: View {
                 .contentShape(RoundedRectangle(cornerRadius: 14))
             }
             .buttonStyle(.plain)
-            .disabled(exportRequested)
-            .padding(.bottom, 9)
+            .disabled(exporting)
+            .padding(.bottom, exportFileURL == nil ? 9 : 6)
+
+            // Once fetched, a real system share sheet to save the JSON file.
+            if let exportFileURL {
+                ShareLink(
+                    item: exportFileURL,
+                    message: Text("My Arcaevo data export (GDPR Art. 20)")
+                ) {
+                    Text("Save / share export")
+                        .font(.arcSans(12.5, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(Color.arcDeepGreen, in: Capsule())
+                }
+                .buttonStyle(.plain)
+                .padding(.bottom, 9)
+            }
 
             NavigationLink(value: AccountV3Route.gpShare) {
                 HStack {
@@ -237,11 +260,35 @@ struct PrivacyV3View: View {
         }
     }
 
-    // TODO(export backend): no export API exists yet (same gap as the web
-    // account page) — the request state is local until it ships.
-    private func requestExport() {
-        exportRequested = true
+    /// REAL GDPR Art. 20 export (GAP_REVIEW_2 #8). Fetches the member's own
+    /// data bundle from `GET /account/export` (member-auth), writes it to a temp
+    /// file, and reveals a system share sheet to save it. Nothing is emailed —
+    /// this is an authenticated in-app download only.
+    private func runExport() async {
+        exporting = true
+        exportError = false
+        defer { exporting = false }
+        do {
+            let data = try await appState.api.exportMyData()
+            let stamp = Self.filenameDayFormatter.string(from: Date())
+            let url = FileManager.default.temporaryDirectory
+                .appendingPathComponent("arcaevo-my-data-\(stamp).json")
+            try data.write(to: url, options: .atomic)
+            exportFileURL = url
+        } catch {
+            exportError = true
+            exportFileURL = nil
+        }
     }
+
+    /// YYYY-MM-DD stamp for the export filename.
+    private static let filenameDayFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.calendar = Calendar(identifier: .iso8601)
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.dateFormat = "yyyy-MM-dd"
+        return f
+    }()
 }
 
 #if DEBUG

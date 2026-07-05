@@ -8,7 +8,9 @@ struct DeleteAccountV3View: View {
     @Environment(AppState.self) private var appState
 
     @State private var typed = ""
-    @State private var exportRequested = false
+    @State private var exporting = false
+    @State private var exportFileURL: URL?
+    @State private var exportError = false
     @State private var deleting = false
     @State private var done = false
 
@@ -50,7 +52,7 @@ struct DeleteAccountV3View: View {
             .lineSpacing(5)
             .padding(.bottom, 18)
 
-        numberedLine("01", text: Text("We offer a full export first — most people want the PDF for their GP."))
+        numberedLine("01", text: Text("We offer a full export first — a machine-readable JSON of everything we hold about you."))
             .padding(.bottom, 12)
         numberedLine("02", text: Text("Type ").font(.arcSans(13)) + Text("DELETE").font(.arcSans(13, weight: .bold)) + Text(" to confirm — no password quiz, no phone call.").font(.arcSans(13)))
             .padding(.bottom, 16)
@@ -69,9 +71,11 @@ struct DeleteAccountV3View: View {
             .padding(.bottom, 16)
 
         Button {
-            exportRequested = true
+            Task { await runExport() }
         } label: {
-            Text(exportRequested ? "Requested ✓ — arriving by email" : "Request export")
+            Text(exporting
+                ? "Preparing…"
+                : (exportError ? "Couldn't export — retry" : "Download my data"))
                 .font(.arcSans(13.5, weight: .semibold))
                 .foregroundStyle(Color.ink)
                 .frame(maxWidth: .infinity)
@@ -80,8 +84,25 @@ struct DeleteAccountV3View: View {
                 .contentShape(Capsule())
         }
         .buttonStyle(.plain)
-        .disabled(exportRequested)
-        .padding(.bottom, 10)
+        .disabled(exporting)
+        .padding(.bottom, exportFileURL == nil ? 10 : 8)
+
+        // Real system share sheet to save the JSON once fetched.
+        if let exportFileURL {
+            ShareLink(
+                item: exportFileURL,
+                message: Text("My Arcaevo data export (GDPR Art. 20)")
+            ) {
+                Text("Save / share export")
+                    .font(.arcSans(12.5, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(Color.arcDeepGreen, in: Capsule())
+            }
+            .buttonStyle(.plain)
+            .padding(.bottom, 10)
+        }
 
         Button {
             performDelete()
@@ -153,6 +174,35 @@ struct DeleteAccountV3View: View {
         }
         .buttonStyle(.plain)
     }
+
+    /// REAL GDPR Art. 20 export offered before erasure (GAP_REVIEW_2 #8).
+    /// Fetches the member's own bundle from `GET /account/export` (member-auth),
+    /// writes it to a temp file and reveals a share sheet. Nothing is emailed.
+    private func runExport() async {
+        exporting = true
+        exportError = false
+        defer { exporting = false }
+        do {
+            let data = try await appState.api.exportMyData()
+            let stamp = Self.filenameDayFormatter.string(from: Date())
+            let url = FileManager.default.temporaryDirectory
+                .appendingPathComponent("arcaevo-my-data-\(stamp).json")
+            try data.write(to: url, options: .atomic)
+            exportFileURL = url
+        } catch {
+            exportError = true
+            exportFileURL = nil
+        }
+    }
+
+    /// YYYY-MM-DD stamp for the export filename.
+    private static let filenameDayFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.calendar = Calendar(identifier: .iso8601)
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.dateFormat = "yyyy-MM-dd"
+        return f
+    }()
 
     /// Closure starts by withdrawing the `health_processing` consent — the
     /// backend's honest closure trigger (`closureRequired: true`).

@@ -1,9 +1,12 @@
 /**
- * Authentication — PLACEHOLDER (see docs/MOCKED_APIS.md §3–4).
+ * Authentication (see docs/MOCKED_APIS.md §3–4).
  *
- * Admin: single shared password (ADMIN_PASSWORD env) → HMAC-signed session
- * cookie. No user accounts, no roles, no rate limiting. Productionise with a
- * real IdP (WorkOS/Auth0/Cognito), per-user accounts + roles, audit log.
+ * Admin: self-hosted per-admin accounts (email + scrypt password + role) with
+ * an HMAC-signed session cookie carrying the acting admin's identity
+ * ({adminId, role, iat}). The single shared ADMIN_PASSWORD is retained ONLY as
+ * a bootstrap OWNER credential (password-only login) for backward compat and
+ * first-login. See src/lib/admin-auth.ts (accounts) + src/lib/admin-audit.ts
+ * (access log). Managed-IdP migration stays open (ADMIN_AUTH_OPTIONS.md B).
  *
  * Member (iOS demo): a static bearer token that maps to the seeded demo
  * member. Productionise with Sign in with Apple + rotating JWTs.
@@ -19,9 +22,20 @@ import {
   memberFromSessionToken,
   sessionTokenFromCookies,
 } from "@/lib/member-auth";
-import type { User } from "@/lib/models";
+import type { AdminRole, User } from "@/lib/models";
+import type { AdminIdentity } from "@/lib/admin-auth";
 
 export const ADMIN_COOKIE_NAME = "arcaevo_admin_session";
+
+const ADMIN_ROLES: readonly AdminRole[] = ["owner", "ops", "clinician"];
+
+/** The decoded, signature-verified admin session payload. */
+export interface AdminSession {
+  adminId: string;
+  role: AdminRole;
+  /** ISO issue time (informational). */
+  iat?: string;
+}
 
 /** MOCK: static demo bearer token for the iOS app / API exploration. */
 export const DEMO_MEMBER_TOKEN = "demo-member-token";
@@ -41,39 +55,81 @@ function safeEqual(a: string, b: string): boolean {
 // Admin session
 // ---------------------------------------------------------------------------
 
+/**
+ * Bootstrap password check — a timing-safe compare against the single shared
+ * ADMIN_PASSWORD. This is NOT a per-admin account; a match issues an OWNER
+ * session (see the login route). Retained for backward compat + first-login.
+ */
 export function verifyAdminPassword(password: string): boolean {
   const expected = process.env.ADMIN_PASSWORD;
-  if (!expected) return false; // no password configured ⇒ admin login disabled
+  if (!expected) return false; // no password configured ⇒ bootstrap disabled
   return safeEqual(password, expected);
 }
 
-/** Serialised session value: base64url(JSON payload) + "." + HMAC. */
-export function createAdminSessionValue(now: Date = new Date()): string {
+/**
+ * Serialised session value: base64url(JSON {adminId, role, iat}) + "." + HMAC.
+ * Defaults to the bootstrap OWNER identity when called with no identity (keeps
+ * the old zero-arg signature working for tests/first-login).
+ */
+export function createAdminSessionValue(
+  identity: AdminIdentity = { adminId: "bootstrap-owner", role: "owner" },
+  now: Date = new Date()
+): string {
   const payload = Buffer.from(
-    JSON.stringify({ role: "admin", iat: now.toISOString() })
+    JSON.stringify({
+      adminId: identity.adminId,
+      role: identity.role,
+      iat: now.toISOString(),
+    })
   ).toString("base64url");
   return `${payload}.${hmac(payload)}`;
 }
 
-export function verifyAdminSessionValue(value: string | undefined): boolean {
-  if (!value) return false;
+/**
+ * Verify + decode a session cookie value. Returns the identity payload, or null
+ * when the signature/shape is invalid. Backward compatible with legacy cookies
+ * carrying `{role:"admin"}` (from before per-admin accounts) — those are
+ * treated as an OWNER session so a fresh deploy doesn't sign everyone out.
+ */
+export function readAdminSession(value: string | undefined): AdminSession | null {
+  if (!value) return null;
   const dot = value.lastIndexOf(".");
-  if (dot <= 0) return false;
+  if (dot <= 0) return null;
   const payload = value.slice(0, dot);
   const sig = value.slice(dot + 1);
-  if (!safeEqual(sig, hmac(payload))) return false;
+  if (!safeEqual(sig, hmac(payload))) return null;
   try {
     const parsed = JSON.parse(Buffer.from(payload, "base64url").toString());
-    return parsed?.role === "admin";
+    // Legacy: single-role "admin" cookie ⇒ owner.
+    if (parsed?.role === "admin") {
+      return {
+        adminId: typeof parsed.adminId === "string" ? parsed.adminId : "legacy-owner",
+        role: "owner",
+        iat: parsed.iat,
+      };
+    }
+    if (typeof parsed?.role === "string" && ADMIN_ROLES.includes(parsed.role)) {
+      return {
+        adminId: typeof parsed.adminId === "string" ? parsed.adminId : "unknown",
+        role: parsed.role,
+        iat: parsed.iat,
+      };
+    }
+    return null;
   } catch {
-    return false;
+    return null;
   }
 }
 
+/** Boolean convenience wrapper over readAdminSession (signature valid + role ok). */
+export function verifyAdminSessionValue(value: string | undefined): boolean {
+  return readAdminSession(value) !== null;
+}
+
 /** Set the signed admin cookie (call from a Route Handler / Server Action). */
-export async function setAdminSessionCookie(): Promise<void> {
+export async function setAdminSessionCookie(identity: AdminIdentity): Promise<void> {
   const store = await cookies();
-  store.set(ADMIN_COOKIE_NAME, createAdminSessionValue(), {
+  store.set(ADMIN_COOKIE_NAME, createAdminSessionValue(identity), {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
@@ -87,23 +143,76 @@ export async function clearAdminSessionCookie(): Promise<void> {
   store.delete(ADMIN_COOKIE_NAME);
 }
 
+/**
+ * Synthetic admin identities that intentionally have no `admins` DB row:
+ * the env-based break-glass bootstrap owner and legacy pre-accounts cookies.
+ * These are validated purely by the HMAC signature (they can't be forged
+ * without SESSION_SECRET) and are exempt from the DB disabled/existence check.
+ */
+const SYNTHETIC_ADMIN_IDS = new Set(["bootstrap-owner", "legacy-owner"]);
+
+/**
+ * The current request's admin identity, or null when not signed in.
+ *
+ * For a real per-admin account the signed cookie is not enough — we also load
+ * the `admins` record and reject a session whose account is missing or
+ * `disabledAt` is set, so disabling an admin (offboarding a leaver / containing
+ * a compromised account) revokes their live 12h session immediately rather than
+ * leaving it valid until expiry. The account's current role is taken from the
+ * DB record, so a role downgrade also takes effect at once. Synthetic
+ * (break-glass / legacy) identities skip the lookup.
+ */
+export async function currentAdmin(): Promise<AdminSession | null> {
+  const store = await cookies();
+  const session = readAdminSession(store.get(ADMIN_COOKIE_NAME)?.value);
+  if (!session) return null;
+  if (SYNTHETIC_ADMIN_IDS.has(session.adminId)) return session;
+
+  const admins = await collections.admins();
+  const record = await admins.findOne({ _id: session.adminId });
+  if (!record || record.disabledAt) return null;
+  // Trust the live DB role over the (possibly stale) signed one.
+  return { ...session, role: record.role };
+}
+
 /** Is the current request an authenticated admin? (route handlers + pages) */
 export async function isAdmin(): Promise<boolean> {
-  const store = await cookies();
-  return verifyAdminSessionValue(store.get(ADMIN_COOKIE_NAME)?.value);
+  return (await currentAdmin()) !== null;
+}
+
+function unauthorized(): Response {
+  return Response.json(
+    { error: "unauthorized", message: "Admin session required." },
+    { status: 401 }
+  );
 }
 
 /**
- * Guard for admin route handlers:
+ * Guard for admin route handlers (any role):
  *   const denied = await requireAdmin();
  *   if (denied) return denied;
  */
 export async function requireAdmin(): Promise<Response | null> {
   if (await isAdmin()) return null;
-  return Response.json(
-    { error: "unauthorized", message: "Admin session required." },
-    { status: 401 }
-  );
+  return unauthorized();
+}
+
+/**
+ * Role-gated guard: 401 when not signed in, 403 when the session's role is not
+ * one of `roles`. Used for clinician sign-off (clinician|owner only).
+ */
+export async function requireAdminRole(
+  ...roles: AdminRole[]
+): Promise<Response | null> {
+  const admin = await currentAdmin();
+  if (!admin) return unauthorized();
+  if (!roles.includes(admin.role)) {
+    return Response.json(
+      { error: "forbidden", message: "Your admin role cannot perform this action." },
+      { status: 403 }
+    );
+  }
+  return null;
 }
 
 // ---------------------------------------------------------------------------

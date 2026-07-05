@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { CSSProperties } from "react";
+import type { AdminRole } from "@/lib/models";
 
 const MONO = "var(--font-mono)";
 
@@ -28,6 +29,8 @@ const NAV: {
   icon: string;
   label: string;
   badge?: keyof SidebarBadges;
+  /** Only rendered for owner sessions (admin-account management + audit log). */
+  ownerOnly?: boolean;
 }[] = [
   { href: "/admin", icon: "◧", label: "Dashboard" },
   { href: "/admin/members", icon: "◍", label: "Members" },
@@ -37,10 +40,22 @@ const NAV: {
   { href: "/admin/waitlist", icon: "◔", label: "Waitlist" },
   { href: "/admin/eligibility", icon: "◫", label: "Eligibility" },
   { href: "/admin/consent", icon: "❋", label: "Consent audit" },
+  // Self-service: every admin manages their own two-factor auth (MOCKED_APIS §3).
+  { href: "/admin/security", icon: "⚷", label: "Security" },
+  // Owner-only: self-hosted admin auth management (MOCKED_APIS §3).
+  { href: "/admin/admins", icon: "⚿", label: "Admins", ownerOnly: true },
+  { href: "/admin/access-log", icon: "☰", label: "Access log", ownerOnly: true },
 ];
 
-export default function AdminSidebar({ badges }: { badges: SidebarBadges }) {
+export default function AdminSidebar({
+  badges,
+  role,
+}: {
+  badges: SidebarBadges;
+  role: AdminRole | null;
+}) {
   const pathname = usePathname();
+  const nav = NAV.filter((n) => !n.ownerOnly || role === "owner");
 
   return (
     <aside
@@ -83,7 +98,7 @@ export default function AdminSidebar({ badges }: { badges: SidebarBadges }) {
         </span>
       </div>
       <nav style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        {NAV.map((n) => {
+        {nav.map((n) => {
           const active = pathname === n.href;
           const badge =
             !active && n.badge ? badges[n.badge] : null;

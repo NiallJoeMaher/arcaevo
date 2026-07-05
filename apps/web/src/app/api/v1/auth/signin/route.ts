@@ -21,6 +21,7 @@ import {
   verifyPassword,
 } from "@/lib/member-auth";
 import { SigninInput } from "@/lib/models";
+import { limitByIp, SIGNIN_RATE_LIMIT } from "@/lib/rate-limit";
 
 const GENERIC_401 = {
   error: "invalid_credentials",
@@ -29,6 +30,10 @@ const GENERIC_401 = {
 };
 
 export async function POST(req: Request) {
+  // IP rate-limit on top of the per-account 5-fail/15-min cool-off.
+  const limited = await limitByIp(req, "signin", SIGNIN_RATE_LIMIT);
+  if (limited) return limited;
+
   const parsed = await parseJsonBody(req, SigninInput);
   if (!parsed.ok) return parsed.response;
   const { email, password } = parsed.data;

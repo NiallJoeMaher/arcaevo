@@ -1,10 +1,21 @@
 /** GET /api/v1/members — admin: list members with membership + last test. */
-import { requireAdmin } from "@/lib/auth";
+import { currentAdmin, requireAdmin } from "@/lib/auth";
+import { logAdminAccess } from "@/lib/admin-audit";
+import { clientIp } from "@/lib/rate-limit";
 import { collections } from "@/lib/db";
 
-export async function GET() {
+export async function GET(req: Request) {
   const denied = await requireAdmin();
   if (denied) return denied;
+
+  // DPIA R4: the members list is an admin read of member records.
+  const admin = await currentAdmin();
+  logAdminAccess({
+    action: "member.list.read",
+    adminId: admin?.adminId ?? null,
+    role: admin?.role ?? null,
+    ip: clientIp(req),
+  });
 
   const [users, memberships, orders] = await Promise.all([
     collections.users().then((c) => c.find().sort({ joinedAt: -1 }).toArray()),

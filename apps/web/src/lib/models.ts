@@ -156,6 +156,13 @@ export const UserSchema = z.object({
   /** Lifecycle: undefined/"active" normally, "closing" after a delete request,
    * "closed" once the erasure job has hard-deleted the data. */
   status: z.enum(["active", "closing", "closed"]).optional(),
+  /**
+   * Real Stripe customer id (`cus_…`) — created/looked up by the LIVE payments
+   * vendor and reused across checkouts so tax/portal/dunning stay tied to one
+   * customer. Null for members who never reached a live Stripe checkout (all of
+   * dev/e2e, which uses the MOCK vendor). See src/lib/vendors/stripe.live.ts.
+   */
+  stripeCustomerId: z.string().nullable().optional(),
 });
 export type User = z.infer<typeof UserSchema>;
 
@@ -174,14 +181,117 @@ export const MembershipSchema = z.object({
     .enum(["active", "past_due", "canceled", "pending"])
     .default("active"),
   priceEur: z.number(),
-  /** MOCK: fake Stripe subscription id from stripe.mock.ts */
+  /** Stripe subscription id: MOCK `sub_mock_…` (stripe.mock.ts) or a real
+   * `sub_…` set by the LIVE webhook on checkout.session.completed. */
   stripeSubscriptionId: z.string().nullable().default(null),
+  /** Real Stripe `cancel_at_period_end` — set by the LIVE
+   * customer.subscription.updated webhook (the "cancel renewal" flow). The
+   * membership stays `active` until period end; this drives the UI copy. */
+  cancelAtPeriodEnd: z.boolean().optional(),
   // --- v2 dunning (0/3/10/14 days → read-only pause, nothing deleted) --------
   dunningStage: DunningStage.default("none"),
   /** When the first failed renewal charge happened (null when not dunning). */
   dunningStartedAt: z.date().nullable().default(null),
 });
 export type Membership = z.infer<typeof MembershipSchema>;
+
+// --- Clinician note (Phase 22 — daily-engagement handoff, ALGORITHM.md §5) ---
+
+/**
+ * MOCK PERSONA (docs/MOCKED_APIS.md §15): the reviewing clinician is the
+ * fictional "Dr. S. Nolan, IMC 412887" from the designs until the medical-ops
+ * partner is real. Reused verbatim on GP shares + E6/E7 emails.
+ */
+export const CLINICIAN_NAME = "Dr. S. Nolan";
+export const CLINICIAN_IMC_NUMBER = "412887";
+
+/**
+ * A short human note on EVERY reviewed panel (a panel = one TestOrder's
+ * result set) — the review flow extends from critical-values-only to a
+ * template-assisted note a human signs (name + IMC number + read date shown).
+ *
+ * Field names are LOCKED by the Phase 22 shared contract — iOS decodes
+ * `clinicianNote { text, clinicianName, imcNumber, readAt }` off the results
+ * payload. Do not rename.
+ */
+export const ClinicianNoteSchema = z.object({
+  text: z.string(),
+  clinicianName: z.string(),
+  imcNumber: z.string(),
+  readAt: z.date(),
+});
+export type ClinicianNote = z.infer<typeof ClinicianNoteSchema>;
+
+/** "a", "a and b", "a, b and c" — for the note's watch-marker list. */
+function listNames(names: string[]): string {
+  if (names.length <= 1) return names[0] ?? "";
+  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+}
+
+/**
+ * Is a reading one the reviewer would flag as "worth watching"?
+ *
+ * Direction-aware, so a real IMPROVEMENT is never flagged: watch = the
+ * verdict worsened, OR the value sits outside the member's own baseline band
+ * on the HARMFUL side for the marker (e.g. above band for lower-is-better).
+ * Never a diagnosis — just what earns a second look at a recheck.
+ */
+export function isWatchMarker(
+  reading: {
+    value: number;
+    baselineBand: BaselineBand | null | undefined;
+    rcvVerdict: RcvVerdict | null | undefined;
+  },
+  direction: RuleDirection
+): boolean {
+  if (reading.rcvVerdict === "worsened") return true;
+  if (reading.rcvVerdict === "improved") return false; // real change, good way
+  const band = reading.baselineBand;
+  if (!band) return false;
+  return direction === "lower_is_better"
+    ? reading.value > band.high
+    : reading.value < band.low;
+}
+
+/**
+ * Template-assisted default note text — wellness-framed, NEVER diagnostic.
+ * Summarises in-range vs watch markers; when something is worth watching it
+ * points at the €69 recheck (the only sell in the daily layer). A human
+ * reviewer signs it via the clinicianName/imcNumber fields.
+ */
+export function composeClinicianNote(params: {
+  /** Marker count on the panel. */
+  totalMarkers: number;
+  /** Display names of markers outside the member's own band / worsened. */
+  watchMarkerNames: string[];
+  readAt: Date;
+}): ClinicianNote {
+  const { totalMarkers, watchMarkerNames, readAt } = params;
+  const markers = `${totalMarkers} marker${totalMarkers === 1 ? "" : "s"}`;
+  let text: string;
+  if (watchMarkerNames.length === 0) {
+    text =
+      `I've read this panel — all ${markers} sit within your personal range. ` +
+      `Nothing here needs a follow-up conversation; keep doing what you're doing, ` +
+      `and your next test will confirm the trend. ` +
+      `This is a wellness review, not a diagnosis.`;
+  } else {
+    const inRange = totalMarkers - watchMarkerNames.length;
+    const verb = watchMarkerNames.length === 1 ? "is" : "are";
+    text =
+      `I've read this panel. ${inRange} of ${totalMarkers} markers sit within ` +
+      `your personal range; ${listNames(watchMarkerNames)} ${verb} worth watching — ` +
+      `nothing urgent, just where I'd like a second look. A €${ADDON_PRICE_EUR.recheck} ` +
+      `recheck in 8–12 weeks will show whether the change is real. ` +
+      `This is a wellness review, not a diagnosis — talk to your GP about anything that worries you.`;
+  }
+  return {
+    text,
+    clinicianName: CLINICIAN_NAME,
+    imcNumber: CLINICIAN_IMC_NUMBER,
+    readAt,
+  };
+}
 
 export const TestOrderSchema = z.object({
   _id: z.string(), // e.g. "ord_0001"
@@ -198,6 +308,19 @@ export const TestOrderSchema = z.object({
   includedInPlan: z.boolean(),
   createdAt: z.date(),
   updatedAt: z.date(),
+  /**
+   * Phase 22: set at clinician sign-off — one note per reviewed panel.
+   * Optional so pre-Phase-22 documents remain valid (absent = not reviewed
+   * yet; the results payload then carries `clinicianNote: null`).
+   */
+  clinicianNote: ClinicianNoteSchema.nullable().optional(),
+  /**
+   * Set by the LIVE Stripe webhook (checkout.session.completed, mode=payment)
+   * when a paid add-on / recheck order settles. Null/absent for included
+   * (€0) orders and for MOCK-vendor flows (dev/e2e), which don't round-trip a
+   * real payment. Optional so pre-existing documents stay valid.
+   */
+  paidAt: z.date().nullable().optional(),
 });
 export type TestOrder = z.infer<typeof TestOrderSchema>;
 
@@ -474,6 +597,87 @@ export const ErasureJobSchema = z.object({
 export type ErasureJob = z.infer<typeof ErasureJobSchema>;
 
 // ---------------------------------------------------------------------------
+// Admin accounts + access log (self-hosted per-admin auth — replaces the
+// single shared ADMIN_PASSWORD; see docs/legal/ADMIN_AUTH_OPTIONS.md Option A,
+// docs/MOCKED_APIS.md §3, docs/legal/DPIA.md R4).
+// ---------------------------------------------------------------------------
+
+/**
+ * Admin roles (least privilege):
+ *  - owner     — full access (the bootstrap ADMIN_PASSWORD maps to this).
+ *  - ops       — members/support/eligibility/waitlist; NOT clinician sign-off.
+ *  - clinician — result review + sign-off (writes the clinician note).
+ */
+export const AdminRole = z.enum(["owner", "ops", "clinician"]);
+export type AdminRole = z.infer<typeof AdminRole>;
+
+/**
+ * A per-admin account. Password hashed with the SAME scrypt params as members
+ * (see member-auth.ts hashPassword). `disabledAt` set ⇒ login refused
+ * (offboarding a leaver without rotating a shared secret).
+ */
+/**
+ * Sealed TOTP secret (AES-256-GCM, see src/lib/admin-mfa.ts). All three parts
+ * are base64. The raw secret is NEVER stored — a DB dump yields only this
+ * ciphertext, which is useless without the MFA_ENC_KEY-derived key.
+ */
+export const SealedSecretSchema = z.object({
+  ciphertext: z.string(),
+  iv: z.string(),
+  tag: z.string(),
+});
+export type SealedSecret = z.infer<typeof SealedSecretSchema>;
+
+/**
+ * Per-admin TOTP MFA (OPT-IN — absent = password-only, the default). Carries
+ * the sealed secret + single-use backup-code SHA-256 hashes. NEVER exposed by
+ * publicAdmin() (which emits only `mfaEnabled: boolean`).
+ */
+export const AdminMfaSchema = z.object({
+  enabledAt: z.date(),
+  secretEnc: SealedSecretSchema,
+  backupCodeHashes: z.array(z.string()),
+});
+export type AdminMfa = z.infer<typeof AdminMfaSchema>;
+
+export const AdminSchema = z.object({
+  _id: z.string(), // e.g. "adm_owner" (seed) or "adm_<uuid>" (runtime)
+  email: z.string(), // lowercased
+  passwordHash: z.string(), // scrypt:… (member-auth.ts format)
+  role: AdminRole,
+  name: z.string().optional(),
+  createdAt: z.date(),
+  /** While set, this account can no longer sign in. */
+  disabledAt: z.date().nullable().default(null),
+  /** OPT-IN TOTP two-factor (absent = password-only). See src/lib/admin-mfa.ts. */
+  mfa: AdminMfaSchema.optional(),
+});
+export type Admin = z.infer<typeof AdminSchema>;
+
+/**
+ * Per-record admin access log (DPIA R4 / Art. 32 accountability). Records
+ * WHO (adminId/email/role) did WHAT (action) to WHOSE record (targetMemberId)
+ * and WHEN (at) — plus the source ip. Deliberately stores NO health values,
+ * only the fact of access. Written fire-and-forget (never breaks a request).
+ */
+export const AdminAccessLogSchema = z.object({
+  _id: z.string(), // e.g. "aal_<uuid>"
+  at: z.date(),
+  /** Dotted action key, e.g. "login", "results.queue.read", "member.detail.read". */
+  action: z.string(),
+  /** Null on a failed login (no authenticated admin yet). */
+  adminId: z.string().nullable().default(null),
+  /** Email tied to the event (login attempt / acting admin). */
+  email: z.string().nullable().default(null),
+  role: AdminRole.nullable().default(null),
+  outcome: z.enum(["success", "failure"]).default("success"),
+  /** The member whose Art.9 record was touched, when applicable. */
+  targetMemberId: z.string().nullable().default(null),
+  ip: z.string().nullable().default(null),
+});
+export type AdminAccessLog = z.infer<typeof AdminAccessLogSchema>;
+
+// ---------------------------------------------------------------------------
 // API input schemas
 // ---------------------------------------------------------------------------
 
@@ -499,8 +703,53 @@ export const SyncWearablesInput = z.object({
 export type SyncWearablesInput = z.infer<typeof SyncWearablesInput>;
 
 export const AdminLoginInput = z.object({
+  /** Optional — omitted/empty ⇒ password-only bootstrap OWNER login (keeps the
+   * legacy single-password path + e2e working). Present ⇒ per-admin account. */
+  email: z.string().optional(),
   password: z.string().min(1),
 });
+
+/**
+ * Owner-only admin-management inputs (POST /api/v1/admin/admins …). The temp
+ * password reuses the member 10-char minimum (member-auth scrypt). `email` is
+ * lowercased by the route before use.
+ */
+export const AdminCreateInput = z.object({
+  email: z.string().email(),
+  role: AdminRole,
+  name: z.string().min(1).max(120).optional(),
+  password: z.string().min(10),
+});
+export type AdminCreateInput = z.infer<typeof AdminCreateInput>;
+
+/** Change an admin's role (owner-only; last-owner guard enforced in the route). */
+export const AdminRoleChangeInput = z.object({ role: AdminRole });
+export type AdminRoleChangeInput = z.infer<typeof AdminRoleChangeInput>;
+
+/**
+ * Enrol MFA (an admin enables their OWN TOTP). `secret` is the base32 secret
+ * issued by /mfa/setup and shown to the admin; `code` is the first valid TOTP
+ * proving the authenticator is configured before we persist it.
+ */
+export const AdminMfaEnableInput = z.object({
+  secret: z.string().min(1),
+  code: z.string().min(1),
+});
+export type AdminMfaEnableInput = z.infer<typeof AdminMfaEnableInput>;
+
+/** Disable MFA — a current TOTP or backup code (owners may omit; see route). */
+export const AdminMfaDisableInput = z.object({
+  code: z.string().optional(),
+});
+export type AdminMfaDisableInput = z.infer<typeof AdminMfaDisableInput>;
+
+/** Second-factor step of admin login (TOTP or backup code). */
+export const AdminLoginMfaInput = z.object({
+  /** Optional — the acting admin is resolved from the mfa-pending cookie. */
+  email: z.string().optional(),
+  code: z.string().min(1),
+});
+export type AdminLoginMfaInput = z.infer<typeof AdminLoginMfaInput>;
 
 export const CreateSupportTicketInput = z.object({
   memberId: z.string().nullable().optional(),

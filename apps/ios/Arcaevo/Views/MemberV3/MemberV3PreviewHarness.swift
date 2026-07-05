@@ -22,6 +22,11 @@ struct MemberV3Harness: View {
                 .tabItem { Label("Experiments", systemImage: "arrow.triangle.2.circlepath") }
             NavigationStack {
                 List {
+                    NavigationLink("Readiness") { ReadinessV3View() }
+                    NavigationLink("Energy") { EnergyV3View() }
+                    NavigationLink("Morning check-in") { CheckinV3View() }
+                    NavigationLink("Vitality Age") { VitalityV3View() }
+                    NavigationLink("Widgets gallery") { WidgetsGalleryV3View() }
                     NavigationLink("Fusion timeline") { FusionTimelineV3View() }
                     NavigationLink("Marker detail (ApoB)") { MarkerDetailV3View() }
                     NavigationLink("Insights") { InsightsV3View() }
@@ -65,6 +70,20 @@ struct MemberV3Harness: View {
 
 /// Wraps a screen with the environment objects the member screens expect.
 private struct MemberV3PreviewHost<Content: View>: View {
+    @State private var appState = AppState()
+    @State private var model = AppModel()
+    @ViewBuilder var content: () -> Content
+
+    var body: some View {
+        content()
+            .environment(appState)
+            .environment(model)
+            .task { await model.loadAll() }
+    }
+}
+
+/// Non-private preview host for the Wave 2a screens' inline #Preview blocks.
+struct MemberV3ScreenPreview<Content: View>: View {
     @State private var appState = AppState()
     @State private var model = AppModel()
     @ViewBuilder var content: () -> Content

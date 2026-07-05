@@ -5,9 +5,10 @@ import Foundation
 /// Everything here is deterministic — same data every launch.
 enum DemoDataProvider {
 
-    private static var calendar: Calendar { Calendar.current }
+    static var calendar: Calendar { Calendar.current }
 
-    private static func daysAgo(_ days: Int) -> Date {
+    /// Internal so the Phase 22 demo-data extension can share the anchor.
+    static func daysAgo(_ days: Int) -> Date {
         calendar.date(byAdding: .day, value: -days, to: calendar.startOfDay(for: Date())) ?? Date()
     }
 
@@ -30,8 +31,13 @@ enum DemoDataProvider {
 
     // MARK: - Blood results
 
+    /// The July panel. Tells ONE story with the readiness/energy/vitality
+    /// demo (Phase 22): ferritin 29 µg/L under the personal 38–52 band is the
+    /// blood-recalibration driver (71 → 62), and Dr. Nolan's clinician note
+    /// rides on every reading of the reviewed panel.
     static func results() -> [BiomarkerReading] {
         let measured = daysAgo(18)
+        let note = clinicianNote()
         return [
             // Metabolic
             reading("hba1c", "HbA1c", panel: "Metabolic", unit: "%", value: 5.2, band: 5.1...5.5, verdict: .improved, at: measured),
@@ -48,9 +54,13 @@ enum DemoDataProvider {
 
             // Vitamins & hormones
             reading("vitamin_d", "Vitamin D", panel: "Vitamins & Hormones", unit: "nmol/L", value: 82, band: 68...95, verdict: .improved, at: measured),
-            reading("ferritin", "Ferritin", panel: "Vitamins & Hormones", unit: "µg/L", value: 96, band: 80...120, verdict: .noRealChange, at: measured),
+            reading("ferritin", "Ferritin", panel: "Vitamins & Hormones", unit: "µg/L", value: 29, band: 38...52, verdict: .worsened, at: measured),
             reading("tsh", "TSH", panel: "Vitamins & Hormones", unit: "mIU/L", value: 1.8, band: 1.4...2.2, verdict: .noRealChange, at: measured),
-        ]
+        ].map { r in
+            var withNote = r
+            withNote.clinicianNote = note
+            return withNote
+        }
     }
 
     private static func reading(
@@ -176,6 +186,16 @@ enum DemoDataProvider {
                 value = 7.2 + weekly * 0.4 + noise * 0.5
             case .vo2max:
                 value = 41.5 + progress * 1.2 + noise * 0.4
+            case .steps:
+                value = (8600 + progress * 700 + weekly * 1100 + noise * 1300).rounded()
+            case .activeEnergy:
+                value = (540 + progress * 50 + weekly * 85 + noise * 100).rounded()
+            case .respiratoryRate:
+                value = 14.1 + weekly * 0.3 + noise * 0.4
+            case .spo2:
+                value = min(99.4, 97.3 + weekly * 0.3 + noise * 0.5)
+            case .wristTemp:
+                value = 35.9 + weekly * 0.1 + noise * 0.15
             }
 
             let date = daysAgo(offset)
@@ -197,6 +217,11 @@ enum DemoDataProvider {
         case .restingHeartRate: return 202
         case .sleepHours: return 303
         case .vo2max: return 404
+        case .steps: return 505
+        case .activeEnergy: return 606
+        case .respiratoryRate: return 707
+        case .spo2: return 808
+        case .wristTemp: return 909
         }
     }
 }

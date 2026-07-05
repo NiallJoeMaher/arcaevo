@@ -147,6 +147,10 @@ struct BiomarkerReading: Codable, Identifiable, Hashable {
     var baselineBand: BaselineBand
     var rcvVerdict: RCVVerdict
     var measuredAt: Date
+    /// Dr. Nolan's short human note for this reading's reviewed panel —
+    /// embedded per reviewed panel on the results payload (Phase 22; the
+    /// same note repeats on each reading of the panel). nil pre-review.
+    var clinicianNote: ClinicianNote? = nil
 
     var isWithinBaseline: Bool {
         value >= baselineBand.low && value <= baselineBand.high
@@ -160,6 +164,13 @@ enum WearableMetric: String, Codable, CaseIterable {
     case restingHeartRate = "resting_heart_rate"
     case sleepHours = "sleep_hours"
     case vo2max
+    // Phase 22 HealthKit expansion (ALGORITHM §1.1) — read locally for the
+    // readiness/energy engines; not yet part of the backend sync contract.
+    case steps
+    case activeEnergy = "active_energy"
+    case respiratoryRate = "respiratory_rate"
+    case spo2
+    case wristTemp = "wrist_temp"
 
     var displayName: String {
         switch self {
@@ -167,6 +178,11 @@ enum WearableMetric: String, Codable, CaseIterable {
         case .restingHeartRate: return "Resting HR"
         case .sleepHours: return "Sleep"
         case .vo2max: return "VO₂ max"
+        case .steps: return "Steps"
+        case .activeEnergy: return "Active energy"
+        case .respiratoryRate: return "Respiratory rate"
+        case .spo2: return "SpO₂"
+        case .wristTemp: return "Wrist temp"
         }
     }
 
@@ -176,8 +192,17 @@ enum WearableMetric: String, Codable, CaseIterable {
         case .restingHeartRate: return "bpm"
         case .sleepHours: return "h"
         case .vo2max: return "ml/kg/min"
+        case .steps: return "steps"
+        case .activeEnergy: return "kcal"
+        case .respiratoryRate: return "br/min"
+        case .spo2: return "%"
+        case .wristTemp: return "°C"
         }
     }
+
+    /// The v1 backend `sync/wearables` contract only accepts these four —
+    /// the Phase 22 metrics stay on-device until the web schema grows.
+    static let backendSynced: [WearableMetric] = [.hrv, .restingHeartRate, .sleepHours, .vo2max]
 }
 
 /// A daily wearable data point. v1 source is always `apple_health`.

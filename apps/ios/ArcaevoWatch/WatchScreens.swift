@@ -73,27 +73,294 @@ struct WatchFaceEntryView: View {
     }()
 }
 
-// MARK: - 2 · Today — baseline — `data-screen-label="Watch today"`
+// MARK: - 2 · Today — readiness + decision + one-line why
+// `data-screen-label="Watch today"` — ring, decision headline, why + ceiling.
+// Amber at worst; degraded states render honestly (no fake number).
 
 struct WatchTodayBaselineView: View {
     @Environment(WatchModel.self) private var model
 
     var body: some View {
         VStack(spacing: 0) {
-            WatchBaselineRing(score: model.score, size: 92, lineWidth: 9, numberSize: 25)
-            Text(model.statusTitle)
-                .font(.arcSerif(25))
-                .foregroundStyle(Color.arcCream)
-                .padding(.top, 11)
-            Text(model.statusBody)
-                .font(.arcSans(11))
-                .foregroundStyle(Color.arcMutedOnDark)
-                .multilineTextAlignment(.center)
-                .lineSpacing(2)
-                .padding(.top, 4)
+            if model.showsScore {
+                WatchBaselineRing(
+                    score: model.score,
+                    size: 88, lineWidth: 9, numberSize: 24,
+                    tint: model.decision.wristTint
+                )
+                Text(model.decisionShort)
+                    .font(.arcSerif(24))
+                    .foregroundStyle(Color.arcCream)
+                    .padding(.top, 9)
+                Text(model.whyLine)
+                    .font(.arcSans(10.5))
+                    .foregroundStyle(Color.arcMutedOnDark)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(2)
+                    .padding(.top, 4)
+            } else {
+                // §6 — calibrating / sparse: show the state, never a score.
+                WatchBaselineRing(
+                    score: 0, size: 88, lineWidth: 9, numberSize: 15,
+                    tint: .arcHollowGold, glyph: "•••"
+                )
+                Text("Calibrating")
+                    .font(.arcSerif(23))
+                    .foregroundStyle(Color.arcCream)
+                    .padding(.top, 9)
+                Text("Building your baseline. A real read lands once there's enough overnight data.")
+                    .font(.arcSans(10.5))
+                    .foregroundStyle(Color.arcMutedOnDark)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(2)
+                    .padding(.top, 4)
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(.horizontal, 14)
+        .background(Color.black)
+    }
+}
+
+// MARK: - 2b · Energy — all-day gauge — `data-screen-label="Watch energy"`
+
+struct WatchEnergyV3View: View {
+    @Environment(WatchModel.self) private var model
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text("ENERGY")
+                .font(.arcMono(8))
+                .kerning(0.8)
+                .foregroundStyle(Color.arcMutedOnDark)
+
+            (Text("\(model.energyPercent)")
+                .font(.arcMono(30))
+                .foregroundColor(.arcCream)
+                + Text("%")
+                .font(.arcMono(13))
+                .foregroundColor(.arcMutedOnDark))
+                .padding(.top, 8)
+                .padding(.bottom, 6)
+
+            // Ceiling bar — amber when the day's ceiling is pulled down.
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(Color.white.opacity(0.12))
+                    Capsule()
+                        .fill(model.energyLowered ? Color.arcAmber : Color.arcPrimaryGreen)
+                        .frame(width: geo.size.width * CGFloat(model.energyPercent) / 100)
+                }
+            }
+            .frame(height: 7)
+            .padding(.bottom, 9)
+
+            Text(model.energyBestWindow)
+                .font(.arcSans(10.5))
+                .foregroundStyle(Color.arcRailLight)
+                .lineSpacing(2)
+
+            Spacer(minLength: 6)
+
+            Text(model.energyCeilingNote)
+                .font(.arcSans(9))
+                .foregroundStyle(Color.arcRailDim)
+                .lineSpacing(2)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(Color.black)
+    }
+}
+
+// MARK: - 2c · Felt check-in — `data-screen-label="Watch check-in"`
+// One tap → posts back into today's score (§1.5).
+
+struct WatchCheckinV3View: View {
+    @Environment(WatchModel.self) private var model
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 0) {
+                Text("HOW DO YOU FEEL?")
+                    .font(.arcMono(8))
+                    .kerning(0.8)
+                    .foregroundStyle(Color.arcMutedOnDark)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.bottom, 10)
+
+                VStack(spacing: 7) {
+                    ForEach(model.feelChips) { chip in
+                        let isPicked = model.selectedFeel == chip.id
+                        Button {
+                            model.pickFeel(chip.id)
+                        } label: {
+                            Text(isPicked ? "\(chip.label) ✓" : chip.label)
+                                .font(.arcSans(12, weight: .semibold))
+                                .foregroundStyle(isPicked ? Color.arcBrightGreen : Color(hex: 0xE8E4DA))
+                                .frame(maxWidth: .infinity, minHeight: 44) // ≥44pt
+                                .background(
+                                    isPicked ? Color.arcPrimaryGreen.opacity(0.18) : Color.clear,
+                                    in: Capsule()
+                                )
+                                .overlay(
+                                    Capsule().strokeBorder(
+                                        isPicked ? Color.arcPrimaryGreen.opacity(0.6) : Color.white.opacity(0.16)
+                                    )
+                                )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+
+                Text(model.checkinDone ? "✓ Noted — tunes today's score" : "One tap. That's the whole job.")
+                    .font(.arcSans(9.5))
+                    .foregroundStyle(model.checkinDone ? Color.arcBrightGreen : Color.arcRailDim)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 10)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+        }
+        .background(Color.black)
+    }
+}
+
+// MARK: - 2d · Vitality glance — `data-screen-label="Watch vitality"`
+// The slow score — age ± band.
+
+struct WatchVitalityV3View: View {
+    @Environment(WatchModel.self) private var model
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text("VITALITY AGE")
+                .font(.arcMono(8))
+                .kerning(0.8)
+                .foregroundStyle(Color.arcMutedOnDark)
+
+            (Text("\(model.vitalityAge) ")
+                .font(.arcMono(30))
+                .foregroundColor(.arcCream)
+                + Text("±\(model.vitalityBand)")
+                .font(.arcMono(12))
+                .foregroundColor(.arcMutedOnDark))
+                .padding(.top, 8)
+                .padding(.bottom, 4)
+
+            // Gentle downward vitality line (design polyline).
+            GeometryReader { geo in
+                let pts: [CGFloat] = [8, 12, 14, 18, 20]
+                let stepX = geo.size.width / CGFloat(pts.count - 1)
+                Path { path in
+                    for (i, y) in pts.enumerated() {
+                        let x = CGFloat(i) * stepX
+                        let yy = geo.size.height * (y / 28)
+                        if i == 0 { path.move(to: CGPoint(x: x, y: yy)) }
+                        else { path.addLine(to: CGPoint(x: x, y: yy)) }
+                    }
+                }
+                .stroke(Color.arcPrimaryGreen, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
+            }
+            .frame(height: 26)
+
+            Text(model.vitalityDelta)
+                .font(.arcSans(10.5))
+                .foregroundStyle(Color.arcRailLight)
+                .padding(.top, 8)
+
+            Spacer(minLength: 6)
+
+            Text(model.vitalityFootnote)
+                .font(.arcSans(9))
+                .foregroundStyle(Color.arcRailDim)
+                .lineSpacing(2)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(Color.black)
+    }
+}
+
+// MARK: - 2e · Live workout — `data-screen-label="Watch workout"`
+// Current HR + zone bar + live "today's ceiling" buffer + ease-off cue.
+// Stays a wrist-down glance — the in-workout readiness-buffer pattern.
+
+struct WatchWorkoutV3View: View {
+    @Environment(WatchModel.self) private var model
+
+    private var ceilingFraction: CGFloat {
+        CGFloat(model.workoutCeilingUsed / model.workoutCeilingMax)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                Text(model.workoutTitle)
+                    .font(.arcMono(8))
+                    .kerning(0.8)
+                    .foregroundStyle(Color.arcBrightGreen)
+                Spacer()
+                Text(model.workoutElapsed)
+                    .font(.arcMono(8))
+                    .foregroundStyle(Color.arcMutedOnDark)
+            }
+
+            (Text("\(model.workoutHR) ")
+                .font(.arcMono(30))
+                .foregroundColor(.arcCream)
+                + Text("bpm")
+                .font(.arcMono(10))
+                .foregroundColor(.arcMutedOnDark))
+                .padding(.top, 8)
+                .padding(.bottom, 2)
+
+            Text(model.workoutZoneLabel)
+                .font(.arcMono(8))
+                .kerning(0.8)
+                .foregroundStyle(Color.arcHollowGold)
+                .padding(.bottom, 8)
+
+            // 5-segment zone bar — the active zone lit green.
+            HStack(spacing: 3) {
+                ForEach(1...5, id: \.self) { zone in
+                    Capsule()
+                        .fill(zone == model.workoutZoneIndex ? Color.arcPrimaryGreen : Color.white.opacity(0.16))
+                        .frame(height: 6)
+                }
+            }
+            .padding(.bottom, 12)
+
+            Text("TODAY'S CEILING · \(model.workoutCeilingUsed, specifier: "%.1f") / \(model.workoutCeilingMax, specifier: "%.1f")")
+                .font(.arcMono(8))
+                .kerning(0.8)
+                .foregroundStyle(Color.arcMutedOnDark)
+                .padding(.bottom, 5)
+
+            // Ceiling buffer bar — amber as it fills toward the day's ceiling.
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(Color.white.opacity(0.12))
+                    Capsule().fill(Color.arcAmber)
+                        .frame(width: geo.size.width * ceilingFraction)
+                }
+            }
+            .frame(height: 6)
+            .padding(.bottom, 8)
+
+            Spacer(minLength: 0)
+
+            Text(model.workoutEaseOff)
+                .font(.arcSans(9.5))
+                .foregroundStyle(Color.arcRailLight)
+                .lineSpacing(2)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
         .background(Color.black)
     }
 }
@@ -340,8 +607,12 @@ struct WatchResultReadyV3View: View {
 #if DEBUG
 #Preview("Face") { WatchFaceEntryView().environment(WatchModel()) }
 #Preview("Today") { WatchTodayBaselineView().environment(WatchModel()) }
+#Preview("Energy") { WatchEnergyV3View().environment(WatchModel()) }
+#Preview("Check-in") { WatchCheckinV3View().environment(WatchModel()) }
+#Preview("Vitality") { WatchVitalityV3View().environment(WatchModel()) }
 #Preview("Glance") { WatchGlanceV3View().environment(WatchModel()) }
 #Preview("Quick-log") { WatchQuickLogV3View().environment(WatchModel()) }
+#Preview("Workout") { WatchWorkoutV3View().environment(WatchModel()) }
 #Preview("Experiment") { WatchExperimentV3View().environment(WatchModel()) }
 #Preview("Result ready") { WatchResultReadyV3View().environment(WatchModel()) }
 #endif

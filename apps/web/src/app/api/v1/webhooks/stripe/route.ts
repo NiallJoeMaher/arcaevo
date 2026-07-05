@@ -1,22 +1,27 @@
 /**
- * POST /api/v1/webhooks/stripe — MOCK webhook (docs/MOCKED_APIS.md §2).
+ * POST /api/v1/webhooks/stripe
  *
- * Payload is a simplified echo of Stripe's event envelope:
- *   { "type": "invoice.paid", "data": { "memberId": "mem_0001" } }
+ * TWO modes, chosen by whether `STRIPE_WEBHOOK_SECRET` is configured:
  *
- * Supported types:
- *   checkout.session.completed → membership active (+ mock subscription id),
- *                                dunning cleared, E4 receipt email sent
- *   invoice.paid               → membership active, renewal +1 year,
- *                                dunning resolved (instant resume)
- *   invoice.payment_failed     → membership past_due + dunning ladder
- *                                advances (day 0 → 3 → 10 → 14 read-only
- *                                pause); first failure sends E9
- *   customer.subscription.deleted → membership canceled
+ *  1. REAL (STRIPE_WEBHOOK_SECRET set) — verify the `Stripe-Signature` header
+ *     against the signing secret over the RAW body (src/lib/stripe-signature.ts),
+ *     then handle genuine Stripe events fired server-to-server:
+ *       checkout.session.completed        → activate membership / mark add-on paid
+ *       customer.subscription.updated      → status + cancel_at_period_end
+ *       customer.subscription.deleted      → canceled
+ *       invoice.paid                       → renew +1yr, resolve dunning
+ *       invoice.payment_failed             → past_due + dunning ladder (E9 once)
+ *
+ *  2. MOCK/dev (no secret) — the interim shared-secret gate + simplified payload
+ *     `{ type, data:{ memberId } }`, fired from the browser on /checkout so the
+ *     e2e + docker stacks work without a Stripe account. UNCHANGED from before.
+ *
+ * See docs/MOCKED_APIS.md §2 and docs/STRIPE_SETUP.md.
  */
 import { z } from "zod";
 import { collections } from "@/lib/db";
 import { verifyWebhookSecret } from "@/lib/env";
+import { constructWebhookEvent, type StripeEvent } from "@/lib/stripe-signature";
 import {
   isReadOnly,
   nextDunningStage,
@@ -37,13 +42,6 @@ const WebhookPayload = z.object({
   ]),
   data: z.object({ memberId: z.string() }),
 });
-
-// MOCK: no real Stripe signature verification yet (docs/MOCKED_APIS.md §2) — a
-// real integration MUST verify `stripe-signature` against the webhook signing
-// secret. Until then we gate on a shared secret: OPEN in dev/e2e (the client
-// fires it from /checkout), but in production STRIPE_WEBHOOK_SECRET must match
-// the `x-arcaevo-webhook-secret` header (fail closed) so no one can grant
-// themselves free membership / clear dunning.
 
 // MOCK: card metadata Stripe would put on the event.
 const MOCK_CARD = "Visa ···· 4242";
@@ -73,6 +71,25 @@ async function sendReceipt(member: User, membership: Membership, now: Date) {
 }
 
 export async function POST(req: Request) {
+  // ── REAL Stripe signature verification (production) ──────────────────────
+  if (process.env.STRIPE_WEBHOOK_SECRET) {
+    const raw = await req.text();
+    const event = constructWebhookEvent(
+      raw,
+      req.headers.get("stripe-signature"),
+      process.env.STRIPE_WEBHOOK_SECRET
+    );
+    if (!event) {
+      // Bad/expired signature, or unparseable body → 400 (Stripe retries).
+      return Response.json(
+        { error: "invalid_signature" },
+        { status: 400 }
+      );
+    }
+    return handleRealEvent(event);
+  }
+
+  // ── MOCK path (dev/e2e/docker): shared-secret gate + simplified payload ──
   if (
     !verifyWebhookSecret(req, "STRIPE_WEBHOOK_SECRET", "x-arcaevo-webhook-secret")
   ) {
@@ -192,4 +209,235 @@ export async function POST(req: Request) {
   }
 
   return Response.json({ ok: true, type, memberId: data.memberId });
+}
+
+// ---------------------------------------------------------------------------
+// REAL event handling (genuine Stripe event envelopes)
+// ---------------------------------------------------------------------------
+
+/** Read a string field off an object (defensive). */
+function str(obj: Record<string, unknown>, key: string): string | undefined {
+  const v = obj[key];
+  return typeof v === "string" ? v : undefined;
+}
+
+/** Read a metadata string off a Stripe object. */
+function meta(obj: Record<string, unknown>, key: string): string | undefined {
+  const m = obj.metadata as Record<string, unknown> | undefined;
+  const v = m?.[key];
+  return typeof v === "string" ? v : undefined;
+}
+
+/** The subscription id an invoice belongs to (handles nested `parent`). */
+function invoiceSubscriptionId(
+  inv: Record<string, unknown>
+): string | undefined {
+  const direct = str(inv, "subscription");
+  if (direct) return direct;
+  const parent = inv.parent as Record<string, unknown> | undefined;
+  const details = parent?.subscription_details as
+    | Record<string, unknown>
+    | undefined;
+  return details ? str(details, "subscription") : undefined;
+}
+
+async function findMembership(opts: {
+  memberId?: string;
+  subscriptionId?: string;
+}): Promise<Membership | null> {
+  const memberships = await collections.memberships();
+  if (opts.memberId) {
+    const byMember =
+      (await memberships.findOne({
+        memberId: opts.memberId,
+        status: { $in: ["active", "past_due", "pending"] },
+      })) ?? (await memberships.findOne({ memberId: opts.memberId }));
+    if (byMember) return byMember;
+  }
+  if (opts.subscriptionId) {
+    return memberships.findOne({ stripeSubscriptionId: opts.subscriptionId });
+  }
+  return null;
+}
+
+async function handleRealEvent(event: StripeEvent): Promise<Response> {
+  const obj = event.data.object;
+  const memberships = await collections.memberships();
+  const users = await collections.users();
+  const now = new Date();
+
+  switch (event.type) {
+    case "checkout.session.completed": {
+      // Only grant access once funds have actually settled. With dynamic
+      // payment methods an async method (e.g. SEPA/bank debit) can fire
+      // `completed` while still `unpaid`; activating then would give a paid
+      // membership before payment clears. `paid` = settled; `no_payment_required`
+      // = €0/trial. `unpaid` → ack (200 so Stripe stops retrying) but do NOT
+      // activate — subscriptions settle via `invoice.paid` (handled below); if
+      // async one-off methods are ever enabled, add
+      // `checkout.session.async_payment_succeeded` handling here.
+      const paymentStatus = str(obj, "payment_status");
+      if (paymentStatus && paymentStatus === "unpaid") {
+        return Response.json({ ok: true, type: event.type, deferred: "unpaid" });
+      }
+
+      const orderId = meta(obj, "orderId");
+      const memberId = meta(obj, "memberId");
+      const subscriptionId =
+        str(obj, "subscription") ?? undefined; // set for mode:subscription
+      const customerId = str(obj, "customer");
+
+      // One-off add-on / recheck (mode:payment) → mark the order paid.
+      if (orderId) {
+        await collections
+          .testOrders()
+          .then((c) =>
+            c.updateOne({ _id: orderId }, { $set: { paidAt: now } })
+          );
+        return Response.json({ ok: true, type: event.type, orderId });
+      }
+
+      // Membership subscription → activate.
+      const membership = await findMembership({ memberId, subscriptionId });
+      if (!membership) {
+        // Gift or unknown context — nothing to activate, ack so Stripe stops.
+        return Response.json({ ok: true, type: event.type, ignored: "no_membership" });
+      }
+      await memberships.updateOne(
+        { _id: membership._id },
+        {
+          $set: {
+            status: "active",
+            ...(subscriptionId
+              ? { stripeSubscriptionId: subscriptionId }
+              : {}),
+            ...resolveDunning(),
+          },
+        }
+      );
+      if (customerId && membership.memberId.startsWith("mem")) {
+        await users.updateOne(
+          { _id: membership.memberId },
+          { $set: { stripeCustomerId: customerId } }
+        );
+      }
+      const member = await users.findOne({ _id: membership.memberId });
+      if (member) await sendReceipt(member, membership, now);
+      return Response.json({ ok: true, type: event.type, memberId: membership.memberId });
+    }
+
+    case "customer.subscription.updated": {
+      const membership = await findMembership({
+        memberId: meta(obj, "memberId"),
+        subscriptionId: str(obj, "id"),
+      });
+      if (!membership) {
+        return Response.json({ ok: true, type: event.type, ignored: "no_membership" });
+      }
+      const stripeStatus = str(obj, "status");
+      const status: Membership["status"] =
+        stripeStatus === "past_due" || stripeStatus === "unpaid"
+          ? "past_due"
+          : stripeStatus === "canceled" || stripeStatus === "incomplete_expired"
+            ? "canceled"
+            : "active";
+      await memberships.updateOne(
+        { _id: membership._id },
+        {
+          $set: {
+            status,
+            cancelAtPeriodEnd: obj.cancel_at_period_end === true,
+            ...(str(obj, "id")
+              ? { stripeSubscriptionId: str(obj, "id") }
+              : {}),
+          },
+        }
+      );
+      return Response.json({
+        ok: true,
+        type: event.type,
+        memberId: membership.memberId,
+        status,
+      });
+    }
+
+    case "customer.subscription.deleted": {
+      const membership = await findMembership({
+        memberId: meta(obj, "memberId"),
+        subscriptionId: str(obj, "id"),
+      });
+      if (!membership) {
+        return Response.json({ ok: true, type: event.type, ignored: "no_membership" });
+      }
+      await memberships.updateOne(
+        { _id: membership._id },
+        { $set: { status: "canceled", cancelAtPeriodEnd: false } }
+      );
+      return Response.json({ ok: true, type: event.type, memberId: membership.memberId });
+    }
+
+    case "invoice.paid": {
+      const subscriptionId = invoiceSubscriptionId(obj);
+      const membership = await findMembership({
+        memberId: meta(obj, "memberId"),
+        subscriptionId,
+      });
+      if (!membership) {
+        return Response.json({ ok: true, type: event.type, ignored: "no_membership" });
+      }
+      const renewed = new Date(membership.renewalDate);
+      renewed.setFullYear(renewed.getFullYear() + 1);
+      await memberships.updateOne(
+        { _id: membership._id },
+        {
+          $set: { status: "active", renewalDate: renewed, ...resolveDunning() },
+        }
+      );
+      return Response.json({ ok: true, type: event.type, memberId: membership.memberId });
+    }
+
+    case "invoice.payment_failed": {
+      const subscriptionId = invoiceSubscriptionId(obj);
+      const membership = await findMembership({
+        memberId: meta(obj, "memberId"),
+        subscriptionId,
+      });
+      if (!membership) {
+        return Response.json({ ok: true, type: event.type, ignored: "no_membership" });
+      }
+      const stage = nextDunningStage(membership.dunningStage ?? "none");
+      const startedAt = membership.dunningStartedAt ?? now;
+      await memberships.updateOne(
+        { _id: membership._id },
+        {
+          $set: {
+            status: "past_due",
+            dunningStage: stage,
+            dunningStartedAt: startedAt,
+          },
+        }
+      );
+      if (stage === "day0") {
+        const member = await users.findOne({ _id: membership.memberId });
+        if (member) {
+          await sendEmail("e9_payment_failed", member.email, {
+            cardSummary: MOCK_CARD,
+            pauseDateLabel: dayMonthLabel(pauseDate(startedAt)),
+            updateCardUrl: `${siteUrl()}/account`,
+          });
+        }
+      }
+      return Response.json({
+        ok: true,
+        type: event.type,
+        memberId: membership.memberId,
+        dunningStage: stage,
+        readOnly: isReadOnly(stage),
+      });
+    }
+
+    default:
+      // Unhandled event type — ack so Stripe stops retrying.
+      return Response.json({ ok: true, ignored: event.type });
+  }
 }

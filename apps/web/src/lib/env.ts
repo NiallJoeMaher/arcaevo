@@ -102,3 +102,49 @@ export function verifyWebhookSecret(
   if (process.env.ALLOW_OPEN_WEBHOOKS === "true") return true; // local prod build
   return false; // real prod misconfig ⇒ fail closed
 }
+
+/**
+ * Authorise a scheduled cron invocation of a secured route (e.g. the GDPR
+ * erasure runner). Vercel Cron sets `Authorization: Bearer $CRON_SECRET` on
+ * every scheduled request. Precedence mirrors `verifyWebhookSecret`:
+ *  1. If `CRON_SECRET` is configured, a matching bearer header is ALWAYS
+ *     required (dev or prod). This is what real production uses.
+ *  2. Otherwise, non-production is OPEN so a developer can trigger the route by
+ *     hand (curl) with zero config.
+ *  3. Otherwise (production, no secret configured) it is REJECTED — fail closed
+ *     rather than expose an unauthenticated data-deletion endpoint.
+ */
+export function cronRequestAuthorized(req: Request): boolean {
+  const secret = process.env.CRON_SECRET;
+  if (secret) {
+    const provided = req.headers.get("authorization") ?? "";
+    return constantTimeEqual(provided, `Bearer ${secret}`);
+  }
+  if (!isProduction()) return true; // dev/test: allow manual triggering
+  return false; // real prod misconfig ⇒ fail closed
+}
+
+/**
+ * Whether the MOCK AI bloodwork extraction (`ai-extraction.mock.ts`, which
+ * fabricates plausible marker values from a hash of the file name) is allowed
+ * to run. It must be OFF for real users — a real person would otherwise
+ * "confirm" invented numbers as their own health data. When OFF, the photo/PDF
+ * upload path returns an honest `manualEntryRequired` state and routes the user
+ * to manual hand-entry (which is real and safe). Auto-ON in non-production (so
+ * dev + e2e keep exercising the mock, incl. the "41 or 47?" demo); in
+ * production it is OFF unless explicitly opted in via `ALLOW_MOCK_EXTRACTION`.
+ */
+export function mockExtractionEnabled(): boolean {
+  if (!isProduction()) return true;
+  return process.env.ALLOW_MOCK_EXTRACTION === "true";
+}
+
+/**
+ * Whether IP rate-limiting is enforced (auth endpoints). ON everywhere by
+ * default; a local prod-build stack (e2e) can opt out with
+ * `RATE_LIMIT_DISABLED=true` so many scripted sign-in attempts from one host
+ * don't trip the limiter and flake the suite. Real production leaves it unset.
+ */
+export function rateLimitingEnabled(): boolean {
+  return process.env.RATE_LIMIT_DISABLED !== "true";
+}

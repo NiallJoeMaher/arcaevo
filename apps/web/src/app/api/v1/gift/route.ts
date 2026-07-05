@@ -11,7 +11,7 @@ import { randomInt } from "node:crypto";
 import { parseJsonBody } from "@/lib/api";
 import { collections } from "@/lib/db";
 import { GiftCreateInput, TIER_PRICE_EUR, type GiftCode } from "@/lib/models";
-import { paymentsVendor } from "@/lib/vendors/stripe.mock";
+import { getPaymentsVendor } from "@/lib/vendors/stripe";
 
 /** Human-safe code alphabet (no 0/O/1/I). `seq` supplies random entropy. */
 function giftCode(seq: number, purchaserEmail: string): string {
@@ -56,11 +56,16 @@ export async function POST(req: Request) {
   };
   await giftCodes.insertOne(gift);
 
-  // MOCK Stripe checkout for the €329 gift purchase.
-  const checkout = await paymentsVendor.createCheckoutSession({
+  // Stripe checkout for the €329 gift purchase. A gift is a ONE-OFF payment
+  // (buyer pays today; the recipient's own subscription starts at activation),
+  // so mode:"payment" with an inline price — not the recurring Essential Price.
+  const checkout = await getPaymentsVendor().createCheckoutSession({
     memberId: `gift:${purchaserEmail.toLowerCase()}`,
     description: `Gift Essential — 1 year (${code})`,
     amountEur: gift.priceEur,
+    mode: "payment",
+    email: purchaserEmail.toLowerCase(),
+    metadata: { giftCode: code, kind: "gift" },
   });
 
   return Response.json(

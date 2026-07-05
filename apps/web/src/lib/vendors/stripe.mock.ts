@@ -9,7 +9,9 @@
 // inputs — identical inputs always produce identical ids. No randomness.
 import type { TestOrderStatus } from "@/lib/models";
 import type {
+  CreateCheckoutSessionParams,
   PaymentsVendor,
+  VendorBillingPortalSession,
   VendorCheckoutSession,
   VendorRefundResult,
   VendorSubscription,
@@ -31,12 +33,12 @@ export function isRefundable(orderStatus: TestOrderStatus): boolean {
 }
 
 class StripeMock implements PaymentsVendor {
-  // MOCK: returns a fake checkout URL — nothing is hosted there.
-  async createCheckoutSession(params: {
-    memberId: string;
-    description: string;
-    amountEur: number;
-  }): Promise<VendorCheckoutSession> {
+  // MOCK: returns a fake checkout URL — nothing is hosted there. Ignores the
+  // live-only fields (mode/lookupKeys/…) so ids stay deterministic on the core
+  // three inputs, exactly as the existing tests assert.
+  async createCheckoutSession(
+    params: CreateCheckoutSessionParams
+  ): Promise<VendorCheckoutSession> {
     const sessionId = `cs_mock_${fnv1aHex(
       `${params.memberId}:${params.description}:${params.amountEur}`
     )}`;
@@ -53,6 +55,16 @@ class StripeMock implements PaymentsVendor {
   ): Promise<VendorSubscription | null> {
     if (!subscriptionId.startsWith("sub_mock_")) return null;
     return { subscriptionId, status: "active", priceEur: 0 };
+  }
+
+  // MOCK: returns a fake, deterministic Customer Portal URL — nothing is
+  // hosted there. Same pattern as the mock checkout (fnv1a of the inputs).
+  async createBillingPortalSession(
+    customerId: string,
+    returnUrl: string
+  ): Promise<VendorBillingPortalSession> {
+    const sessionId = `bps_mock_${fnv1aHex(`${customerId}:${returnUrl}`)}`;
+    return { url: `https://billing.stripe.mock/p/session/${sessionId}` };
   }
 
   // MOCK: applies OUR refund policy and pretends the money moved.

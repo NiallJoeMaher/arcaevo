@@ -38,10 +38,19 @@ targets:
       # which this dependency provides. The `WatchConnectivity.framework` is
       # linked automatically via Swift's `import WatchConnectivity` autolinking.
       - target: ArcaevoWatch
+      # iOS Lock Screen + Home Screen widgets (WidgetKit app extension).
+      # Reads the App-Group GlanceSnapshot the app writes after every compute.
+      # app-extension products auto-embed into the host app's "Embed
+      # Foundation Extensions" copy phase.
+      - target: ArcaevoWidgets
     entitlements:
       path: Arcaevo/Arcaevo.entitlements
       properties:
         com.apple.developer.healthkit: true
+        # Shared App Group container. The app writes GlanceSnapshot here after
+        # every readiness/energy compute; the iOS widget extension reads it.
+        com.apple.security.application-groups:
+          - group.co.arcaevo.app
         # TODO(universal links): needs a real Apple Developer team +
         # apple-app-site-association hosted at https://arcaevo.com before
         # this can be enabled. Uncomment when signing with a real team:
@@ -77,6 +86,17 @@ targets:
       - path: ArcaevoKit
       - path: Fonts
         buildPhase: resources
+    dependencies:
+      # Watch accessory complication extension (WidgetKit on watchOS). Embeds
+      # into the watch app; reads the App-Group GlanceSnapshot the watch writes.
+      - target: ArcaevoWatchWidgets
+    entitlements:
+      path: ArcaevoWatch/ArcaevoWatch.entitlements
+      properties:
+        # Same App Group as the phone (on the watch's own container): the watch
+        # app writes its GlanceSnapshot here; the complication extension reads it.
+        com.apple.security.application-groups:
+          - group.co.arcaevo.app
     info:
       path: ArcaevoWatch/Info.plist
       properties:
@@ -115,6 +135,95 @@ targets:
         Release:
           ARCAEVO_API_BASE_URL: https://arcaevo.com/api/v1
 
+  # ---------------------------------------------------------------
+  # iOS widget extension — Lock Screen + Home Screen widgets
+  # (readiness ring, energy gauge, HRV/RHR mini, next-test countdown).
+  # Lightweight: Foundation + SwiftUI + WidgetKit only. It reads the
+  # App-Group GlanceSnapshot the app writes; it does NOT link ArcaevoKit
+  # (a local snapshot DTO decodes the same JSON), so the extension stays tiny.
+  # ---------------------------------------------------------------
+  ArcaevoWidgets:
+    type: app-extension
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: ArcaevoWidgets
+    info:
+      path: ArcaevoWidgets/Info.plist
+      properties:
+        CFBundleDisplayName: Arcaevo
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    entitlements:
+      path: ArcaevoWidgets/ArcaevoWidgets.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.co.arcaevo.app
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: co.arcaevo.app.widgets
+        TARGETED_DEVICE_FAMILY: "1"
+        GENERATE_INFOPLIST_FILE: NO
+        SKIP_INSTALL: NO
+    dependencies:
+      - sdk: WidgetKit.framework
+      - sdk: SwiftUI.framework
+
+  # ---------------------------------------------------------------
+  # watchOS accessory complication extension — the real WidgetKit
+  # complication that Phase 17 deferred. Families: circular / corner /
+  # rectangular / inline, showing readiness / energy / next-test. Reads the
+  # App-Group GlanceSnapshot the watch app writes; also lightweight (no ArcaevoKit).
+  # ---------------------------------------------------------------
+  ArcaevoWatchWidgets:
+    type: app-extension
+    platform: watchOS
+    deploymentTarget: "10.0"
+    sources:
+      - path: ArcaevoWatchWidgets
+    info:
+      path: ArcaevoWatchWidgets/Info.plist
+      properties:
+        CFBundleDisplayName: Arcaevo
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    entitlements:
+      path: ArcaevoWatchWidgets/ArcaevoWatchWidgets.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.co.arcaevo.app
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: co.arcaevo.app.watchkitapp.complications
+        GENERATE_INFOPLIST_FILE: NO
+        SKIP_INSTALL: NO
+    dependencies:
+      - sdk: WidgetKit.framework
+      - sdk: SwiftUI.framework
+
+  # ---------------------------------------------------------------
+  # Phase 22 engine regression suite — XCTest unit tests for the
+  # daily-engagement engines (the core IP). HOSTLESS logic tests: the
+  # target compiles the ArcaevoKit engine sources directly (same as the
+  # app/watch targets do), so `xcodebuild test` runs pure deterministic
+  # maths with NO app launch, NO HealthKit, NO network, NO host-app flake.
+  # Test-only: it links nothing from the app/watch/widget targets.
+  # ---------------------------------------------------------------
+  ArcaevoKitTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: ArcaevoKitTests
+      # The engines under test — compiled straight into the test bundle so
+      # the suite is a standalone logic-test module (no @testable host).
+      - path: ArcaevoKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: co.arcaevo.kit.tests
+        GENERATE_INFOPLIST_FILE: YES
+        TARGETED_DEVICE_FAMILY: "1"
+
 schemes:
   Arcaevo:
     build:
@@ -132,3 +241,11 @@ schemes:
       config: Debug
     archive:
       config: Release
+  ArcaevoKitTests:
+    build:
+      targets:
+        ArcaevoKitTests: all
+    test:
+      targets:
+        - ArcaevoKitTests
+      gatherCoverageData: false

@@ -202,6 +202,50 @@ struct ShareLinkRevoked: Codable, Hashable {
     var token: String
 }
 
+// MARK: Clinician note (Phase 22 — a human note on EVERY reviewed panel)
+
+/// The short human-written note Dr. Nolan leaves on every reviewed panel —
+/// template-assisted, but a person signs it (name + IMC number + read date).
+/// Field names are locked in the Phase 22 shared contract; the web embeds
+/// this on the results payload per reviewed panel and `APIClient.results()`
+/// decodes it via `BiomarkerReading.clinicianNote`.
+struct ClinicianNote: Codable, Hashable {
+    var text: String
+    var clinicianName: String
+    var imcNumber: String
+    var readAt: Date?
+    /// Optional linkage the web may include (`panelKey/orderId`).
+    var panelKey: String?
+    var orderId: String?
+}
+
+// MARK: Recheck order (Phase 22 — the €69 kit, the ONLY sell)
+
+/// Client shape for the €69 recheck kit — closing the experiment → recheck →
+/// verdict loop. Maps onto the EXISTING add-on order path (`POST /orders`
+/// with `isAddOn: true`); no new endpoint. Never a supplement.
+struct RecheckOrder: Codable, Hashable {
+    /// Marker code being rechecked, e.g. "ferritin".
+    var markerId: String
+    /// The experiment whose verdict the recheck closes, when there is one.
+    var experimentId: String?
+    /// Contractual price — always €69 for the recheck kit.
+    var priceEur: Int
+
+    static let recheckPriceEur = 69
+
+    init(markerId: String, experimentId: String? = nil, priceEur: Int = RecheckOrder.recheckPriceEur) {
+        self.markerId = markerId
+        self.experimentId = experimentId
+        self.priceEur = priceEur
+    }
+
+    /// The existing add-on order path this maps to.
+    func asCreateOrderRequest(markerName: String) -> CreateOrderRequest {
+        CreateOrderRequest(kind: .kit, panel: "Recheck — \(markerName)", isAddOn: true)
+    }
+}
+
 // MARK: Watch session (golden-watch-login handoff)
 
 /// `POST /auth/watch-session` — PHONE-authed (the member session bearer).

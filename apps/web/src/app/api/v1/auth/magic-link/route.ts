@@ -12,8 +12,14 @@ import { parseJsonBody, siteUrl } from "@/lib/api";
 import { sendEmail } from "@/lib/emails";
 import { findUserByEmail, issueMagicLink } from "@/lib/member-auth";
 import { MagicLinkRequestInput } from "@/lib/models";
+import { limitByIp, REQUEST_RATE_LIMIT } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
+  // IP rate-limit on top of the per-email 60s resend throttle (blunts an
+  // attacker spamming links across many addresses from one host).
+  const limited = await limitByIp(req, "magic-link-request", REQUEST_RATE_LIMIT);
+  if (limited) return limited;
+
   const parsed = await parseJsonBody(req, MagicLinkRequestInput);
   if (!parsed.ok) return parsed.response;
   const { email, purpose } = parsed.data;

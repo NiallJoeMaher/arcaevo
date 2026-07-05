@@ -6,8 +6,11 @@ import SwiftUI
 /// GP share links, and the honest delete entry.
 struct PrivacyV3View: View {
     @Environment(AppState.self) private var appState
+    @Environment(AppModel.self) private var model
 
     @State private var research = false
+    @State private var cycleAware = CyclePreferences.isEnabled
+    @State private var requestingCycle = false
     @State private var exportRequested = false
     @State private var loadedConsents = false
 
@@ -53,6 +56,23 @@ struct PrivacyV3View: View {
                         get: { research },
                         set: { setResearch($0) }
                     ))
+                }
+            )
+            .padding(.bottom, 14)
+
+            // Cycle-aware baselines — Art. 9 special-category data. Off by
+            // default; enabling fires the SEPARATE HealthKit cycle ask
+            // (`requestCycleAccess()`) — never bundled into the main sheet.
+            // Cycle data never leaves the device unless this is on.
+            consentRow(
+                title: "Cycle-aware baselines",
+                sub: "Reads cycle tracking from Apple Health · off by default, never synced unless on",
+                trailing: {
+                    ArcToggle(isOn: Binding(
+                        get: { cycleAware },
+                        set: { setCycleAware($0) }
+                    ))
+                    .disabled(requestingCycle)
                 }
             )
             .padding(.bottom, 14)
@@ -189,6 +209,25 @@ struct PrivacyV3View: View {
             } catch {
                 // Offline demo: the choice is kept locally in AppState and
                 // re-posted on the next consent write.
+            }
+        }
+    }
+
+    /// Cycle-aware baselines — the opt-in (`CyclePreferences.isEnabled`) that
+    /// the readiness/energy engines read. Enabling triggers the separate cycle
+    /// HealthKit ask; if the member declines the system sheet, revert so the UI
+    /// never claims access it doesn't have.
+    private func setCycleAware(_ on: Bool) {
+        cycleAware = on
+        CyclePreferences.isEnabled = on
+        guard on else { return }
+        requestingCycle = true
+        Task {
+            let granted = await model.requestCycleAccess()
+            requestingCycle = false
+            if !granted {
+                CyclePreferences.isEnabled = false
+                cycleAware = false
             }
         }
     }

@@ -47,20 +47,56 @@ export interface VendorSubscription {
   priceEur: number;
 }
 
+export interface VendorBillingPortalSession {
+  /** Hosted Stripe Customer Portal URL. MOCK: a fake URL — nothing is hosted. */
+  url: string;
+}
+
 export interface VendorRefundResult {
   refunded: boolean;
   amountEur: number;
   reason: string;
 }
 
+/** Stripe Checkout mode: memberships are subscriptions, add-ons are one-off. */
+export type VendorCheckoutMode = "subscription" | "payment";
+
+export interface CreateCheckoutSessionParams {
+  memberId: string;
+  description: string;
+  amountEur: number;
+  // --- fields below are used ONLY by the LIVE vendor; the MOCK ignores them
+  //     (so all existing callers/tests keep their 3-field behaviour) ----------
+  /** subscription (annual tiers) | payment (add-ons/recheck). Live default: payment. */
+  mode?: VendorCheckoutMode;
+  /** Billing Price lookup_keys to bill (resolved to price ids at runtime). When
+   *  omitted the live vendor falls back to an inline price for `amountEur`. */
+  lookupKeys?: string[];
+  /** Prefill / attach the customer email (guests). */
+  email?: string | null;
+  /** Extra metadata copied onto the session + (for subscriptions) the sub. */
+  metadata?: Record<string, string>;
+  /** Overrides for the post-checkout redirects. */
+  successUrl?: string;
+  cancelUrl?: string;
+}
+
 export interface PaymentsVendor {
   /** Create a checkout session for a membership or add-on purchase. */
-  createCheckoutSession(params: {
-    memberId: string;
-    description: string;
-    amountEur: number;
-  }): Promise<VendorCheckoutSession>;
+  createCheckoutSession(
+    params: CreateCheckoutSessionParams
+  ): Promise<VendorCheckoutSession>;
   getSubscription(subscriptionId: string): Promise<VendorSubscription | null>;
+  /**
+   * Create a hosted Customer Portal session for self-service billing (update
+   * card, view invoices, switch plan, cancel renewal). The member must already
+   * be a Stripe Customer (`user.stripeCustomerId`). `returnUrl` is where Stripe
+   * sends the member when they leave the portal (back to /account).
+   */
+  createBillingPortalSession(
+    customerId: string,
+    returnUrl: string
+  ): Promise<VendorBillingPortalSession>;
   /**
    * Refund policy (enforced in OUR code, not Stripe): full refund before the
    * kit ships / draw is booked; none once the sample is processed.

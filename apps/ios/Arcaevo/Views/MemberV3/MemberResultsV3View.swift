@@ -5,7 +5,13 @@ import SwiftUI
 /// alarming number. The one group worth acting on navigates to the marker
 /// detail (ApoB).
 struct MemberResultsV3View: View {
+    @Environment(AppModel.self) private var model
+
     init() {}
+
+    /// The panel's signed clinician note. All readings of one panel share the
+    /// same note object, so `AppModel.clinicianNote` already dedupes to one.
+    private var note: ClinicianNote? { model.clinicianNote }
 
     var body: some View {
         NavigationStack {
@@ -22,6 +28,14 @@ struct MemberResultsV3View: View {
                             .padding(.bottom, 14)
 
                         summaryChips
+
+                        // Dr. Nolan's signed note — on EVERY reviewed panel (the
+                        // §5 guardrail: no uninterpreted results). Rendered from
+                        // the real `clinicianNote`; gracefully absent when null.
+                        if let note {
+                            clinicianNoteCard(note)
+                                .padding(.bottom, 9)
+                        }
 
                         // Cardiovascular — the one worth acting on → detail.
                         NavigationLink {
@@ -80,6 +94,44 @@ struct MemberResultsV3View: View {
             .padding(.vertical, 6)
             .padding(.horizontal, 12)
             .background(fill, in: Capsule())
+    }
+
+    // MARK: Clinician note (signed, on every panel)
+
+    private func clinicianNoteCard(_ note: ClinicianNote) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Mv3Eyebrow(text: "A NOTE FROM DR. NOLAN · ON EVERY PANEL", size: 9,
+                       color: Color.arcHollowGold, kerning: 0.9)
+                .padding(.bottom, 6)
+            Text("\u{201C}\(note.text)\u{201D}")
+                .font(.arcSans(12.5))
+                .italic()
+                .lineSpacing(4)
+                .foregroundStyle(Color(hex: 0xE8E4DA))
+            Text(signature(note))
+                .font(.arcMono(8.5, weight: .regular))
+                .foregroundStyle(Color.arcMutedOnDark)
+                .padding(.top, 7)
+        }
+        .padding(.horizontal, 15)
+        .padding(.vertical, 13)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.arcCream.opacity(0.07),
+                    in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 15, style: .continuous)
+                .strokeBorder(Color.arcCream.opacity(0.14), lineWidth: 1)
+        )
+        .accessibilityElement(children: .combine)
+    }
+
+    /// "DR. S. NOLAN · IMC 412887 · READ 2 JUL" — signed, named, dated.
+    private func signature(_ note: ClinicianNote) -> String {
+        var parts = [note.clinicianName.uppercased(), "IMC \(note.imcNumber)"]
+        if let readAt = note.readAt {
+            parts.append("READ \(DataV3Format.dayMonth(readAt).uppercased())")
+        }
+        return parts.joined(separator: " · ")
     }
 
     // MARK: Group rows

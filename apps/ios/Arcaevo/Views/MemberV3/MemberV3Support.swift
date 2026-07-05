@@ -17,6 +17,58 @@ enum Mv3 {
 
     /// rgba(255,255,255,0.06) card fill used across every member screen.
     static let cardFill = Color.white.opacity(0.06)
+
+    /// Amber ring/decision tone (#D99A4E) used for "go easy / rest" readiness.
+    static let goEasyAmber = Color(hex: 0xD99A4E)
+    /// Rose "−" delta text (#E2A08D) on the behaviour-impact table.
+    static let deltaRose = Color(hex: 0xE2A08D)
+
+    /// English words for a score 0–100 — VoiceOver reads "sixty-two", not "62".
+    static func spell(_ n: Int) -> String {
+        if n < 0 || n > 100 { return "\(n)" }
+        let ones = ["zero", "one", "two", "three", "four", "five", "six", "seven",
+                    "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen",
+                    "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"]
+        let tens = ["", "", "twenty", "thirty", "forty", "fifty", "sixty",
+                    "seventy", "eighty", "ninety"]
+        if n < 20 { return ones[n] }
+        if n == 100 { return "one hundred" }
+        let t = tens[n / 10]
+        let o = n % 10
+        return o == 0 ? t : "\(t)-\(ones[o])"
+    }
+}
+
+/// The shared 96pt readiness/health-score ring (Geist-Mono numeral + eyebrow
+/// caption), read straight off the prototype (viewBox 120, r 50, 10px stroke).
+struct Mv3ScoreRing: View {
+    var score: Int
+    var caption: String
+    var color: Color = .arcPrimaryGreen
+    var size: CGFloat = 96
+    var lineWidth: CGFloat = 10
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .stroke(Color.white.opacity(0.1), lineWidth: lineWidth)
+            Circle()
+                .trim(from: 0, to: max(0, min(1, CGFloat(score) / 100)))
+                .stroke(color, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+                .animation(.easeInOut(duration: 0.35), value: score)
+            VStack(spacing: 1) {
+                Text("\(score)")
+                    .font(.arcMono(size * 0.28, weight: .medium))
+                    .foregroundStyle(Color.arcCream)
+                Text(caption)
+                    .font(.arcSans(size * 0.089))
+                    .kerning(0.7)
+                    .foregroundStyle(Color.arcMutedOnDark)
+            }
+        }
+        .frame(width: size, height: size)
+    }
 }
 
 /// Geist Mono uppercase micro-label on dark (the member screens' eyebrows).

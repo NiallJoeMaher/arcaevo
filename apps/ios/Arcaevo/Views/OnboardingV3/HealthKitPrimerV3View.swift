@@ -18,7 +18,7 @@ struct HealthKitPrimerV3View: View {
                 .foregroundStyle(Color.ink)
                 .padding(.bottom, 10)
 
-            Text("We read sleep, heart rate, HRV, VO₂max and workouts from Apple Health — read-only, on your device's terms. No Apple account sign-in needed.")
+            Text("We read sleep and its stages, heart rate, HRV, VO₂max, workouts, active energy, steps, respiratory rate, blood oxygen and wrist temperature — read-only, on your device's terms. Cycle tracking is separate, optional and off by default. No Apple account sign-in needed.")
                 .font(.arcSans(13.5))
                 .lineSpacing(13.5 * 0.4)
                 .foregroundStyle(Color.arcSecondaryDark)
@@ -51,26 +51,37 @@ struct HealthKitPrimerV3View: View {
                 .multilineTextAlignment(.center)
                 .padding(.bottom, 5)
 
-            Text("Sleep · Heart Rate · HRV · VO₂max · Workouts")
+            Text("Sleep & stages · Heart · HRV · VO₂max · Workouts · Energy · Steps · Respiratory · SpO₂ · Temperature")
                 .font(.arcSans(11.5))
                 .foregroundStyle(Color.arcSecondaryLight)
+                .multilineTextAlignment(.center)
+                .lineSpacing(3)
                 .padding(.bottom, 16)
 
-            HStack {
+            // "Turn On All" — read-only permission, presented as already on; the
+            // system sheet is the real decision surface.
+            sheetRow {
                 Text("Turn On All")
                     .font(.arcSans(13))
                     .foregroundStyle(Color.ink)
                 Spacer()
-                // Read-only permission — presented as already on; the system
-                // sheet is the real decision surface.
-                ZStack(alignment: .trailing) {
-                    Capsule().fill(Color.arcPrimaryGreen).frame(width: 38, height: 22)
-                    Circle().fill(.white).frame(width: 18, height: 18).padding(2)
-                }
+                DataV3StaticToggle(isOn: true)
             }
-            .padding(EdgeInsets(top: 11, leading: 6, bottom: 11, trailing: 6))
-            .overlay(alignment: .top) {
-                Rectangle().fill(Color.arcDarkSurface.opacity(0.08)).frame(height: 1)
+
+            // Cycle Tracking — SEPARATE, off by default. A reassurance that it is
+            // NOT granted here; the real ask is the Data & privacy cycle-aware
+            // toggle (`requestCycleAccess()`), never this sheet.
+            sheetRow {
+                HStack(spacing: 4) {
+                    Text("Cycle Tracking")
+                        .font(.arcSans(13))
+                        .foregroundStyle(Color.ink)
+                    Text("· optional, off by default")
+                        .font(.arcSans(11))
+                        .foregroundStyle(Color.arcSecondaryLight)
+                }
+                Spacer()
+                DataV3StaticToggle(isOn: false)
             }
 
             ArcPillButton(title: "Allow", disabled: requesting, fontSize: 14, verticalPadding: 14) {
@@ -91,5 +102,15 @@ struct HealthKitPrimerV3View: View {
                 .ignoresSafeArea(edges: .bottom)
         )
         .padding(.horizontal, 10)
+    }
+
+    /// A row inside the faux system sheet — hairline-topped, ≥44pt tall.
+    private func sheetRow<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
+        HStack(content: content)
+            .padding(EdgeInsets(top: 11, leading: 6, bottom: 11, trailing: 6))
+            .frame(minHeight: 44)
+            .overlay(alignment: .top) {
+                Rectangle().fill(Color.arcDarkSurface.opacity(0.08)).frame(height: 1)
+            }
     }
 }

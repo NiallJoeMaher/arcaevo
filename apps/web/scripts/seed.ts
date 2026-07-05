@@ -17,6 +17,9 @@ import {
   ADDON_PRICE_EUR,
   CONSENT_VERSION,
   SESSION_TTL_DAYS,
+  composeClinicianNote,
+  isWatchMarker,
+  type Admin,
   type BiomarkerReading,
   type BiomarkerRule,
   type Consent,
@@ -36,6 +39,7 @@ import {
   type WearableSignal,
 } from "../src/lib/models";
 import { LAUNCH_ALLOWLIST } from "../src/lib/eligibility";
+import { bootstrapOwnerEmail } from "../src/lib/admin-auth";
 import { computeBaselineBand, computeRcvVerdict } from "../src/lib/rcv";
 
 // --- determinism helpers ----------------------------------------------------
@@ -173,6 +177,9 @@ async function seed() {
     eligibilityRejections: await collections.eligibilityRejections(),
     bloodworkUploads: await collections.bloodworkUploads(),
     erasureJobs: await collections.erasureJobs(),
+    // admin auth (per-admin accounts). NB: admin_access_log is intentionally
+    // NOT reset here — an audit trail must survive a re-seed.
+    admins: await collections.admins(),
   };
   await Promise.all(Object.values(cols).map((c) => c.deleteMany({})));
 
@@ -427,6 +434,33 @@ async function seed() {
   }
   await cols.readings.insertMany(readings);
 
+  // Clinician notes (Phase 22) --------------------------------------------------
+  // Every fully-reviewed panel (= one order's result set) carries a short,
+  // wellness-framed human note from the MOCK reviewer persona (Dr. S. Nolan,
+  // IMC 412887 — docs/MOCKED_APIS.md §15). Deterministic: the clinician
+  // "reads" the panel the day after its results land.
+  let clinicianNoteCount = 0;
+  for (const order of orders) {
+    const panel = readings.filter((r) => r.orderId === order._id);
+    if (panel.length === 0 || !panel.every((r) => r.clinicianReviewed)) continue;
+    const watchMarkerNames = panel
+      .filter((r) => {
+        const rule = ruleByCode.get(r.code);
+        return rule ? isWatchMarker(r, rule.direction) : false;
+      })
+      .map((r) => ruleByCode.get(r.code)?.name ?? r.code);
+    const note = composeClinicianNote({
+      totalMarkers: panel.length,
+      watchMarkerNames,
+      readAt: new Date(order.updatedAt.getTime() + 24 * 60 * 60 * 1000),
+    });
+    await cols.orders.updateOne(
+      { _id: order._id },
+      { $set: { clinicianNote: note } }
+    );
+    clinicianNoteCount += 1;
+  }
+
   // Wearables: 90 days of Apple Health for the demo member -----------------------
   // Trends mirror the story: HRV up, RHR down, sleep steady, VO2max up.
   const wearables: WearableSignal[] = [];
@@ -622,12 +656,56 @@ async function seed() {
   ];
   await cols.sessions.insertMany(seedSessions);
 
+  // --- admin accounts (self-hosted per-admin auth) -------------------------------
+  // A bootstrap OWNER (its email/password come from ADMIN_EMAIL/ADMIN_PASSWORD,
+  // defaulting to owner@arcaevo.local / change-me-local — the same shared
+  // password the bootstrap password-only login accepts) plus a demo OPS and
+  // CLINICIAN so the role gates are exercisable. Hashes use the deterministic
+  // seed scrypt (fixed salt) — DEV ONLY; real accounts use a random salt.
+  //
+  // MFA: seeded admins have NO `mfa` field → two-factor is OFF (opt-in per
+  // admin, docs/MOCKED_APIS.md §3). This keeps the e2e/one-step password login
+  // unchanged. To try it: sign in, open /admin/security, and enrol (needs
+  // MFA_ENC_KEY set, or it derives from SESSION_SECRET in dev).
+  const bootstrapPassword = process.env.ADMIN_PASSWORD ?? "change-me-local";
+  const admins: Admin[] = [
+    {
+      _id: "adm_owner",
+      email: bootstrapOwnerEmail(),
+      passwordHash: seedPasswordHash(bootstrapPassword),
+      role: "owner",
+      name: "Owner (bootstrap)",
+      createdAt: daysAgo(400),
+      disabledAt: null,
+    },
+    {
+      _id: "adm_ops",
+      email: "ops@arcaevo.local",
+      passwordHash: seedPasswordHash("ops-demo-local"),
+      role: "ops",
+      name: "Demo Ops",
+      createdAt: daysAgo(120),
+      disabledAt: null,
+    },
+    {
+      _id: "adm_clinician",
+      email: "clinician@arcaevo.local",
+      passwordHash: seedPasswordHash("clinician-demo-local"),
+      role: "clinician",
+      name: "Demo Clinician",
+      createdAt: daysAgo(120),
+      disabledAt: null,
+    },
+  ];
+  await cols.admins.insertMany(admins);
+
   // Summary -------------------------------------------------------------------
   console.log(`  users:              ${users.length} (demo: mem_0001 · Aoife Byrne · token "demo-member-token")`);
   console.log(`  memberships:        ${memberships.length} (essential ${memberships.filter((m) => m.tier === "essential").length} · performance ${memberships.filter((m) => m.tier === "performance").length} · fusion ${memberships.filter((m) => m.tier === "fusion").length})`);
   console.log(`  biomarker rules:    ${RULES.length}`);
   console.log(`  test orders:        ${orders.length}`);
   console.log(`  readings:           ${readings.length} (${readings.filter((r) => !r.clinicianReviewed).length} awaiting clinician review)`);
+  console.log(`  clinician notes:    ${clinicianNoteCount} reviewed panels signed by Dr. S. Nolan, IMC 412887 (MOCK persona)`);
   console.log(`  wearable signals:   ${wearables.length} (90 days × 4 types, demo member)`);
   console.log(`  support tickets:    ${tickets.length}`);
   console.log(`  outbox emails:      ${emails.length}`);
@@ -638,6 +716,7 @@ async function seed() {
   console.log(`  v2 · gift code:     ${giftCode._id} (unredeemed) · referral ${referralCode._id}`);
   console.log(`  v2 · sessions:      ${seedSessions.length} device-scoped (mem_0001: watch + iOS; tokens "seed-watch-token-aoife" / "seed-ios-token-aoife")`);
   console.log(`  v2 · password user: ${passwordMember.email} / "demo-password-123" (${passwordMember._id}, no membership)`);
+  console.log(`  admins:             ${admins.length} — owner ${admins[0].email} / "${bootstrapPassword}" · ops ops@arcaevo.local / "ops-demo-local" · clinician clinician@arcaevo.local / "clinician-demo-local"`);
   console.log("Seed complete.");
 }
 

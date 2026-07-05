@@ -17,11 +17,14 @@ struct MemberTodayV3View: View {
                     VStack(alignment: .leading, spacing: 0) {
                         header
                         ringRow
+                        readinessCard
+                        energyCard
                         resultsCard
                         focusCard
                         watchCard
                         fusionCard
                         experimentCard
+                        vitalityCard
                     }
                     .padding(.horizontal, 24)
                     .padding(.top, 14)
@@ -126,6 +129,89 @@ struct MemberTodayV3View: View {
             }
         }
         .frame(width: 96, height: 96)
+    }
+
+    // MARK: "READINESS · THIS MORNING" → Readiness screen (§1 daily glance)
+
+    private var readinessCard: some View {
+        NavigationLink {
+            ReadinessV3View()
+        } label: {
+            HStack {
+                VStack(alignment: .leading, spacing: 5) {
+                    Mv3Eyebrow(text: "READINESS · THIS MORNING", size: 9, color: Mv3.watchAmber, kerning: 0.9)
+                    Text(readinessLine)
+                        .font(.arcSans(13.5, weight: .semibold))
+                        .foregroundStyle(Color.arcCream)
+                        .multilineTextAlignment(.leading)
+                }
+                Spacer()
+                Text("›")
+                    .font(.arcSans(16))
+                    .foregroundStyle(Mv3.watchAmber)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 13)
+            .background(Mv3.goEasyAmber.opacity(0.1), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(Mv3.goEasyAmber.opacity(0.35), lineWidth: 1)
+            )
+            .contentShape(RoundedRectangle(cornerRadius: 16))
+        }
+        .buttonStyle(.plain)
+        .padding(.bottom, 10)
+        .accessibilityLabel("Readiness this morning. \(readinessAccessibility)")
+    }
+
+    private var readinessLine: String {
+        guard let result = model.readinessResult, result.state.showsScore else {
+            return "Learning your normal — check back soon."
+        }
+        let decision = result.decision.headline.lowercased().replacingOccurrences(of: ".", with: "")
+        let ironHint = model.penalties.contains(where: { $0.marker == "ferritin" }) ? " Your iron may be part of why." : ""
+        return "\(result.final) — \(decision).\(ironHint)"
+    }
+
+    private var readinessAccessibility: String {
+        guard let result = model.readinessResult, result.state.showsScore else {
+            return "Calibrating."
+        }
+        return "\(Mv3.spell(result.final)) of one hundred, \(result.decision.headline.lowercased().dropLast())."
+    }
+
+    // MARK: "ENERGY · ALL DAY" → Energy screen (§2 all-day glance)
+
+    private var energyCard: some View {
+        NavigationLink {
+            EnergyV3View()
+        } label: {
+            HStack {
+                VStack(alignment: .leading, spacing: 5) {
+                    Mv3Eyebrow(text: "ENERGY · ALL DAY", size: 9, kerning: 0.9)
+                    Text(energyLine)
+                        .font(.arcSans(13, weight: .semibold))
+                        .foregroundStyle(Color.arcCream)
+                }
+                Spacer()
+                Text("›")
+                    .font(.arcSans(16))
+                    .foregroundStyle(Color.arcMutedOnDark)
+            }
+            .mv3Card(radius: 16, vPad: 13)
+            .contentShape(RoundedRectangle(cornerRadius: 16))
+        }
+        .buttonStyle(.plain)
+        .padding(.bottom, 10)
+        .accessibilityLabel("Energy all day. \(energyLine)")
+    }
+
+    private var energyLine: String {
+        let now = model.energyDay?.value(at: Date()) ?? 54
+        if let dip = model.energyDay?.forecastDipHour {
+            return "\(now) of 100 — dips around \(String(format: "%02d", dip)):00"
+        }
+        return "\(now) of 100 — modelled all day"
     }
 
     // MARK: "JULY PANEL · REVIEWED" → Results tab
@@ -279,6 +365,39 @@ struct MemberTodayV3View: View {
             return "\(exp.what) · \(Mv3Adherence.percent(for: exp))% adherence"
         }
         return "Evening walks · 87% adherence"
+    }
+
+    // MARK: "VITALITY AGE · THE SLOW SCORE" → Vitality screen (§3)
+
+    private var vitalityCard: some View {
+        NavigationLink {
+            VitalityV3View()
+        } label: {
+            HStack {
+                VStack(alignment: .leading, spacing: 5) {
+                    Mv3Eyebrow(text: "VITALITY AGE · THE SLOW SCORE", size: 9, kerning: 0.9)
+                    Text(vitalityLine)
+                        .font(.arcSans(13, weight: .semibold))
+                        .foregroundStyle(Color.arcCream)
+                }
+                Spacer()
+                Text("›")
+                    .font(.arcSans(16))
+                    .foregroundStyle(Color.arcMutedOnDark)
+            }
+            .mv3Card(radius: 16, vPad: 13)
+            .contentShape(RoundedRectangle(cornerRadius: 16))
+        }
+        .buttonStyle(.plain)
+        .padding(.top, 10)
+        .accessibilityLabel("Vitality age, the slow score. \(vitalityLine)")
+    }
+
+    private var vitalityLine: String {
+        if let age = model.vitalityScore?.age {
+            return "\(age) — down 0.8 years since February"
+        }
+        return "Warming up — appears after your first panel"
     }
 }
 

@@ -14,6 +14,7 @@
 import { requireConsentedMember } from "@/lib/consent-guard";
 import { parseJsonBody } from "@/lib/api";
 import { collections } from "@/lib/db";
+import { mockExtractionEnabled } from "@/lib/env";
 import { newId } from "@/lib/ids";
 import { BloodworkUploadInput, type BloodworkUpload } from "@/lib/models";
 import {
@@ -45,6 +46,29 @@ export async function POST(req: Request) {
         message: "Photo/PDF uploads need a fileName (MOCK: no bytes travel).",
       },
       { status: 422 }
+    );
+  }
+
+  // SAFETY (audit must-fix #2): with no real EU OCR vendor configured, the
+  // photo/PDF path must NOT fabricate values — a real user would otherwise
+  // "confirm" invented numbers as their own health data. When mock extraction
+  // is disabled (production, unless ALLOW_MOCK_EXTRACTION=true), return an
+  // honest manual-entry state instead of guessing. Nothing is persisted; the
+  // client re-submits with kind:"manual" (the real, safe path). In dev/e2e the
+  // mock stays on so the "41 or 47?" demo + suites keep working.
+  if (kind !== "manual" && !mockExtractionEnabled()) {
+    return Response.json(
+      {
+        manualEntryRequired: true,
+        markersFound: 0,
+        values: [],
+        flagged: [],
+        message:
+          "Automatic reading of photos and PDFs isn't available yet — enter your values by hand and we'll add them to your timeline.",
+        nextStep:
+          "Re-submit as POST /api/v1/uploads/bloodwork with kind:\"manual\" and your typed values.",
+      },
+      { status: 200 }
     );
   }
 

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { collections } from "@/lib/db";
 import { TIER_INCLUDED_TESTS } from "@/lib/models";
+import { selectedPaymentsVendorKind } from "@/lib/vendors/stripe";
 import { currentMember } from "@/components/account/session";
 import DunningBanner from "./DunningBanner";
 import MembershipActions from "./MembershipActions";
@@ -56,6 +57,10 @@ export default async function AccountPage() {
     canceled: { label: "CANCELED", cls: "text-muted-dark-soft" },
   };
 
+  // LIVE Stripe → route billing management to the hosted Customer Portal;
+  // MOCK → keep the existing pills + webhook cancel path (e2e unaffected).
+  const portalLive = selectedPaymentsVendorKind() === "live";
+
   const totalIncluded = membership
     ? TIER_INCLUDED_TESTS[membership.tier].reduce((sum, t) => sum + t.count, 0)
     : 0;
@@ -93,6 +98,7 @@ export default async function AccountPage() {
           <MembershipActions
             memberId={member._id}
             status={membership.status}
+            portalLive={portalLive}
           />
         </div>
       ) : (

@@ -117,14 +117,17 @@ export interface EmailTemplates {
     trackingCode: string; // e.g. "CE 4471 8820 3 IE"
     trackingUrl: string;
   };
-  /** E6 — sample received at the lab. */
-  e6_sample_received: { clinicianName: string; journeyUrl: string };
-  /** E7 — results ready. NO VALUES — the params make values unrepresentable. */
+  /** E6 — sample received at the lab. HONEST framing: no fabricated named
+   *  reviewer — an automated wellness summary until a registered clinician is
+   *  onboarded (GAP_REVIEW_2 #2). */
+  e6_sample_received: { journeyUrl: string };
+  /** E7 — results ready. NO VALUES — the params make values unrepresentable.
+   *  HONEST framing: an automated wellness summary, not a fabricated clinician
+   *  sign-off (GAP_REVIEW_2 #2). */
   e7_results_ready: {
     firstName: string;
     panelMonthLabel: string; // e.g. "July"
     previousMonthLabel: string; // e.g. "January"
-    clinicianName: string; // e.g. "Dr. Nolan"
     resultsUrl: string;
   };
   /** E8 — renewal reminder, 30 days out, equal-weight cancel. */
@@ -256,7 +259,7 @@ const renderers: Renderers = {
     html: renderEmailLayout({
       headline: "Your sample made it, in good condition.",
       bodyHtml: p(
-        `The lab received it this morning and processing has begun. ${params.clinicianName} reviews every value before you see it — expect the "results ready" email within two working days.`
+        `The lab received it this morning and processing has begun. Your results are read against your own baseline and prepared as a wellness summary — never a diagnosis. A registered clinician reviews results on our blood-testing tiers once one is onboarded. Expect the "results ready" email within two working days.`
       ),
       button: { label: "Follow the journey", url: params.journeyUrl },
       footerHtml:
@@ -268,9 +271,9 @@ const renderers: Renderers = {
   e7_results_ready: (params) => ({
     subject: `Your results are ready, ${params.firstName}`,
     html: renderEmailLayout({
-      headline: "Reviewed, signed off, and waiting for you.",
+      headline: "Your wellness summary is ready and waiting for you.",
       bodyHtml: p(
-        `Your ${params.panelMonthLabel} panel has been checked by ${params.clinicianName} and is ready in the app — with what changed since ${params.previousMonthLabel} and the one thing most worth doing about it.`
+        `Your ${params.panelMonthLabel} panel is ready in the app — an automated wellness summary of what changed since ${params.previousMonthLabel} and the one thing most worth doing about it. It's not a diagnosis; a registered clinician reviews results on our blood-testing tiers once one is onboarded.`
       ),
       button: { label: "Open my results", url: params.resultsUrl },
       footerHtml:

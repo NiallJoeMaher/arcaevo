@@ -5,10 +5,13 @@
  *
  * Phase 22: sign-off also writes the panel's ClinicianNote onto the reading's
  * TestOrder — a template-assisted, wellness-framed summary of in-range vs
- * watch markers, signed by the mock persona (MOCKED_APIS §15, Dr. S. Nolan,
- * IMC 412887). The note is regenerated on every sign-off so it always
- * reflects the panel's current state; un-reviewing the last reading of a
- * panel removes it.
+ * watch markers. HONESTY (GAP_REVIEW_2 #2): until a registered clinician is
+ * onboarded this is an AUTOMATED wellness summary — composeClinicianNote is
+ * called WITHOUT a `clinician`, so no fabricated name/IMC is stamped. The note
+ * is regenerated on every sign-off so it always reflects the panel's current
+ * state; un-reviewing the last reading of a panel removes it.
+ * [TODO: real reviewing clinician + IMC] — pass the acting registered
+ * clinician's real name + IMC to composeClinicianNote once the portal is live.
  */
 import { currentAdmin, requireAdminRole } from "@/lib/auth";
 import { logAdminAccess } from "@/lib/admin-audit";

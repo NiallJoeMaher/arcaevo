@@ -3,9 +3,11 @@
  *
  * Covers:
  *  1. composeClinicianNote — the LOCKED field shape (`text, clinicianName,
- *     imcNumber, readAt` — iOS decodes these names), the mock persona
- *     (Dr. S. Nolan, IMC 412887 — MOCKED_APIS §15), wellness framing, and the
- *     €69 recheck pointer when markers are worth watching.
+ *     imcNumber, readAt` — iOS decodes these names). HONESTY (GAP_REVIEW_2 #2):
+ *     the DEFAULT is an AUTOMATED wellness summary with NO fabricated name/IMC
+ *     (both empty), and only a real registered `clinician` switches it to a
+ *     human sign-off. Wellness framing, plus the €69 recheck pointer when
+ *     markers are worth watching.
  *  2. GET /api/v1/results — each reviewed panel's readings carry the panel's
  *     `clinicianNote`; unreviewed / order-less readings carry null. Asserted
  *     on the SERIALIZED payload (res.json()) so the wire shape is what iOS
@@ -20,8 +22,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   ADDON_PRICE_EUR,
-  CLINICIAN_IMC_NUMBER,
-  CLINICIAN_NAME,
+  DEMO_CLINICIAN_IMC_NUMBER,
+  DEMO_CLINICIAN_NAME,
   ClinicianNoteSchema,
   composeClinicianNote,
   isWatchMarker,
@@ -163,7 +165,7 @@ beforeEach(() => {
 describe("composeClinicianNote", () => {
   const readAt = new Date("2026-05-02T09:00:00.000Z");
 
-  it("returns EXACTLY the locked field names, signed by the mock persona", () => {
+  it("keeps the locked field names but does NOT fabricate a clinician by default", () => {
     const note = composeClinicianNote({
       totalMarkers: 15,
       watchMarkerNames: [],
@@ -176,12 +178,46 @@ describe("composeClinicianNote", () => {
       "readAt",
       "text",
     ]);
-    expect(note.clinicianName).toBe("Dr. S. Nolan");
-    expect(note.imcNumber).toBe("412887");
-    expect(note.clinicianName).toBe(CLINICIAN_NAME);
-    expect(note.imcNumber).toBe(CLINICIAN_IMC_NUMBER);
+    // HONESTY: no registered clinician onboarded ⇒ NO name/IMC, no fake persona.
+    expect(note.clinicianName).toBe("");
+    expect(note.imcNumber).toBe("");
+    expect(note.text).not.toContain("Dr.");
+    expect(note.text).not.toContain(DEMO_CLINICIAN_NAME);
+    expect(note.text).not.toContain(DEMO_CLINICIAN_IMC_NUMBER);
     expect(note.readAt).toEqual(readAt);
     expect(ClinicianNoteSchema.parse(note)).toEqual(note);
+  });
+
+  it("default note reads as an AUTOMATED wellness summary, forward-looking on real review", () => {
+    const note = composeClinicianNote({
+      totalMarkers: 15,
+      watchMarkerNames: [],
+      readAt,
+    });
+    expect(note.text).toContain("automated wellness summary");
+    expect(note.text).toContain("has not");
+    expect(note.text).toContain("been reviewed by a clinician");
+    expect(note.text).toContain("registered clinician reviews your results once one is onboarded");
+    // Still never claims a human sign-off happened.
+    expect(note.text).not.toContain("I've read this panel");
+  });
+
+  it("stamps a real registered clinician's identity ONLY when one is supplied", () => {
+    const note = composeClinicianNote({
+      totalMarkers: 15,
+      watchMarkerNames: [],
+      readAt,
+      // A real reviewer would come from the record; the DEMO persona only
+      // exercises the human-sign-off rendering path here.
+      clinician: {
+        name: DEMO_CLINICIAN_NAME,
+        imcNumber: DEMO_CLINICIAN_IMC_NUMBER,
+      },
+    });
+    expect(note.clinicianName).toBe(DEMO_CLINICIAN_NAME);
+    expect(note.imcNumber).toBe(DEMO_CLINICIAN_IMC_NUMBER);
+    expect(note.text).toContain("A registered clinician has read this panel");
+    expect(note.text).not.toContain("automated wellness summary");
   });
 
   it("all-in-range: wellness-framed, mentions the marker count, never diagnoses", () => {
@@ -190,7 +226,7 @@ describe("composeClinicianNote", () => {
       watchMarkerNames: [],
       readAt,
     });
-    expect(note.text).toContain("all 15 markers");
+    expect(note.text).toContain("All 15 markers");
     expect(note.text).toContain("not a diagnosis");
     expect(note.text).not.toMatch(/diagnos(ed|es)\b/i);
   });
@@ -278,10 +314,11 @@ describe("GET /api/v1/results — clinicianNote on the wire", () => {
     );
 
     // Reviewed readings of the noted panel: the EXACT serialized contract shape.
+    // HONESTY: name/IMC are empty (automated summary, no clinician onboarded).
     expect(byId.get("read_1")!.clinicianNote).toEqual({
       text: note.text,
-      clinicianName: "Dr. S. Nolan",
-      imcNumber: "412887",
+      clinicianName: "",
+      imcNumber: "",
       readAt: "2026-05-02T09:00:00.000Z",
     });
     expect(byId.get("read_2")!.clinicianNote).toEqual(
@@ -310,7 +347,7 @@ describe("POST /api/v1/admin/results/[id]/review — sign-off writes the note", 
     return POST(req, { params: Promise.resolve({ id }) });
   }
 
-  it("marks the reading reviewed and writes a persona-signed note on the order", async () => {
+  it("marks the reading reviewed and writes an automated (unfabricated) note on the order", async () => {
     ordersCol.docs = [order({ _id: "ord_0001" })];
     readingsCol.docs = [
       reading({ _id: "read_1", clinicianReviewed: false }), // in band
@@ -329,8 +366,11 @@ describe("POST /api/v1/admin/results/[id]/review — sign-off writes the note", 
 
     const ord = ordersCol.docs[0] as unknown as TestOrder;
     const note = ClinicianNoteSchema.parse(ord.clinicianNote);
-    expect(note.clinicianName).toBe("Dr. S. Nolan");
-    expect(note.imcNumber).toBe("412887");
+    // HONESTY: no registered clinician onboarded ⇒ NO fabricated name/IMC.
+    expect(note.clinicianName).toBe("");
+    expect(note.imcNumber).toBe("");
+    expect(note.text).not.toContain("Dr.");
+    expect(note.text).toContain("automated wellness summary");
     expect(note.readAt).toBeInstanceOf(Date);
     // Summarises in-range vs watch, using the rule's display name.
     expect(note.text).toContain("1 of 2 markers");

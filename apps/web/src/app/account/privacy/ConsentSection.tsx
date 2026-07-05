@@ -44,7 +44,46 @@ export default function ConsentSection({ initial }: { initial: Grants }) {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [armText, setArmText] = useState("");
   const [closureStarted, setClosureStarted] = useState(false);
-  const [exportRequested, setExportRequested] = useState(false);
+  const [exportState, setExportState] = useState<
+    "idle" | "working" | "done" | "error"
+  >("idle");
+
+  /**
+   * The "export first" step — a REAL GDPR Art. 20 download before erasure
+   * (GAP_REVIEW_2 #8). Hits GET /api/v1/account/export (member-auth via the
+   * session cookie) and saves the machine-readable JSON. Nothing is emailed.
+   */
+  async function downloadExport() {
+    setExportState("working");
+    try {
+      const res = await fetch("/api/v1/account/export", {
+        method: "GET",
+        credentials: "same-origin",
+        headers: { Accept: "application/json" },
+      });
+      if (!res.ok) {
+        setExportState("error");
+        return;
+      }
+      const blob = await res.blob();
+      const disposition = res.headers.get("Content-Disposition") ?? "";
+      const match = /filename="?([^"]+)"?/.exec(disposition);
+      const filename =
+        match?.[1] ??
+        `arcaevo-my-data-${new Date().toISOString().slice(0, 10)}.json`;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      setExportState("done");
+    } catch {
+      setExportState("error");
+    }
+  }
 
   async function post(purpose: keyof Grants, value: boolean) {
     setBusy(true);
@@ -207,15 +246,21 @@ export default function ConsentSection({ initial }: { initial: Grants }) {
         <div className="mb-[14px] flex items-start gap-[10px]">
           <span className="font-mono text-[11px] text-forest">01</span>
           <span className="text-[12.5px] leading-[1.5]">
-            We offer a full export first — most people want the PDF for their
-            GP.{" "}
+            We offer a full export first — a machine-readable JSON of everything
+            we hold about you.{" "}
             <button
               type="button"
-              onClick={() => setExportRequested(true)}
-              disabled={exportRequested}
+              onClick={() => void downloadExport()}
+              disabled={exportState === "working"}
               className="cursor-pointer font-semibold text-forest underline disabled:no-underline disabled:opacity-70"
             >
-              {exportRequested ? "Export requested ✓" : "Request export"}
+              {exportState === "working"
+                ? "Preparing…"
+                : exportState === "done"
+                  ? "Downloaded ✓ — download again"
+                  : exportState === "error"
+                    ? "Couldn't export — retry"
+                    : "Download my data"}
             </button>
           </span>
         </div>

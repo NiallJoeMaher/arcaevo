@@ -103,7 +103,9 @@ export default async function ArticlePage({ params }: Props) {
         url: canonicalUrl("/opengraph-image"),
       },
     },
-    image: canonicalUrl("/opengraph-image"),
+    // Per-post OG card (./opengraph-image.tsx); publisher.logo stays on the
+    // site-default brand card above.
+    image: canonicalUrl(`/blog/${post.slug}/opengraph-image`),
     ...(publishedIso
       ? { datePublished: publishedIso, dateModified: publishedIso }
       : {}),

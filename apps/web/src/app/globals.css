@@ -65,3 +65,27 @@ a:hover {
   outline: 2px solid var(--color-forest);
   outline-offset: 2px;
 }
+
+/* ——— Motion layer (design_handoff_motion_haptics) ———
+   Hero load animations. Scroll reveal/draw live in SiteMotion.tsx.
+   Nothing loops; longest duration 1.3s (ring draw). */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(14px); }
+}
+@keyframes ring314 {
+  from { stroke-dashoffset: 314; }
+}
+@keyframes draw100 {
+  from { stroke-dashoffset: 100; }
+  to { stroke-dashoffset: 0; }
+}
+.motion-rise { animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+.motion-rise-delayed { animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.12s backwards; }
+.motion-ring { animation: ring314 1.3s cubic-bezier(0.33, 1, 0.68, 1) 0.45s backwards; }
+.motion-trace { animation: draw100 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.5s backwards; }
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-rise, .motion-rise-delayed, .motion-ring, .motion-trace {
+    animation: none !important;
+  }
+}

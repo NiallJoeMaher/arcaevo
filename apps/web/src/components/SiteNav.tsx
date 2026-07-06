@@ -1,5 +1,6 @@
 import Link from "next/link";
 import BrandMark from "@/components/BrandMark";
+import SiteMotion from "@/components/SiteMotion";
 import { DEFAULT_LOCALE, getDictionary, type Locale } from "@/i18n/messages";
 
 /** Route structure (hrefs + active keys); labels come from the dictionary. */
@@ -22,6 +23,7 @@ export default function SiteNav({
   const m = getDictionary(locale).nav;
   return (
     <header className="sticky top-0 z-50 border-b border-hairline bg-[rgba(236,231,221,0.82)] font-sans backdrop-blur-[14px] backdrop-saturate-[1.4]">
+      <SiteMotion />
       <nav
         aria-label="Main"
         className="mx-auto flex max-w-[1180px] items-center justify-between gap-6 px-10 py-4"

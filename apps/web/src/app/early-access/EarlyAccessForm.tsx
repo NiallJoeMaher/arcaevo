@@ -7,7 +7,11 @@
  * returns a county queue position (visible again in Account — a promise
  * with a receipt) and sends the E10 confirmation immediately. The Fusion
  * cross-sell turns a bounced checkout into revenue today. Never a dead end:
- * already-eligible Eircodes are pointed straight back at checkout.
+ * already-eligible Eircodes are pointed straight back at checkout — but ONLY
+ * while sales are open (`salesOpen`, from BLOOD_TIERS_ENABLED). While the
+ * launch gate is on, /checkout redirects here, so "Head to checkout" would be
+ * a false claim and a redirect loop; eligible areas join the list like
+ * everyone else (the API accepts eligible joins while the flag is off).
  */
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -21,8 +25,11 @@ import {
 
 export default function EarlyAccessForm({
   initialEircode,
+  salesOpen,
 }: {
   initialEircode: string;
+  /** Server truth at render: are the blood tiers actually purchasable? */
+  salesOpen: boolean;
 }) {
   const [eircode, setEircode] = useState(initialEircode);
   const [email, setEmail] = useState("");
@@ -50,7 +57,10 @@ export default function EarlyAccessForm({
         });
         const data = await res.json().catch(() => ({}));
         if (res.ok && !data.eligible && data.county) setCounty(data.county);
-        if (res.ok && data.eligible) setEligibleInstead(true);
+        // Eligible Eircode: only worth a checkout redirect while checkout is
+        // actually open — with the launch gate on they join the list instead
+        // (generic form; no county heading, since their county IS live).
+        if (res.ok && data.eligible && salesOpen) setEligibleInstead(true);
       } catch {
         /* heading falls back to the generic form */
       }
@@ -76,6 +86,10 @@ export default function EarlyAccessForm({
         });
         return;
       }
+      // 409 already_eligible is only ever sent while BLOOD_TIERS_ENABLED is
+      // on (waitlist route), i.e. checkout is genuinely open — the server is
+      // authoritative even if this page rendered with salesOpen=false before
+      // the flag flipped, so the checkout hand-off is always a real answer.
       if (data.error === "already_eligible") {
         setEligibleInstead(true);
         return;

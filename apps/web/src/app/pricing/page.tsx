@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import EarlyAccessSection from "./EarlyAccessSection";
 import { bloodTiersEnabled } from "@/lib/env";
 import {
   jsonLd,
@@ -123,9 +124,10 @@ const FAQS = [
 export default function PricingPage() {
   // Blood tiers (Essential/Performance) are gated until the lab partner +
   // clinician are live. When off, the cards stay visible (so people see the
-  // roadmap) but aren't buyable — "Coming soon" + a waitlist CTA instead of a
-  // checkout button. Fusion is always purchasable. Server-enforced in the
-  // checkout/orders routes; this is the matching UI.
+  // roadmap) but aren't buyable — their CTAs become "Get early access →"
+  // anchors into the EarlyAccessSection gate below (which posts to the real
+  // waitlist), instead of checkout buttons. Fusion is always purchasable.
+  // Server-enforced in the checkout/orders routes; this is the matching UI.
   const bloodEnabled = bloodTiersEnabled();
 
   return (
@@ -134,24 +136,41 @@ export default function PricingPage() {
 
       <main>
         {/* HERO */}
-        <section className="mx-auto max-w-[900px] px-10 pb-10 pt-[72px] text-center">
+        <section className="mx-auto max-w-[900px] px-[22px] md:px-10 pb-10 pt-[72px] text-center">
           <div className="mb-5 font-mono text-xs tracking-[0.14em] text-forest">
             MEMBERSHIP &amp; PRICING
           </div>
-          <h1 className="mb-5 mt-0 font-serif text-[clamp(38px,5vw,58px)] font-normal leading-[1.04] tracking-[-0.015em]">
+          <h1 className="mb-5 mt-0 font-serif text-[clamp(38px,5vw,58px)] max-md:text-[clamp(34px,9.5vw,42px)] font-normal leading-[1.04] tracking-[-0.015em]">
             One annual membership. Tests included.
           </h1>
-          <p className="mx-auto mb-2 mt-0 max-w-[54ch] text-[19px] leading-[1.55] text-muted">
-            Billed once a year, so your tests are covered upfront — the first
-            one ships or gets booked the day you join. Cancel anytime and keep
-            access until your year ends.
-          </p>
+          {bloodEnabled ? (
+            <p className="mx-auto mb-2 mt-0 max-w-[54ch] text-[19px] leading-[1.55] text-muted">
+              Billed once a year, so your tests are covered upfront — the first
+              one ships or gets booked the day you join. Cancel anytime and
+              keep access until your year ends.
+            </p>
+          ) : (
+            <p className="mx-auto mb-2 mt-0 max-w-[54ch] text-[19px] leading-[1.55] text-muted">
+              Billed once a year, so your tests are covered upfront. Fusion is
+              live today; the tested plans open area by area —{" "}
+              <a
+                href="#early-access"
+                className="font-semibold text-forest no-underline"
+              >
+                early access below
+              </a>
+              . Cancel anytime and keep access until your year ends.
+            </p>
+          )}
         </section>
 
         {/* PLANS */}
-        <section className="mx-auto max-w-[1100px] px-10 pb-4">
+        <section className="mx-auto max-w-[1100px] px-[22px] md:px-10 pb-4">
           <div className="grid items-stretch gap-[22px] md:grid-cols-3">
-            <div className="flex flex-col rounded-card-lg border border-hairline bg-surface p-8">
+            <div
+              data-reveal=""
+              className="flex flex-col rounded-card-lg border border-hairline bg-surface p-8"
+            >
               <div className="mb-[6px] text-[19px] font-bold">Fusion</div>
               <div className="mb-[22px] text-[13px] text-caption">
                 Your watch &amp; your own bloodwork
@@ -184,7 +203,10 @@ export default function PricingPage() {
               </div>
             </div>
 
-            <div className="relative flex flex-col rounded-card-lg bg-ink p-8 text-bone-white shadow-card-dark">
+            <div
+              data-reveal=""
+              className="relative flex flex-col rounded-card-lg bg-ink p-8 text-bone-white shadow-card-dark"
+            >
               <div className="absolute right-6 top-6 rounded-pill bg-vitality px-[9px] py-1 font-mono text-[10px] tracking-[0.06em] text-[#04130D]">
                 MOST POPULAR
               </div>
@@ -199,7 +221,9 @@ export default function PricingPage() {
                 </span>
               </div>
               <div className="mt-2 font-mono text-[12.5px] text-muted-dark-soft">
-                ≈ €27/MO · FIRST KIT SHIPS TODAY
+                {bloodEnabled
+                  ? "≈ €27/MO · FIRST KIT SHIPS TODAY"
+                  : "≈ €27/MO · FROM LAUNCH: KIT SHIPS DAY ONE"}
               </div>
               <div className="my-[22px] h-px bg-hairline-dark" />
               <div className="flex-1 text-[14.5px] leading-[2] text-[#CFD6CF]">
@@ -226,23 +250,23 @@ export default function PricingPage() {
                 </>
               ) : (
                 <>
-                  <div
-                    aria-disabled="true"
-                    className="mt-[22px] block rounded-pill border border-hairline-dark p-[13px] text-center font-semibold text-muted-dark-soft"
+                  <a
+                    href="#early-access"
+                    className="mt-[22px] block rounded-pill bg-bone-white p-[13px] text-center font-semibold text-ink no-underline"
                   >
-                    Coming soon
+                    Get early access →
+                  </a>
+                  <div className="mt-[10px] text-center font-mono text-[10px] tracking-[0.08em] text-[#E9BC85]">
+                    NOT ON SALE YET · DUBLIN LAUNCH SOON · NO CARD
                   </div>
-                  <Link
-                    href="/early-access"
-                    className="mt-[10px] block text-center text-[11.5px] font-semibold text-vitality-light no-underline"
-                  >
-                    Join the waitlist →
-                  </Link>
                 </>
               )}
             </div>
 
-            <div className="flex flex-col rounded-card-lg border border-hairline bg-surface p-8">
+            <div
+              data-reveal=""
+              className="flex flex-col rounded-card-lg border border-hairline bg-surface p-8"
+            >
               <div className="mb-[6px] text-[19px] font-bold">Performance</div>
               <div className="mb-[22px] text-[13px] text-caption">
                 The deep venous panel, nurse included
@@ -252,7 +276,9 @@ export default function PricingPage() {
                 <span className="font-sans text-base text-caption">/yr</span>
               </div>
               <div className="mt-2 font-mono text-[12.5px] text-caption">
-                ≈ €33/MO · BOOK YOUR NURSE TODAY
+                {bloodEnabled
+                  ? "≈ €33/MO · BOOK YOUR NURSE TODAY"
+                  : "≈ €33/MO · FROM LAUNCH: NURSE COMES TO YOU"}
               </div>
               <div className="my-[22px] h-px bg-hairline" />
               <div className="flex-1 text-[14.5px] leading-[2] text-muted">
@@ -279,18 +305,15 @@ export default function PricingPage() {
                 </>
               ) : (
                 <>
-                  <div
-                    aria-disabled="true"
-                    className="mt-[22px] block rounded-pill border border-hairline p-[13px] text-center font-semibold text-caption"
+                  <a
+                    href="#early-access"
+                    className="mt-[22px] block rounded-pill border border-ink p-[13px] text-center font-semibold text-ink no-underline"
                   >
-                    Coming soon
+                    Get early access →
+                  </a>
+                  <div className="mt-[10px] text-center font-mono text-[10px] tracking-[0.08em] text-[#B3543A]">
+                    NOT ON SALE YET · DUBLIN LAUNCH SOON · NO CARD
                   </div>
-                  <Link
-                    href="/early-access"
-                    className="mt-[10px] block text-center text-[11.5px] font-semibold text-forest no-underline"
-                  >
-                    Join the waitlist →
-                  </Link>
                 </>
               )}
             </div>
@@ -302,15 +325,21 @@ export default function PricingPage() {
           </p>
         </section>
 
+        {/* EARLY ACCESS (launch gate — only while the tested plans are off sale) */}
+        {!bloodEnabled && <EarlyAccessSection />}
+
         {/* CADENCE UPGRADE */}
-        <section className="mx-auto max-w-[1100px] px-10 pb-2 pt-12">
-          <div className="rounded-card-lg bg-ink p-10 text-bone-white">
+        <section className="mx-auto max-w-[1100px] px-[22px] md:px-10 pb-2 pt-12">
+          <div data-reveal="" className="rounded-card-lg bg-ink p-10 text-bone-white">
             <div className="grid items-center gap-10 md:grid-cols-[1fr_1.3fr]">
               <div>
                 <div className="mb-[14px] font-mono text-[11px] tracking-[0.14em] text-vitality-light">
                   TEST CADENCE
                 </div>
-                <h2 className="mb-3 mt-0 font-serif text-[34px] font-normal tracking-[-0.01em]">
+                <h2
+                  data-reveal=""
+                  className="mb-3 mt-0 font-serif text-[34px] font-normal tracking-[-0.01em]"
+                >
                   Twice a year is the rhythm. Quarterly is the upgrade.
                 </h2>
                 <p className="m-0 text-[15px] leading-[1.6] text-muted-dark">
@@ -371,12 +400,21 @@ export default function PricingPage() {
         </section>
 
         {/* COMPARISON TABLE */}
-        <section className="mx-auto max-w-[1100px] px-10 py-12">
-          <h2 className="mb-7 mt-0 text-center font-serif text-[32px] font-normal tracking-[-0.01em]">
+        <section className="mx-auto max-w-[1100px] px-[22px] md:px-10 py-12">
+          <h2
+            data-reveal=""
+            className="mb-7 mt-0 text-center font-serif text-[32px] font-normal tracking-[-0.01em]"
+          >
             Compare the plans
           </h2>
-          <div className="overflow-hidden rounded-card border border-hairline-soft bg-surface">
-            <table className="w-full table-fixed border-collapse">
+          <div
+            data-reveal=""
+            tabIndex={0}
+            role="region"
+            aria-label="Plan comparison"
+            className="overflow-x-auto rounded-card border border-hairline-soft bg-surface"
+          >
+            <table className="w-full min-w-[600px] table-fixed border-collapse">
               <colgroup>
                 <col className="w-[40%]" />
                 <col className="w-[20%]" />
@@ -440,9 +478,12 @@ export default function PricingPage() {
         </section>
 
         {/* MARKET CONTEXT */}
-        <section className="mx-auto max-w-[1100px] px-10 pb-12 pt-2">
+        <section className="mx-auto max-w-[1100px] px-[22px] md:px-10 pb-12 pt-2">
           <div className="mb-6 text-center">
-            <h2 className="mb-2 mt-0 font-serif text-[30px] font-normal tracking-[-0.01em]">
+            <h2
+              data-reveal=""
+              className="mb-2 mt-0 font-serif text-[30px] font-normal tracking-[-0.01em]"
+            >
               Where €329 sits in the market
             </h2>
             <p className="m-0 text-[15px] text-muted">
@@ -450,10 +491,11 @@ export default function PricingPage() {
               fuses blood with your Apple Watch.
             </p>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4">
             {MARKET_CARDS.map((card) => (
               <div
                 key={card.name}
+                data-reveal=""
                 className="rounded-card-sm border border-hairline-soft bg-surface px-[18px] py-4"
               >
                 <div className="flex items-baseline justify-between gap-[10px]">
@@ -479,8 +521,11 @@ export default function PricingPage() {
         </section>
 
         {/* FAQ */}
-        <section className="mx-auto max-w-[760px] px-10 pb-20 pt-6">
-          <h2 className="mb-5 mt-0 text-center font-serif text-[30px] font-normal">
+        <section className="mx-auto max-w-[760px] px-[22px] md:px-10 pb-20 pt-6">
+          <h2
+            data-reveal=""
+            className="mb-5 mt-0 text-center font-serif text-[30px] font-normal"
+          >
             Pricing questions
           </h2>
           <div className="border-t border-hairline-mid">

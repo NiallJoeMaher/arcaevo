@@ -64,6 +64,7 @@ function PhoneMock() {
                 strokeWidth="10"
               />
               <circle
+                className="motion-ring-app"
                 cx="60"
                 cy="60"
                 r="50"
@@ -100,8 +101,17 @@ function PhoneMock() {
             VO₂ MAX + APOB
           </div>
           <svg viewBox="0 0 220 60" className="h-12 w-full">
+            {/* The dashed amber comparison line below stays static (per App.dc.html). */}
+            {/* No strokeDashoffset attribute (App.dc.html parity): draw100 has
+                no `forwards` fill, so after the animation the offset reverts
+                to the specified value — it must be the default 0 (line stays
+                drawn; reduced-motion renders it). `backwards` already hides
+                the line during the 0.5s delay. */}
             <polyline
+              className="motion-trace"
               points="6,50 46,46 86,36 126,38 166,26 200,18 214,14"
+              pathLength="100"
+              strokeDasharray="100"
               fill="none"
               stroke="#34A07C"
               strokeWidth="2.5"
@@ -150,12 +160,12 @@ export default function AppPage() {
 
       <main>
         {/* HERO */}
-        <section className="mx-auto grid max-w-[1180px] items-center gap-12 px-10 pb-10 pt-16 lg:grid-cols-2">
-          <div>
+        <section className="mx-auto grid max-w-[1180px] items-center gap-12 px-[22px] md:px-10 pb-10 pt-16 lg:grid-cols-2">
+          <div className="motion-rise">
             <div className="mb-5 font-mono text-xs tracking-[0.14em] text-forest">
               THE APP · iOS &amp; APPLE WATCH
             </div>
-            <h1 className="mb-5 mt-0 font-serif text-[clamp(38px,5vw,56px)] font-normal leading-[1.04] tracking-[-0.015em]">
+            <h1 className="mb-5 mt-0 font-serif text-[clamp(38px,5vw,56px)] max-md:text-[clamp(34px,9.5vw,42px)] font-normal leading-[1.04] tracking-[-0.015em]">
               Your trends, in your pocket and on your wrist.
             </h1>
             <p className="mb-7 mt-0 max-w-[44ch] text-lg leading-[1.6] text-muted">
@@ -186,7 +196,7 @@ export default function AppPage() {
           </div>
           <div
             aria-hidden="true"
-            className="flex items-end justify-center gap-5"
+            className="motion-rise-delayed flex items-end justify-center gap-5"
           >
             <PhoneMock />
             <WatchMock />
@@ -194,12 +204,13 @@ export default function AppPage() {
         </section>
 
         {/* FEATURE GRID */}
-        <section className="px-10 py-[60px]">
+        <section className="px-[22px] md:px-10 py-[60px]">
           <div className="mx-auto max-w-[1100px]">
             <div className="grid gap-[18px] md:grid-cols-3">
               {FEATURES.map((feature) => (
                 <div
                   key={feature.tag}
+                  data-reveal=""
                   className="rounded-[18px] border border-hairline-soft bg-surface p-6"
                 >
                   <div className="mb-3 font-mono text-[11px] tracking-[0.1em] text-forest">
@@ -218,8 +229,11 @@ export default function AppPage() {
         </section>
 
         {/* CTA */}
-        <section className="px-10 pb-[90px] pt-5">
-          <div className="mx-auto max-w-[900px] rounded-card-xl bg-forest px-10 py-14 text-center text-white">
+        <section className="px-[22px] md:px-10 pb-[90px] pt-5">
+          <div
+            data-reveal=""
+            className="mx-auto max-w-[900px] rounded-card-xl bg-forest px-10 py-14 text-center text-white"
+          >
             <h2 className="mb-3 mt-0 font-serif text-4xl font-normal tracking-[-0.01em]">
               Free to download. Yours the moment you test.
             </h2>

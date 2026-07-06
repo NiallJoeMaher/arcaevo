@@ -1,4 +1,5 @@
 import Link from "next/link";
+import BrandMark from "@/components/BrandMark";
 import { DEFAULT_LOCALE, getDictionary, type Locale, type Messages } from "@/i18n/messages";
 
 type FooterLinkKey = keyof Messages["footer"]["links"];
@@ -64,7 +65,7 @@ export default function SiteFooter({
 }) {
   const m = getDictionary(locale).footer;
   return (
-    <footer className="bg-ink-deep px-10 pt-16 pb-10 font-sans text-muted-dark">
+    <footer className="bg-ink-deep px-[22px] md:px-10 pt-16 pb-10 font-sans text-muted-dark">
       <div className="mx-auto max-w-[1180px]">
         <div className="flex flex-wrap items-start justify-between gap-x-8 gap-y-12">
           <div className="max-w-[280px]">
@@ -72,6 +73,7 @@ export default function SiteFooter({
               href="/"
               className="mb-4 flex items-center gap-[11px] no-underline"
             >
+              <BrandMark width={22} className="shrink-0 text-vitality-light" />
               <span className="text-[17px] font-semibold text-bone-white">
                 Arcaevo
               </span>

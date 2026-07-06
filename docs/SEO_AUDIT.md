@@ -37,7 +37,7 @@ Top 10 ranked actions in §6.
 - **Actions:**
   - Add site-wide `openGraph` (`type: "website"`, `siteName: "Arcaevo"`, `locale: "en_IE"`, `url`) and `twitter` (`card: "summary_large_image"`, `site`/`creator` once handles exist) to `layout.tsx`.
   - On `blog/[slug]`, set `openGraph.type = "article"` with `publishedTime` (from `post.date`) + `authors`.
-  - **Bigger bet:** per-template dynamic OG images for `blog/[slug]` and `compare/[slug]` (route-level `opengraph-image.tsx` rendering the title/competitor) — meaningfully lifts social + AI-surface CTR.
+  - **Bigger bet:** per-template dynamic OG images for `blog/[slug]` and `compare/[slug]` (route-level `opengraph-image.tsx` rendering the title/competitor) — meaningfully lifts social + AI-surface CTR. **✅ Shipped 2026-07-06** — per-route cards for all 11 main pages + per-slug cards for `blog/[slug]`/`compare/[slug]` via a shared `src/lib/og.tsx` helper (vendored brand fonts, no network fetches); see BUILD_STATE.
 
 ### 1.4 Structured data — what exists vs what should
 | Schema | Status | Gap / action |

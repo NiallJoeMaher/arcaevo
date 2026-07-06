@@ -101,11 +101,11 @@ export default function HowItWorksPage() {
 
       <main>
         {/* HERO */}
-        <section className="mx-auto max-w-[900px] px-10 pb-12 pt-[72px] text-center">
+        <section className="mx-auto max-w-[900px] px-[22px] md:px-10 pb-12 pt-[72px] text-center">
           <div className="mb-5 font-mono text-xs tracking-[0.14em] text-forest">
             HOW IT WORKS
           </div>
-          <h1 className="mb-[22px] mt-0 font-serif text-[clamp(38px,5vw,58px)] font-normal leading-[1.04] tracking-[-0.015em]">
+          <h1 className="mb-[22px] mt-0 font-serif text-[clamp(38px,5vw,58px)] max-md:text-[clamp(34px,9.5vw,42px)] font-normal leading-[1.04] tracking-[-0.015em]">
             From a drop of blood to a two-line plan.
           </h1>
           <p className="mx-auto my-0 max-w-[56ch] text-[19px] leading-[1.55] text-muted">
@@ -116,10 +116,11 @@ export default function HowItWorksPage() {
         </section>
 
         {/* STEP DETAIL */}
-        <section className="mx-auto flex max-w-[1000px] flex-col gap-5 px-10 pb-10 pt-8">
+        <section className="mx-auto flex max-w-[1000px] flex-col gap-5 px-[22px] md:px-10 pb-10 pt-8">
           {STEPS.map((step) => (
             <div
               key={step.n}
+              data-reveal=""
               className="grid items-start gap-7 rounded-card-lg border border-hairline-soft bg-surface p-[34px] md:grid-cols-[120px_1fr]"
             >
               <div className="font-serif text-[64px] leading-[0.9] text-forest">
@@ -141,13 +142,16 @@ export default function HowItWorksPage() {
         </section>
 
         {/* FUSION EXPLAINER */}
-        <section className="mt-10 bg-ink px-10 py-20 text-bone-white">
+        <section className="mt-10 bg-ink px-[22px] md:px-10 py-20 text-bone-white">
           <div className="mx-auto grid max-w-[1000px] items-center gap-12 lg:grid-cols-2">
             <div>
               <div className="mb-4 font-mono text-xs tracking-[0.14em] text-vitality-light">
                 THE FUSION ENGINE
               </div>
-              <h2 className="mb-[18px] mt-0 font-serif text-4xl font-normal tracking-[-0.01em]">
+              <h2
+                data-reveal=""
+                className="mb-[18px] mt-0 font-serif text-4xl font-normal tracking-[-0.01em]"
+              >
                 Bloods explain the trend. Wearables explain the blood.
               </h2>
               <p className="mb-4 mt-0 text-base leading-[1.6] text-muted-dark">
@@ -173,15 +177,19 @@ export default function HowItWorksPage() {
         </section>
 
         {/* WHAT YOU GET */}
-        <section className="px-10 py-20">
+        <section className="px-[22px] md:px-10 py-20">
           <div className="mx-auto max-w-[1000px]">
-            <h2 className="mb-9 mt-0 text-center font-serif text-4xl font-normal tracking-[-0.01em]">
+            <h2
+              data-reveal=""
+              className="mb-9 mt-0 text-center font-serif text-4xl font-normal tracking-[-0.01em]"
+            >
               What lands in your app
             </h2>
             <div className="grid gap-[18px] md:grid-cols-2">
               {OUTPUTS.map((output) => (
                 <div
                   key={output.t}
+                  data-reveal=""
                   className="rounded-[18px] border border-hairline-soft bg-surface p-6"
                 >
                   <h3 className="mb-2 mt-0 text-[17px] font-bold">

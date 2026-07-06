@@ -19,11 +19,11 @@ export default function ComparePage() {
 
       <main>
         {/* HERO */}
-        <section className="mx-auto max-w-[900px] px-10 pb-6 pt-[72px]">
+        <section className="mx-auto max-w-[900px] px-[22px] md:px-10 pb-6 pt-[72px]">
           <div className="mb-5 font-mono text-xs tracking-[0.14em] text-forest">
             {compareIndexMeta.kicker}
           </div>
-          <h1 className="mb-[22px] mt-0 font-serif text-[clamp(38px,5vw,56px)] font-normal leading-[1.05] tracking-[-0.015em]">
+          <h1 className="mb-[22px] mt-0 font-serif text-[clamp(38px,5vw,56px)] max-md:text-[clamp(34px,9.5vw,42px)] font-normal leading-[1.05] tracking-[-0.015em]">
             {compareIndexMeta.title}
           </h1>
           <p className="m-0 max-w-[60ch] text-[19px] leading-[1.6] text-muted">
@@ -32,8 +32,11 @@ export default function ComparePage() {
         </section>
 
         {/* ARCAEVO SUMMARY ROW */}
-        <section className="mx-auto max-w-[1000px] px-10 pb-2 pt-6">
-          <div className="grid gap-5 rounded-card bg-ink px-[30px] py-[26px] text-bone-white md:grid-cols-3">
+        <section className="mx-auto max-w-[1000px] px-[22px] md:px-10 pb-2 pt-6">
+          <div
+            data-reveal=""
+            className="grid gap-5 rounded-card bg-ink px-[30px] py-[26px] text-bone-white md:grid-cols-3"
+          >
             {compareIndexMeta.summary.map((card) => (
               <div key={card.kicker}>
                 <div className="mb-2 font-mono text-[10px] tracking-[0.1em] text-vitality-light">
@@ -49,12 +52,13 @@ export default function ComparePage() {
         </section>
 
         {/* COMPETITOR GRID */}
-        <section className="mx-auto max-w-[1000px] px-10 pb-20 pt-8">
+        <section className="mx-auto max-w-[1000px] px-[22px] md:px-10 pb-20 pt-8">
           <div className="grid gap-4 md:grid-cols-2">
             {compareIndex.map((c) => (
               <Link
                 key={c.slug}
                 href={`/compare/${c.slug}`}
+                data-reveal=""
                 className="flex flex-col gap-3 rounded-[18px] border border-hairline-soft bg-surface p-6 text-inherit no-underline"
               >
                 <div className="flex items-center justify-between">

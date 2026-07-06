@@ -51,6 +51,10 @@ export const E2E_ENV = {
   EMAIL_PROVIDER: process.env.EMAIL_PROVIDER ?? (process.env.CI ? "" : "mailhog"),
   SMTP_HOST: process.env.SMTP_HOST ?? "localhost",
   SMTP_PORT: process.env.SMTP_PORT ?? "1026",
+  // Pin the sender the specs assert on (email.spec.ts checks the From header).
+  // Same rationale as STRIPE_FORCE_MOCK: a developer's .env.local may override
+  // EMAIL_FROM for real-domain testing, and `next start` would load it.
+  EMAIL_FROM: "Arcaevo <hello@arcaevo.com>",
 };
 
 export default defineConfig({

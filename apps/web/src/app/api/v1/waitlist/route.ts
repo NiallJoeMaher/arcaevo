@@ -1,8 +1,15 @@
 /**
  * /api/v1/waitlist — the early-access list (design §06 W6, §14 X5).
  *
- *  POST — join: { email, eircode } → county queue position; sends E10.
- *         Idempotent per email: joining again returns the existing position.
+ *  POST — join: { email, eircode, name?, planInterest? } → county queue
+ *         position; sends E10. Idempotent per email: joining again returns
+ *         the existing position (newly provided name/planInterest are still
+ *         persisted onto the existing entry; nothing is ever unset).
+ *         Same promise as the in-app waitlist: one email when the area opens,
+ *         founding-member pricing honoured.
+ *         Eligible routing keys 409 (already_eligible → checkout) ONLY while
+ *         BLOOD_TIERS_ENABLED is on; while the flag is off checkout is closed,
+ *         so eligible areas join the early-access list like everyone else.
  *  GET  — position: authenticated member (uses their email) or ?email=…
  *         (position + county only — nothing sensitive).
  */
@@ -12,6 +19,7 @@ import { parseJsonBody, siteUrl } from "@/lib/api";
 import { collections } from "@/lib/db";
 import { checkEligibility } from "@/lib/eligibility";
 import { sendEmail } from "@/lib/emails";
+import { bloodTiersEnabled } from "@/lib/env";
 import { newId } from "@/lib/ids";
 import { WaitlistJoinInput } from "@/lib/models";
 
@@ -31,7 +39,10 @@ export async function POST(req: Request) {
       { status: 422 }
     );
   }
-  if (result.status === "eligible") {
+  // "Head to checkout" is only a real answer while checkout is open. With
+  // blood tiers flagged off (early-access gate), eligible areas fall through
+  // and join the list too — county comes from checkEligibility as usual.
+  if (result.status === "eligible" && bloodTiersEnabled()) {
     return Response.json(
       {
         error: "already_eligible",
@@ -53,6 +64,17 @@ export async function POST(req: Request) {
   // existing position) and does NOT re-send E10 (avoids confirmation spam).
   const existing = await waitlist.findOne({ email });
   if (existing) {
+    // Idempotent re-join, but not amnesiac: a plain /early-access join later
+    // upgraded through the pricing form says "Noted for {plan}" — so persist
+    // any newly provided name/planInterest onto the existing entry. Only the
+    // fields actually sent are $set (a plain re-join never unsets anything);
+    // no second E10; the response stays byte-identical (W-2 non-revealing).
+    const updates: Record<string, unknown> = {};
+    if (parsed.data.name) updates.name = parsed.data.name;
+    if (parsed.data.planInterest) updates.planInterest = parsed.data.planInterest;
+    if (Object.keys(updates).length > 0) {
+      await waitlist.updateOne({ _id: existing._id }, { $set: updates });
+    }
     return Response.json(
       { ok: true, position: existing.position, county: existing.county },
       { status: 201 }
@@ -67,6 +89,16 @@ export async function POST(req: Request) {
     county,
     position,
     createdAt: new Date(),
+    // Early-access extras (pricing form) — pass-through, both optional.
+    ...(parsed.data.name ? { name: parsed.data.name } : {}),
+    ...(parsed.data.planInterest
+      ? { planInterest: parsed.data.planInterest }
+      : {}),
+    // Launch-gate segment marker: this join can only reach here with an
+    // ELIGIBLE key while BLOOD_TIERS_ENABLED is off (flag-on eligible keys
+    // 409 above). They're waiting for sales to OPEN, not for their area —
+    // /admin/waitlist keeps them out of the expansion-demand aggregates.
+    ...(result.status === "eligible" ? { eligibleAtJoin: true } : {}),
   };
   await waitlist.insertOne(entry);
 

@@ -3,9 +3,16 @@
  * the member's latest RCV verdicts.
  *
  * Deterministic rules decide the verdicts (lib/rcv.ts); these strings are
- * fixed templates. AI-NARRATION SLOT: in production, Claude would rewrite the
- * `text` of each insight in warmer, member-specific language — but it would
- * ONLY narrate the deterministic verdict, never change it.
+ * fixed templates. AI-NARRATION SLOT (now WIRED — src/lib/ai-narration.ts):
+ * when AI_NARRATION_ENABLED=true + AWS creds exist, Claude Haiku on Bedrock
+ * rewrites the `text` of an ELIGIBLE insight in warmer language — but it
+ * ONLY narrates the deterministic verdict, never changes it. The rewrite
+ * ships as an ADDITIVE `narration?: string` next to the untouched template
+ * `text` (iOS decoders ignore extra keys), is cache-first (a miss enqueues
+ * background generation and ships the template — this GET never waits on the
+ * model), and flagged/watch values are NEVER narrated ("flagged values go to
+ * a clinician, not a chatbot" — isNarrationEligible reuses isWatchMarker).
+ * Feature off / any failure ⇒ this payload is byte-identical to before.
  *
  * FUSION (docs/IMPROVEMENT_REVIEW.md #2): the response also carries a real,
  * COMPUTED `fusion` insight when the member's own data supports one — a blood
@@ -21,6 +28,8 @@ import { requireConsentedMember } from "@/lib/consent-guard";
 import { collections } from "@/lib/db";
 import { percentChange } from "@/lib/rcv";
 import { computeFusionInsight } from "@/lib/fusion";
+import { isNarrationEligible, resolveNarrations } from "@/lib/ai-narration";
+import type { NarrationInput } from "@/lib/vendors/ai-narration";
 import type { BiomarkerReading } from "@/lib/models";
 
 const DISCLAIMER =
@@ -61,13 +70,20 @@ export async function GET(req: Request) {
     byCode.set(r.code, list);
   }
 
-  const insights: {
+  interface InsightItem {
     code: string;
     name: string;
     verdict: string;
     text: string;
     takenAt: Date;
-  }[] = [];
+    /** Additive: cached AI rewrite of `text` (absent when none — iOS-safe). */
+    narration?: string;
+  }
+  // Insight + (when guardrail-eligible) the PII-free facts for AI narration.
+  const built: Array<{
+    insight: InsightItem;
+    narrationInput: NarrationInput | null;
+  }> = [];
 
   for (const [code, series] of byCode) {
     const latest = series[series.length - 1];
@@ -77,7 +93,8 @@ export async function GET(req: Request) {
     const name = rule?.name ?? code;
     const deltaPct = Math.abs(Math.round(percentChange(prior.value, latest.value)));
 
-    // Deterministic templates — the AI narration slot would rewrite `text`.
+    // Deterministic templates — ALWAYS shipped as `text`; the AI narration
+    // (when enabled + cached) rides alongside as `narration`, never replaces.
     let text: string;
     switch (latest.rcvVerdict) {
       case "improved":
@@ -90,22 +107,55 @@ export async function GET(req: Request) {
         text = `Your ${name} is within your personal baseline band. A ${deltaPct}% shift is inside your normal variation — no real change, and that's fine.`;
     }
 
-    insights.push({
-      code,
-      name,
-      verdict: latest.rcvVerdict,
-      text,
-      takenAt: latest.takenAt,
+    // GUARDRAIL: only non-flagged insights may be narrated — a worsened
+    // verdict or a harmful out-of-band value is clinician territory, never a
+    // chatbot's. Eligible facts are rule metadata + numbers ONLY (no PII).
+    const eligible =
+      rule !== undefined && isNarrationEligible(latest, rule.direction);
+
+    built.push({
+      insight: {
+        code,
+        name,
+        verdict: latest.rcvVerdict,
+        text,
+        takenAt: latest.takenAt,
+      },
+      narrationInput: eligible
+        ? {
+            code,
+            name,
+            unit: latest.unit,
+            direction: rule.direction,
+            verdict: latest.rcvVerdict,
+            priorValue: prior.value,
+            currentValue: latest.value,
+            deltaPct,
+            templateText: text,
+          }
+        : null,
     });
   }
 
   // Stable order: improved first (celebrate wins), then worsened, then flat.
   const rank = { improved: 0, worsened: 1, no_real_change: 2 } as const;
-  insights.sort(
+  built.sort(
     (a, b) =>
-      rank[a.verdict as keyof typeof rank] - rank[b.verdict as keyof typeof rank] ||
-      a.code.localeCompare(b.code)
+      rank[a.insight.verdict as keyof typeof rank] -
+        rank[b.insight.verdict as keyof typeof rank] ||
+      a.insight.code.localeCompare(b.insight.code)
   );
+
+  // Attach CACHED narrations (one indexed read; zero when the feature is
+  // off). Misses enqueue background generation and ship the template — this
+  // await is a cache lookup, never a model call. Fail-safe all-null on error.
+  const narrations = await resolveNarrations(
+    built.map((b) => b.narrationInput)
+  );
+  const insights = built.map((b, i) => {
+    const narration = narrations[i];
+    return narration ? { ...b.insight, narration } : b.insight;
+  });
 
   // Real, computed fusion insight (or null) — the one non-canned card.
   const fusion = computeFusionInsight({

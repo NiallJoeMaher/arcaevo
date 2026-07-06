@@ -20,6 +20,8 @@ import {
   TIER_INCLUDED_TESTS,
   TIER_PRICE_EUR,
   UserSchema,
+  WaitlistEntrySchema,
+  WaitlistJoinInput,
   WearableSignalSchema,
 } from "@/lib/models";
 
@@ -251,6 +253,70 @@ describe("pricing constants (verbatim from the design handoff)", () => {
     expect(TIER_INCLUDED_TESTS.performance).toEqual([
       { panel: "venous80", count: 1 },
     ]);
+  });
+});
+
+// --- waitlist early-access fields (motion handoff Task 7) -------------------
+
+describe("waitlist schemas — additive name + planInterest fields", () => {
+  const baseEntry = {
+    _id: "wait_0001",
+    email: "aoife.byrne@example.com",
+    routingKey: "T12",
+    county: "Cork",
+    position: 1,
+    createdAt: new Date("2026-07-01T00:00:00Z"),
+  };
+
+  it("WaitlistEntrySchema accepts an entry with name + planInterest (values kept)", () => {
+    const entry = { ...baseEntry, name: "Aoife Byrne", planInterest: "either" };
+    const parsed = WaitlistEntrySchema.parse(entry);
+    expect(parsed.name).toBe("Aoife Byrne");
+    expect(parsed.planInterest).toBe("either");
+  });
+
+  it("WaitlistEntrySchema still accepts the pre-Task-7 shape (fields optional)", () => {
+    expect(WaitlistEntrySchema.parse(baseEntry)).toEqual(baseEntry);
+  });
+
+  it("WaitlistEntrySchema accepts the additive eligibleAtJoin marker (launch-gate segment)", () => {
+    const entry = { ...baseEntry, eligibleAtJoin: true };
+    expect(WaitlistEntrySchema.parse(entry).eligibleAtJoin).toBe(true);
+    // Optional: absent on expansion-demand rows (and every pre-existing row).
+    expect(WaitlistEntrySchema.parse(baseEntry).eligibleAtJoin).toBeUndefined();
+  });
+
+  it("WaitlistJoinInput still accepts the old {email, eircode} shape", () => {
+    expect(
+      WaitlistJoinInput.safeParse({ email: "a@example.ie", eircode: "T12AB34" })
+        .success
+    ).toBe(true);
+  });
+
+  it("WaitlistJoinInput keeps name + planInterest on parse output (not stripped)", () => {
+    const parsed = WaitlistJoinInput.parse({
+      email: "a@example.ie",
+      eircode: "T12AB34",
+      name: "Aoife Byrne",
+      planInterest: "essential",
+    });
+    expect(parsed.name).toBe("Aoife Byrne");
+    expect(parsed.planInterest).toBe("essential");
+  });
+
+  it("planInterest rejects values outside essential/performance/either", () => {
+    for (const planInterest of ["premium", "fusion", ""]) {
+      expect(
+        WaitlistJoinInput.safeParse({
+          email: "a@example.ie",
+          eircode: "T12AB34",
+          planInterest,
+        }).success
+      ).toBe(false);
+      expect(
+        WaitlistEntrySchema.safeParse({ ...baseEntry, planInterest }).success
+      ).toBe(false);
+    }
   });
 });
 

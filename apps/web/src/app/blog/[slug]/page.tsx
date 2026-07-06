@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return routeMetadata({
     path: `/blog/${post.slug}`,
     title: post.title,
-    description: post.answer,
+    description: post.description,
     type: "article",
     publishedTime: published,
     modifiedTime: published,
@@ -188,7 +188,7 @@ export default async function ArticlePage({ params }: Props) {
           </div>
 
           {/* DIRECT ANSWER (AEO) */}
-          <div className="my-7 rounded-card-sm border border-hairline border-l-[3px] border-l-forest bg-surface px-6 py-[22px]">
+          <div className="my-7 rounded-card-sm bg-surface px-6 py-[22px]">
             <div className="mb-[10px] font-mono text-[10px] tracking-[0.12em] text-forest">
               THE SHORT ANSWER
             </div>

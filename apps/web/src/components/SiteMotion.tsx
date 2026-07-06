@@ -71,11 +71,18 @@ export default function SiteMotion() {
       { rootMargin: "0px 0px -7% 0px", threshold: 0.06 }
     );
 
-    // Above-the-fold guard: anything in the first view on initial paint stays
-    // static (never hidden) — reveal is below-fold only.
+    // First-view guard: anything at or above the viewport's bottom edge at
+    // prep time stays static (never hidden) — reveal is below-fold only.
+    // DELIBERATE deviation from the reference script, which also required
+    // `scrollY < 40`: on a scroll-restored load (App Router back-navigation,
+    // hard reload mid-page) that clause hid the restored viewport's visible
+    // content (flash + re-animate) and left everything ABOVE it at opacity 0
+    // until re-intersected. rect.top alone is exactly right: elements above
+    // or inside the restored viewport are static; elements below it still
+    // animate on scroll, so top-of-page loads behave as before. (The
+    // reference is MPA-only and has the same bug there.)
     const inFirstView = (el: Element) =>
-      el.getBoundingClientRect().top < window.innerHeight * 0.95 &&
-      window.scrollY < 40;
+      el.getBoundingClientRect().top < window.innerHeight * 0.95;
 
     const prepReveal = (el: HTMLElement) => {
       if (el.dataset.motionPrepped) return;

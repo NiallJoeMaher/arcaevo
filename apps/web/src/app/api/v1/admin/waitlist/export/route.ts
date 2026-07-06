@@ -30,6 +30,10 @@ const HEADER = [
   "planInterest",
   "position",
   "createdAt",
+  // Segment marker: "true" = launch-gate join from an ELIGIBLE area (waiting
+  // for sales to open), empty = genuine expansion demand. Keeps the export as
+  // honest as the /admin/waitlist aggregates.
+  "eligibleAtJoin",
 ] as const;
 
 export async function GET(req: Request) {
@@ -59,6 +63,7 @@ export async function GET(req: Request) {
       e.planInterest ?? "",
       String(e.position),
       e.createdAt.toISOString(),
+      e.eligibleAtJoin ? "true" : "",
     ])
   );
 

@@ -55,7 +55,9 @@ test("waitlist people table lists entries with a CSV export (Task 7b)", async ({
   );
   const body = await res.text();
   expect(
-    body.startsWith("name,email,routingKey,county,planInterest,position,createdAt")
+    body.startsWith(
+      "name,email,routingKey,county,planInterest,position,createdAt,eligibleAtJoin"
+    )
   ).toBe(true);
   expect(body).toContain("sinead.corkonian@example.ie");
 });

@@ -483,6 +483,13 @@ export const WaitlistEntrySchema = z.object({
   /** Optional, from the pricing early-access form — pre-Task-7 rows have neither. */
   name: z.string().optional(),
   planInterest: z.enum(["essential", "performance", "either"]).optional(),
+  /**
+   * Additive launch-gate marker: true when the routing key was ELIGIBLE at
+   * join time (Dublin allowlist) but sales were closed (BLOOD_TIERS_ENABLED
+   * off), so the join is "waiting for sales to open" — NOT expansion demand.
+   * Absent on genuine expansion-demand rows and every pre-existing row.
+   */
+  eligibleAtJoin: z.boolean().optional(),
 });
 export type WaitlistEntry = z.infer<typeof WaitlistEntrySchema>;
 

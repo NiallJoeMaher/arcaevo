@@ -267,11 +267,18 @@ export interface WaitlistCountyRow {
 }
 
 export interface WaitlistDemandData {
-  /** Sorted by signups, busiest county first. */
+  /** Sorted by signups, busiest county first. EXPANSION DEMAND ONLY —
+   * launch-area (eligibleAtJoin) signups are excluded: they're waiting for
+   * sales to open, not for their area, so counting them would fake demand
+   * for a county that is already live. */
   counties: WaitlistCountyRow[];
+  /** Every entry, both segments. */
   total: number;
+  /** Launch-gate signups from ELIGIBLE areas — waiting for sales to open. */
+  launchArea: number;
   /** Individual signups, newest first — the "People on the list" table
-   * (Task 7b). Same single query as the aggregates, just un-grouped. */
+   * (Task 7b). Same single query as the aggregates, just un-grouped;
+   * includes BOTH segments (the table marks launch-area rows). */
   entries: WaitlistEntry[];
 }
 
@@ -283,8 +290,12 @@ export async function loadWaitlistDemand(): Promise<WaitlistDemandData | null> {
         .then((c) => c.find().sort({ createdAt: 1 }).toArray())
     );
 
+    // Split the segments: only genuine expansion demand feeds the county
+    // aggregates ("Where do we open next?").
+    const expansion = entries.filter((e) => !e.eligibleAtJoin);
+
     const byCounty = new Map<string, WaitlistEntry[]>();
-    for (const entry of entries) {
+    for (const entry of expansion) {
       const list = byCounty.get(entry.county);
       if (list) list.push(entry);
       else byCounty.set(entry.county, [entry]);
@@ -310,6 +321,7 @@ export async function loadWaitlistDemand(): Promise<WaitlistDemandData | null> {
     return {
       counties,
       total: entries.length,
+      launchArea: entries.length - expansion.length,
       entries: [...entries].reverse(), // fetched oldest-first → newest first
     };
   } catch {

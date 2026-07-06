@@ -279,6 +279,13 @@ describe("waitlist schemas — additive name + planInterest fields", () => {
     expect(WaitlistEntrySchema.parse(baseEntry)).toEqual(baseEntry);
   });
 
+  it("WaitlistEntrySchema accepts the additive eligibleAtJoin marker (launch-gate segment)", () => {
+    const entry = { ...baseEntry, eligibleAtJoin: true };
+    expect(WaitlistEntrySchema.parse(entry).eligibleAtJoin).toBe(true);
+    // Optional: absent on expansion-demand rows (and every pre-existing row).
+    expect(WaitlistEntrySchema.parse(baseEntry).eligibleAtJoin).toBeUndefined();
+  });
+
   it("WaitlistJoinInput still accepts the old {email, eircode} shape", () => {
     expect(
       WaitlistJoinInput.safeParse({ email: "a@example.ie", eircode: "T12AB34" })

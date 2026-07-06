@@ -33,6 +33,16 @@ class FakeCollection {
       Object.entries(filter).every(([k, v]) => d[k] === v)
     ).length;
   }
+  async updateOne(
+    filter: Record<string, unknown>,
+    update: { $set?: Record<string, unknown> }
+  ) {
+    const doc = this.docs.find((d) =>
+      Object.entries(filter).every(([k, v]) => d[k] === v)
+    );
+    if (doc && update.$set) Object.assign(doc, update.$set);
+    return { matchedCount: doc ? 1 : 0, modifiedCount: doc ? 1 : 0 };
+  }
 }
 
 const store: Record<string, FakeCollection> = {};
@@ -113,6 +123,42 @@ describe("POST /api/v1/waitlist — early-access extensions (Task 7)", () => {
     expect(doc.planInterest).toBe("either");
   });
 
+  it("re-join with newly provided name/planInterest updates the stored doc (no second E10, same response)", async () => {
+    // Plain join first (e.g. the /early-access form: email + eircode only).
+    const first = await POST(joinReq("aoife@arcaevo.test"));
+    expect(first.status).toBe(201);
+    const firstBody = await first.json();
+    expect(sendEmail).toHaveBeenCalledTimes(1);
+
+    // Same email via the pricing form, now with the richer fields — "Noted
+    // for Essential" must actually be noted, not silently discarded.
+    const second = await POST(
+      joinReq("aoife@arcaevo.test", {
+        name: "Aoife Byrne",
+        planInterest: "essential",
+      })
+    );
+    expect(second.status).toBe(201);
+    // Response stays byte-identical to the first join (W-2 non-revealing).
+    expect(await second.json()).toEqual(firstBody);
+    expect(sendEmail).toHaveBeenCalledTimes(1); // no confirmation spam
+
+    const doc = col("waitlist").docs[0];
+    expect(doc.name).toBe("Aoife Byrne");
+    expect(doc.planInterest).toBe("essential");
+    expect(doc.position).toBe(1); // queue place untouched
+  });
+
+  it("re-join without the optional fields never unsets previously stored ones", async () => {
+    await POST(
+      joinReq("aoife@arcaevo.test", { name: "Aoife Byrne", planInterest: "either" })
+    );
+    await POST(joinReq("aoife@arcaevo.test")); // plain re-join
+    const doc = col("waitlist").docs[0];
+    expect(doc.name).toBe("Aoife Byrne");
+    expect(doc.planInterest).toBe("either");
+  });
+
   it("joins an ELIGIBLE routing key while BLOOD_TIERS_ENABLED is off (no dead-end 409)", async () => {
     // vitest does not set BLOOD_TIERS_ENABLED, so the flag is off here.
     eligibility.result = { status: "eligible", routingKey: "D08", county: "Dublin" };
@@ -120,6 +166,17 @@ describe("POST /api/v1/waitlist — early-access extensions (Task 7)", () => {
     expect(res.status).toBe(201);
     expect(await res.json()).toEqual({ ok: true, position: 1, county: "Dublin" });
     expect(sendEmail).toHaveBeenCalledTimes(1); // E10 still sent on first join
+  });
+
+  it("marks a launch-gate join from an ELIGIBLE area with eligibleAtJoin (admin data honesty)", async () => {
+    eligibility.result = { status: "eligible", routingKey: "D08", county: "Dublin" };
+    await POST(joinReq("dub@arcaevo.test"));
+    expect(col("waitlist").docs[0].eligibleAtJoin).toBe(true);
+  });
+
+  it("does NOT set eligibleAtJoin on a genuine expansion-demand join", async () => {
+    await POST(joinReq("cork@arcaevo.test"));
+    expect("eligibleAtJoin" in col("waitlist").docs[0]).toBe(false);
   });
 
   it("keeps the 409 already_eligible redirect while BLOOD_TIERS_ENABLED is on", async () => {

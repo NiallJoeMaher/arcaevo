@@ -5,6 +5,7 @@ import {
   DbDownNotice,
   EmptyDbNotice,
   MONO,
+  PILL,
   PanelBody,
   SERIF,
   Topbar,
@@ -50,12 +51,58 @@ export default async function AdminWaitlistPage() {
           <EmptyDbNotice />
         ) : (
           <>
-            <Demand data={data} />
+            {/* Launch-gate signups from ELIGIBLE areas are NOT expansion
+                demand — they get their own honest one-liner and are excluded
+                from the county aggregates below (data.ts). */}
+            {data.launchArea > 0 ? <LaunchAreaCard count={data.launchArea} /> : null}
+            {/* Every entry could be launch-area (flag-off Dublin joins only)
+                — then there is no expansion demand to aggregate. */}
+            {data.counties.length > 0 ? <Demand data={data} /> : null}
             <People entries={data.entries} />
           </>
         )}
       </PanelBody>
     </>
+  );
+}
+
+/**
+ * "Launch-area early access" — people whose Eircode is already in the Dublin
+ * service area, who joined while BLOOD_TIERS_ENABLED was off. They're waiting
+ * for sales to OPEN, not for their county, so they'd fake the "where do we
+ * open next?" numbers if counted. Styled like the KPI cards above.
+ */
+function LaunchAreaCard({ count }: { count: number }) {
+  return (
+    <div
+      style={{
+        ...CARD,
+        padding: "16px 20px",
+        marginBottom: 20,
+        display: "flex",
+        alignItems: "baseline",
+        gap: 12,
+        flexWrap: "wrap",
+      }}
+    >
+      <span
+        style={{
+          fontFamily: MONO,
+          fontSize: 10,
+          letterSpacing: "0.08em",
+          color: "#7C887F",
+        }}
+      >
+        LAUNCH-AREA EARLY ACCESS
+      </span>
+      <span style={{ fontFamily: SERIF, fontSize: 28, lineHeight: 1 }}>
+        {count.toLocaleString("en-IE")}
+      </span>
+      <span style={{ fontSize: 12.5, color: "#4A554D" }}>
+        {count === 1 ? "person" : "people"} waiting for sales to open — already
+        in the service area, so not counted as expansion demand.
+      </span>
+    </div>
   );
 }
 
@@ -385,6 +432,13 @@ function People({ entries }: { entries: WaitlistEntry[] }) {
             </span>
             <span style={{ fontFamily: MONO, fontSize: 12, color: "#1E5C45" }}>
               {e.routingKey}
+              {e.eligibleAtJoin ? (
+                // Launch-gate join from an ELIGIBLE area — waiting for sales
+                // to open, not expansion demand.
+                <span style={{ ...PILL.vitality, marginLeft: 6 }}>
+                  LAUNCH AREA
+                </span>
+              ) : null}
             </span>
             <span style={{ fontSize: 13, color: "#4A554D" }}>{e.county}</span>
             <span style={{ fontSize: 13, color: "#4A554D" }}>

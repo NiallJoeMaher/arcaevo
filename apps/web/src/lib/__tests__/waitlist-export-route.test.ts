@@ -93,6 +93,16 @@ beforeEach(() => {
       createdAt: new Date("2026-06-02T10:00:00Z"),
       name: '=HYPERLINK("http://evil"), Bobby',
       planInterest: "performance",
+    },
+    // Launch-gate join from an ELIGIBLE area (F3): segment column = "true".
+    {
+      _id: "wait_0003",
+      email: "dara.dublin@example.ie",
+      routingKey: "D08",
+      county: "Dublin",
+      position: 1,
+      createdAt: new Date("2026-06-03T10:00:00Z"),
+      eligibleAtJoin: true,
     }
   );
 });
@@ -122,15 +132,20 @@ describe("GET /api/v1/admin/waitlist/export", () => {
 
     const lines = (await res.text()).split("\r\n");
     expect(lines[0]).toBe(
-      "name,email,routingKey,county,planInterest,position,createdAt"
+      "name,email,routingKey,county,planInterest,position,createdAt,eligibleAtJoin"
     );
-    // Newest first; missing name/planInterest are empty fields.
-    expect(lines[2]).toBe(
-      ",sinead@example.ie,T12,Cork,,1,2026-06-01T10:00:00.000Z"
+    // Newest first: the launch-area (eligibleAtJoin) row carries "true" in
+    // the segment column so the CSV can tell the segments apart (F3).
+    expect(lines[1]).toBe(
+      ",dara.dublin@example.ie,D08,Dublin,,1,2026-06-03T10:00:00.000Z,true"
     );
     // Formula-injection-hardened AND RFC-4180-quoted (name contains a comma).
-    expect(lines[1]).toBe(
-      "\"'=HYPERLINK(\"\"http://evil\"\"), Bobby\",evil@example.ie,H91,Galway,performance,1,2026-06-02T10:00:00.000Z"
+    expect(lines[2]).toBe(
+      "\"'=HYPERLINK(\"\"http://evil\"\"), Bobby\",evil@example.ie,H91,Galway,performance,1,2026-06-02T10:00:00.000Z,"
+    );
+    // Missing name/planInterest/eligibleAtJoin are empty fields.
+    expect(lines[3]).toBe(
+      ",sinead@example.ie,T12,Cork,,1,2026-06-01T10:00:00.000Z,"
     );
   });
 
@@ -148,7 +163,7 @@ describe("GET /api/v1/admin/waitlist/export", () => {
     expect(entry.adminId).toBe("bootstrap-owner");
     expect(entry.role).toBe("owner");
     expect(entry.ip).toBe("1.2.3.4");
-    expect(entry.count).toBe(2);
+    expect(entry.count).toBe(3);
     // The log stores the FACT of the export only — no emails/names.
     expect(JSON.stringify(entry)).not.toContain("example.ie");
   });

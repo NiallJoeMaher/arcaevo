@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #ECE7DD; }
+  ::selection { background: #1E5C45; color: #F4F1EA; }
+  a:hover { opacity: 0.82; }
+</style>
+<link rel="stylesheet" href="./site-mobile.css">
+<script src="./site-motion.js"></script>
+</helmet>
+
+<div style="font-family:'Hanken Grotesk',sans-serif; background:#ECE7DD; color:#1C2620; width:100%; overflow-x:hidden;">
+  <dc-import name="SiteNav" active="blog" hint-size="100%,72px"></dc-import>
+
+  <section style="max-width:1000px; margin:0 auto; padding:72px 40px 24px;">
+    <div style="font-family:'Geist Mono',monospace; font-size:12px; letter-spacing:0.14em; color:#1E5C45; margin-bottom:20px;">THE JOURNAL</div>
+    <h1 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:clamp(38px,5vw,56px); line-height:1.05; letter-spacing:-0.015em; margin:0 0 18px;">Clear answers about your health data.</h1>
+    <p style="font-size:18px; line-height:1.6; color:#4A554D; margin:0; max-width:58ch;">Plain-English writing on biomarkers, wearables and how to actually improve — the questions people ask us most, answered the way we'd want them answered.</p>
+  </section>
+
+  <!-- FEATURED -->
+  <section style="max-width:1000px; margin:0 auto; padding:24px 40px 12px;">
+    <a data-m="stack" href="{{ featured.href }}" data-reveal style="text-decoration:none; color:inherit; display:grid; grid-template-columns:1.1fr 0.9fr; gap:32px; background:#1C2620; border-radius:24px; overflow:hidden;">
+      <div style="padding:40px;">
+        <span style="font-family:'Geist Mono',monospace; font-size:11px; color:#7FD3AE; letter-spacing:0.1em;">{{ featured.cat }} · FEATURED</span>
+        <h2 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:34px; line-height:1.1; letter-spacing:-0.01em; margin:16px 0 14px; color:#F4F1EA;">{{ featured.title }}</h2>
+        <p style="font-size:15.5px; line-height:1.6; color:#9FB0A6; margin:0 0 20px;">{{ featured.excerpt }}</p>
+        <span style="color:#7FD3AE; font-weight:600; font-size:14.5px;">Read the article →</span>
+      </div>
+      <div style="background:linear-gradient(135deg,#1E5C45,#34A07C); min-height:240px; display:flex; align-items:center; justify-content:center;">
+        <svg viewBox="0 0 200 120" style="width:70%; height:auto;"><rect x="0" y="46" width="200" height="30" rx="6" fill="rgba(255,255,255,0.16)"></rect><polyline points="6,86 46,80 86,60 126,64 166,44 194,34" fill="none" stroke="#F4F1EA" stroke-width="3" stroke-linecap="round"></polyline><circle cx="46" cy="80" r="5" fill="#fff"></circle><circle cx="126" cy="64" r="5" fill="#fff"></circle><circle cx="194" cy="34" r="5" fill="#fff"></circle></svg>
+      </div>
+    </a>
+  </section>
+
+  <!-- GRID -->
+  <section style="max-width:1000px; margin:0 auto; padding:24px 40px 80px;">
+    <div data-m="stack" style="display:grid; grid-template-columns:repeat(3,1fr); gap:18px;">
+      <sc-for list="{{ posts }}" as="p" hint-placeholder-count="3">
+        <a href="{{ p.href }}" data-reveal style="text-decoration:none; color:inherit; background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:18px; overflow:hidden; display:flex; flex-direction:column;">
+          <div style="height:120px; background:{{ p.bg }}; display:flex; align-items:center; justify-content:center;">
+            <span style="font-family:'Instrument Serif',serif; font-size:44px; color:rgba(255,255,255,0.9);">{{ p.glyph }}</span>
+          </div>
+          <div style="padding:22px;">
+            <span style="font-family:'Geist Mono',monospace; font-size:10px; color:#1E5C45; letter-spacing:0.1em;">{{ p.cat }}</span>
+            <h3 style="font-size:18px; font-weight:700; line-height:1.25; letter-spacing:-0.01em; margin:10px 0 8px;">{{ p.title }}</h3>
+            <p style="font-size:13.5px; line-height:1.55; color:#4A554D; margin:0 0 12px;">{{ p.excerpt }}</p>
+            <span style="font-family:'Geist Mono',monospace; font-size:11px; color:#7C887F;">{{ p.read }}</span>
+          </div>
+        </a>
+      </sc-for>
+    </div>
+  </section>
+
+  <dc-import name="SiteFooter" hint-size="100%,360px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      featured: {
+        href: "Article.dc.html?post=apob-vs-cholesterol",
+        cat: "BIOMARKERS",
+        title: "What is ApoB, and why does it matter more than cholesterol?",
+        excerpt: "The single best marker for heart-disease risk isn't the one on your standard cholesterol panel. Here's what ApoB measures, why it beats LDL-C, and what a good number looks like.",
+      },
+      posts: [
+        { href: "Article.dc.html?post=how-often-blood-test-ireland", cat: "TESTING", glyph: "◷", bg: "linear-gradient(135deg,#1E5C45,#2E7D5B)", title: "How often should you get a blood test in Ireland?", excerpt: "Annual is fine for most healthy adults — but the honest answer depends on your baseline and what you're changing.", read: "6 MIN READ" },
+        { href: "Article.dc.html?post=reference-change-value", cat: "SCIENCE", glyph: "√", bg: "linear-gradient(135deg,#2A6B52,#34A07C)", title: "Did your health markers actually improve, or was it noise?", excerpt: "Reference Change Value is the simple idea that stops you celebrating — or fearing — a number that never really moved.", read: "7 MIN READ" },
+        { href: "Article.dc.html?post=wearables-and-bloods-fusion", cat: "WEARABLES", glyph: "∿", bg: "linear-gradient(135deg,#1C2620,#1E5C45)", title: "Can your Apple Watch and blood tests work together?", excerpt: "Your wearable is a film; a blood test is a snapshot. Put them on one timeline and each explains the other.", read: "6 MIN READ" },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

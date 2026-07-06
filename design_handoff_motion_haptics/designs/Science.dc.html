@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #ECE7DD; }
+  ::selection { background: #1E5C45; color: #F4F1EA; }
+  a:hover { opacity: 0.72; }
+</style>
+<link rel="stylesheet" href="./site-mobile.css">
+<script src="./site-motion.js"></script>
+</helmet>
+
+<div style="font-family:'Hanken Grotesk',sans-serif; background:#ECE7DD; color:#1C2620; width:100%; overflow-x:hidden;">
+  <dc-import name="SiteNav" active="science" hint-size="100%,72px"></dc-import>
+
+  <section style="max-width:900px; margin:0 auto; padding:72px 40px 40px;">
+    <div style="font-family:'Geist Mono',monospace; font-size:12px; letter-spacing:0.14em; color:#1E5C45; margin-bottom:20px;">SCIENCE &amp; EVIDENCE</div>
+    <h1 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:clamp(38px,5vw,56px); line-height:1.05; letter-spacing:-0.015em; margin:0 0 22px;">The logic is deterministic. The AI only narrates.</h1>
+    <p style="font-size:19px; line-height:1.55; color:#4A554D; margin:0; max-width:60ch;">Rules written from peer-reviewed literature decide every clinical call — never a language model. The AI rewrites them into plain English and answers your questions, but it can't invent a threshold. That's our safety posture, and our trust story.</p>
+  </section>
+
+  <!-- PILLARS -->
+  <section style="max-width:1100px; margin:0 auto; padding:24px 40px 20px;">
+    <div data-m="stack" style="display:grid; grid-template-columns:repeat(2,1fr); gap:18px;">
+      <sc-for list="{{ pillars }}" as="p" hint-placeholder-count="4">
+        <div data-reveal style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:20px; padding:28px;">
+          <div style="font-family:'Geist Mono',monospace; font-size:11px; color:#1E5C45; letter-spacing:0.1em; margin-bottom:14px;">{{ p.tag }}</div>
+          <h2 style="font-size:20px; font-weight:700; margin:0 0 10px; letter-spacing:-0.01em;">{{ p.title }}</h2>
+          <p style="font-size:15px; line-height:1.6; color:#4A554D; margin:0;">{{ p.body }}</p>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <!-- RCV EXPLAINER -->
+  <section style="background:#1C2620; color:#F4F1EA; padding:80px 40px; margin-top:40px;">
+    <div style="max-width:1000px; margin:0 auto;">
+      <div style="font-family:'Geist Mono',monospace; font-size:12px; letter-spacing:0.14em; color:#7FD3AE; margin-bottom:16px;">REFERENCE CHANGE VALUE</div>
+      <h2 data-reveal style="font-family:'Instrument Serif',serif; font-weight:400; font-size:36px; margin:0 0 18px; letter-spacing:-0.01em; max-width:22ch;">Was it a real change, or was it just noise?</h2>
+      <p style="font-size:16px; line-height:1.65; color:#9FB0A6; margin:0 0 28px; max-width:64ch;">Every test has analytical variation (the lab) and biological variation (you, day to day). A number that ticks from 56 to 58 hasn't necessarily moved. Reference Change Value is the threshold a marker must cross before we'll call the difference real — so we never celebrate noise or scare you with it.</p>
+      <div data-m="stack" style="background:rgba(255,255,255,0.05); border-radius:16px; padding:26px; display:grid; grid-template-columns:1fr 1fr; gap:24px; align-items:center;">
+        <div style="font-family:'Geist Mono',monospace; font-size:18px; color:#CFE6DB; line-height:2;">RCV = √2 · Z · √(CVa² + CVi²)</div>
+        <div style="font-size:13.5px; line-height:1.7; color:#9FB0A6;"><strong style="color:#F4F1EA;">CVa</strong> — analytical variation of the assay<br><strong style="color:#F4F1EA;">CVi</strong> — your within-person biological variation<br><strong style="color:#F4F1EA;">Z</strong> — confidence (1.96 for 95%)</div>
+      </div>
+      <div style="display:flex; gap:12px; margin-top:22px; flex-wrap:wrap;">
+        <span style="font-family:'Geist Mono',monospace; font-size:11px; padding:7px 13px; background:rgba(52,160,124,0.16); color:#7FD3AE; border-radius:100px;">REAL IMPROVEMENT</span>
+        <span style="font-family:'Geist Mono',monospace; font-size:11px; padding:7px 13px; background:rgba(255,255,255,0.08); color:#9FB0A6; border-radius:100px;">WITHIN NOISE</span>
+        <span style="font-family:'Geist Mono',monospace; font-size:11px; padding:7px 13px; background:rgba(217,154,78,0.18); color:#E8B36A; border-radius:100px;">NEEDS RETEST</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- EVIDENCE / MARKERS -->
+  <section style="padding:80px 40px;">
+    <div style="max-width:1000px; margin:0 auto;">
+      <h2 data-reveal style="font-family:'Instrument Serif',serif; font-weight:400; font-size:34px; margin:0 0 12px; letter-spacing:-0.01em;">Why these markers</h2>
+      <p style="font-size:16px; color:#4A554D; margin:0 0 32px; max-width:60ch;">We prioritise markers with the strongest outcome evidence over the familiar ones. A few examples of the reasoning behind the panel:</p>
+      <div style="display:flex; flex-direction:column; gap:14px;">
+        <sc-for list="{{ markers }}" as="m" hint-placeholder-count="4">
+          <div data-m="stack" data-reveal style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:16px; padding:22px 24px; display:grid; grid-template-columns:160px 1fr; gap:20px; align-items:baseline;">
+            <div style="font-weight:700; font-size:16px;">{{ m.name }}</div>
+            <p style="font-size:14.5px; line-height:1.6; color:#4A554D; margin:0;">{{ m.why }}</p>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <!-- SAFETY BAR -->
+  <section style="background:#FBFAF6; border-top:1px solid rgba(28,38,32,0.08); padding:60px 40px;">
+    <div style="max-width:900px; margin:0 auto; text-align:center;">
+      <h2 data-reveal style="font-family:'Instrument Serif',serif; font-weight:400; font-size:30px; margin:0 0 14px;">Wellness &amp; optimisation — not diagnosis</h2>
+      <p style="font-size:15.5px; line-height:1.6; color:#4A554D; margin:0 auto 22px; max-width:60ch;">Arcaevo is built for healthy people who want to stay that way. When a result crosses a clinical threshold, we don't coach it — we flag it to our reviewing clinician and tell you, plainly, to see your GP. Read our clinical safety statement for the full escalation policy.</p>
+      <a href="Legal.dc.html?doc=clinical-safety" style="display:inline-block; border:1px solid #1C2620; color:#1C2620; padding:13px 26px; border-radius:100px; font-weight:600; text-decoration:none;">Clinical safety statement →</a>
+    </div>
+  </section>
+
+  <dc-import name="SiteFooter" hint-size="100%,360px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      pillars: [
+        { tag: "01 · DETERMINISTIC", title: "Rules, not vibes", body: "Every threshold, flag and escalation is a rule written by our clinical team from the literature. Given the same inputs, you get the same output, every time \u2014 auditable and versioned." },
+        { tag: "02 · CLINICIAN-REVIEWED", title: "A doctor signs off", body: "A registered clinician reviews every panel before release. Critical values are routed to them for action, never handled by the coach or the model." },
+        { tag: "03 · YOUR BASELINE", title: "Read against you", body: "Population reference ranges are wide and blunt. We track each marker against your own history and flag change using Reference Change Value, so \u2018normal\u2019 doesn\u2019t hide a real trend." },
+        { tag: "04 · TRANSPARENT AI", title: "The model only explains", body: "The AI turns the rule output into plain English and answers your questions, grounded strictly in your numbers and the rules. It cannot set a threshold or overrule the clinician." },
+      ],
+      markers: [
+        { name: "ApoB", why: "Counts every atherogenic particle, not just the cholesterol they carry. A better predictor of cardiovascular risk than standard LDL-C, and the marker we lead with for heart health." },
+        { name: "Lp(a)", why: "Largely genetic and measured once in a lifetime. A high Lp(a) meaningfully changes your risk picture and is invisible to a standard cholesterol panel." },
+        { name: "HbA1c & fasting insulin", why: "Together they catch metabolic drift years before glucose alone would. We watch the trend against your activity and sleep, not a single reading." },
+        { name: "hs-CRP", why: "A sensitive marker of low-grade inflammation. Fused with your HRV and recovery data, it separates a training load from a genuine inflammatory signal." },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

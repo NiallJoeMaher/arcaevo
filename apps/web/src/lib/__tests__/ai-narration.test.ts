@@ -30,7 +30,6 @@ afterEach(() => {
 });
 
 function stubLiveEnv() {
-  vi.stubEnv("AI_NARRATION_ENABLED", "true");
   vi.stubEnv("ARCAEVO_AWS_ACCESS_KEY_ID", "AKIDEXAMPLE");
   vi.stubEnv("ARCAEVO_AWS_SECRET_ACCESS_KEY", "fake-secret");
 }
@@ -47,31 +46,25 @@ const INPUT: NarrationInput = {
   templateText: "Your ApoB moved 17% in the right direction…",
 };
 
-describe("selectedNarrationVendorKind() — fail-safe OFF factory", () => {
-  it("is OFF when the flag is unset (default: templates only)", () => {
-    vi.stubEnv("AI_NARRATION_ENABLED", "");
-    expect(selectedNarrationVendorKind()).toBe("off");
-    expect(getNarrationVendor()).toBeNull();
-  });
-
-  it("is OFF for any non-'true' value (1 / yes / TRUE)", () => {
-    for (const v of ["1", "yes", "TRUE", "on", "enabled"]) {
-      vi.stubEnv("AI_NARRATION_ENABLED", v);
-      vi.stubEnv("ARCAEVO_AWS_ACCESS_KEY_ID", "AKIDEXAMPLE");
-      vi.stubEnv("ARCAEVO_AWS_SECRET_ACCESS_KEY", "fake-secret");
-      expect(selectedNarrationVendorKind()).toBe("off");
-    }
-  });
-
-  it("is OFF when the flag is on but AWS creds are missing", () => {
-    vi.stubEnv("AI_NARRATION_ENABLED", "true");
+describe("selectedNarrationVendorKind() — credentials-are-the-switch factory", () => {
+  it("is OFF when no AWS creds are set (default: templates only)", () => {
     vi.stubEnv("ARCAEVO_AWS_ACCESS_KEY_ID", "");
     vi.stubEnv("ARCAEVO_AWS_SECRET_ACCESS_KEY", "");
     expect(selectedNarrationVendorKind()).toBe("off");
     expect(getNarrationVendor()).toBeNull();
   });
 
-  it("selects bedrock ONLY with flag exactly 'true' AND both keys", () => {
+  it("is OFF when only one of the key pair is present", () => {
+    vi.stubEnv("ARCAEVO_AWS_ACCESS_KEY_ID", "AKIDEXAMPLE");
+    vi.stubEnv("ARCAEVO_AWS_SECRET_ACCESS_KEY", "");
+    expect(selectedNarrationVendorKind()).toBe("off");
+    vi.stubEnv("ARCAEVO_AWS_ACCESS_KEY_ID", "");
+    vi.stubEnv("ARCAEVO_AWS_SECRET_ACCESS_KEY", "fake-secret");
+    expect(selectedNarrationVendorKind()).toBe("off");
+    expect(getNarrationVendor()).toBeNull();
+  });
+
+  it("selects bedrock (default-on) when both keys are present — no flag needed", () => {
     stubLiveEnv();
     expect(selectedNarrationVendorKind()).toBe("bedrock");
     expect(getNarrationVendor()).not.toBeNull();

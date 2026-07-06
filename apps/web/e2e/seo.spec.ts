@@ -39,11 +39,18 @@ test("home has Organization + Product + WebSite JSON-LD", async ({ page }) => {
   expect(types).toContain("WebSite");
 });
 
-test("html lang is en-IE and canonical is present", async ({ page }) => {
-  await page.goto("/how-it-works");
-  await expect(page.locator("html")).toHaveAttribute("lang", "en-IE");
-  const canonical = page.locator('link[rel="canonical"]');
-  await expect(canonical).toHaveCount(1);
+test.describe("Irish visitor", () => {
+  // Chromium defaults to Accept-Language: en-US, which the resolver honours
+  // (American spelling for US visitors) — pin an Irish browser locale so this
+  // asserts the Ireland-first negotiation rather than the runner's default.
+  test.use({ locale: "en-IE" });
+
+  test("html lang is en-IE and canonical is present", async ({ page }) => {
+    await page.goto("/how-it-works");
+    await expect(page.locator("html")).toHaveAttribute("lang", "en-IE");
+    const canonical = page.locator('link[rel="canonical"]');
+    await expect(canonical).toHaveCount(1);
+  });
 });
 
 test("help page has FAQPage + BreadcrumbList JSON-LD", async ({ page }) => {

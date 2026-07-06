@@ -51,6 +51,16 @@ Until these are set the checkout path stays on the deterministic mock vendor —
 | `NEXT_PUBLIC_POSTHOG_KEY` | PostHog **EU** project settings — blank/unset = analytics fully off | Production | ⏳ pending founder (DPA first) |
 | `ADMIN_BOOTSTRAP_DISABLED` (`true`) | set **only after** the real owner admin has logged in and enrolled MFA — kills the shared-password break-glass login (`ADMIN_PASSWORD` then no longer needed to boot) | Production | ⏳ post-first-login step |
 
+### 4. Pending founder — AI narration (Amazon Bedrock, `docs/MOCKED_APIS.md` §20)
+
+Fail-safe OFF until the founder creates an **IAM user with `bedrock:InvokeModel` on the Claude Haiku model/inference profile in eu-west-1** (reuse or extend the ARCAEVO_AWS_* keys below). While the flag is unset the insights API serves the deterministic templates only — identical to today.
+
+| Variable | Value source | Scope | Status |
+|---|---|---|---|
+| `ARCAEVO_AWS_ACCESS_KEY_ID` / `ARCAEVO_AWS_SECRET_ACCESS_KEY` / `ARCAEVO_AWS_REGION` (`eu-west-1`) | Shared app-wide AWS creds (already documented for SES) — the IAM policy must ALSO allow `bedrock:InvokeModel` on the Haiku model/inference profile in eu-west-1 (EU data residency; LLM provider is a listed sub-processor on `/legal/privacy`) | Production | ⏳ pending founder (IAM policy) |
+| `AI_NARRATION_ENABLED` (`true`) | flip **only after** the IAM policy above exists and a one-off `InvokeModel` smoke call succeeds — exactly `"true"`, anything else stays off | Production | ⏳ pending founder — **leave unset until then** |
+| `BEDROCK_MODEL_ID` (optional) | default `eu.anthropic.claude-haiku-4-5-20251001-v1:0` (EU cross-region inference profile). Set the bare `anthropic.claude-haiku-4-5-20251001-v1:0` form here if InvokeModel rejects the profile id on this account | Production | ⏳ optional override |
+
 ### Never set in production
 
 `ALLOW_DEMO_TOKEN`, `ALLOW_OPEN_WEBHOOKS`, `ALLOW_MOCK_EXTRACTION`, `RATE_LIMIT_DISABLED`, `STRIPE_FORCE_MOCK` — local prod-build/e2e escape hatches only; setting any of them on Vercel is a security hole (`ENVIRONMENTS_AND_SETUP.md` §3.5). `LETSGETCHECKED_WEBHOOK_SECRET` stays unset until the (still-mocked) lab integration is real.

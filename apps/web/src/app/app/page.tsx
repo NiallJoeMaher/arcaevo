@@ -102,12 +102,16 @@ function PhoneMock() {
           </div>
           <svg viewBox="0 0 220 60" className="h-12 w-full">
             {/* The dashed amber comparison line below stays static (per App.dc.html). */}
+            {/* No strokeDashoffset attribute (App.dc.html parity): draw100 has
+                no `forwards` fill, so after the animation the offset reverts
+                to the specified value — it must be the default 0 (line stays
+                drawn; reduced-motion renders it). `backwards` already hides
+                the line during the 0.5s delay. */}
             <polyline
               className="motion-trace"
               points="6,50 46,46 86,36 126,38 166,26 200,18 214,14"
               pathLength="100"
               strokeDasharray="100"
-              strokeDashoffset="100"
               fill="none"
               stroke="#34A07C"
               strokeWidth="2.5"

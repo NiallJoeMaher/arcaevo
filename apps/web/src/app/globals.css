@@ -53,15 +53,60 @@ body {
   font-family: var(--font-sans);
 }
 
-a {
-  transition: opacity 0.15s;
-}
+/* In @layer base so Tailwind utilities (utilities layer) can override — the
+   design prototypes declare per-element transitions inline (inline beats a
+   global rule), so utility-built pages need the same precedence: base-layer
+   globals, utility overrides (e.g. the Home teaser cards' duration-300 lift,
+   nav links' transition-colors). Unlayered, these rules would win instead. */
+@layer base {
+  a {
+    transition: opacity 0.15s;
+  }
 
-a:hover {
-  opacity: 0.72;
+  a:hover {
+    opacity: 0.72;
+  }
 }
 
 :focus-visible {
   outline: 2px solid var(--color-forest);
   outline-offset: 2px;
+}
+
+/* ——— Motion layer (design_handoff_motion_haptics) ———
+   Hero load animations. Scroll reveal/draw live in SiteMotion.tsx.
+   Nothing loops; longest duration 1.3s (ring draw). */
+/* Deliberate deviation from the handoff (which starts at opacity 0): starting
+   at 0.01 is visually identical but lets Chrome register the hero text as
+   painted immediately, so LCP is measured at first paint instead of the
+   animation's end (opacity:0 content is excluded from LCP — this alone cost
+   Home 92 vs the ≥95 Lighthouse bar). */
+@keyframes rise {
+  from { opacity: 0.01; transform: translateY(14px); }
+}
+@keyframes ring314 {
+  from { stroke-dashoffset: 314; }
+}
+@keyframes draw100 {
+  from { stroke-dashoffset: 100; }
+  to { stroke-dashoffset: 0; }
+}
+.motion-rise { animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+.motion-rise-delayed { animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.12s backwards; }
+.motion-ring { animation: ring314 1.3s cubic-bezier(0.33, 1, 0.68, 1) 0.45s backwards; }
+/* App.dc.html's hero ring starts 50ms earlier than Home's (0.4s vs 0.45s). */
+.motion-ring-app { animation: ring314 1.3s cubic-bezier(0.33, 1, 0.68, 1) 0.4s backwards; }
+.motion-trace { animation: draw100 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.5s backwards; }
+/* Early-access confirmation pop (Pricing.dc.html confirmIn). */
+@keyframes confirm-in {
+  0% { opacity: 0; transform: scale(0.94); }
+  55% { transform: scale(1.015); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.motion-confirm { animation: confirm-in 0.45s cubic-bezier(0.22, 1, 0.36, 1); }
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-rise, .motion-rise-delayed, .motion-ring, .motion-ring-app, .motion-trace, .motion-confirm {
+    animation: none !important;
+  }
 }

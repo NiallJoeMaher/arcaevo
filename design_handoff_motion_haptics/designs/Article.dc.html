@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #ECE7DD; }
+  ::selection { background: #1E5C45; color: #F4F1EA; }
+  a:hover { opacity: 0.82; }
+</style>
+<link rel="stylesheet" href="./site-mobile.css">
+<script src="./site-motion.js"></script>
+</helmet>
+
+<div style="font-family:'Hanken Grotesk',sans-serif; background:#ECE7DD; color:#1C2620; width:100%; overflow-x:hidden;">
+  <dc-import name="SiteNav" active="blog" hint-size="100%,72px"></dc-import>
+
+  <div style="max-width:720px; margin:0 auto; padding:24px 40px 0; font-family:'Geist Mono',monospace; font-size:11px; letter-spacing:0.06em; color:#7C887F;">
+    <a href="Home.dc.html" style="color:#7C887F; text-decoration:none;">HOME</a> / <a href="Blog.dc.html" style="color:#7C887F; text-decoration:none;">JOURNAL</a> / <span style="color:#1E5C45;">{{ post.cat }}</span>
+  </div>
+
+  <!-- HEADER -->
+  <article style="max-width:720px; margin:0 auto; padding:24px 40px 40px;">
+    <span style="font-family:'Geist Mono',monospace; font-size:11px; color:#1E5C45; letter-spacing:0.12em;">{{ post.cat }} · {{ post.read }}</span>
+    <h1 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:clamp(32px,4.4vw,48px); line-height:1.08; letter-spacing:-0.015em; margin:16px 0 22px;">{{ post.title }}</h1>
+    <div style="display:flex; align-items:center; gap:12px; padding-bottom:24px; border-bottom:1px solid rgba(28,38,32,0.12);">
+      <div style="width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,#5FB592,#1E5C45);"></div>
+      <div><div style="font-size:14px; font-weight:600;">{{ post.author }}</div><div style="font-size:12.5px; color:#7C887F;">{{ post.date }}</div></div>
+    </div>
+
+    <!-- DIRECT ANSWER (AEO) -->
+    <div style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.1); border-left:3px solid #1E5C45; border-radius:14px; padding:22px 24px; margin:28px 0;">
+      <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#1E5C45; margin-bottom:10px;">THE SHORT ANSWER</div>
+      <p style="font-size:17px; line-height:1.6; margin:0; color:#1C2620;">{{ post.answer }}</p>
+    </div>
+
+    <!-- BODY -->
+    <sc-for list="{{ post.blocks }}" as="b" hint-placeholder-count="8">
+      <sc-if value="{{ b.isH2 }}" hint-placeholder-val="{{ false }}"><h2 data-reveal style="font-family:'Instrument Serif',serif; font-weight:400; font-size:28px; letter-spacing:-0.01em; margin:36px 0 14px;">{{ b.text }}</h2></sc-if>
+      <sc-if value="{{ b.isP }}" hint-placeholder-val="{{ false }}"><p style="font-size:17px; line-height:1.75; color:#3E4842; margin:0 0 20px;">{{ b.text }}</p></sc-if>
+      <sc-if value="{{ b.isCallout }}" hint-placeholder-val="{{ false }}"><div style="background:#1C2620; color:#CFE6DB; border-radius:16px; padding:22px 24px; margin:8px 0 24px; font-size:16px; line-height:1.6;">{{ b.text }}</div></sc-if>
+      <sc-if value="{{ b.isList }}" hint-placeholder-val="{{ false }}">
+        <ul style="margin:0 0 22px; padding-left:22px;">
+          <sc-for list="{{ b.items }}" as="li" hint-placeholder-count="3"><li style="font-size:16.5px; line-height:1.7; color:#3E4842; margin-bottom:10px;">{{ li }}</li></sc-for>
+        </ul>
+      </sc-if>
+    </sc-for>
+
+    <!-- KEY TAKEAWAYS -->
+    <div data-reveal style="background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:18px; padding:26px; margin:32px 0;">
+      <div style="font-family:'Geist Mono',monospace; font-size:11px; letter-spacing:0.1em; color:#1E5C45; margin-bottom:14px;">KEY TAKEAWAYS</div>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <sc-for list="{{ post.takeaways }}" as="t" hint-placeholder-count="3">
+          <div style="display:flex; gap:11px; align-items:flex-start;"><span style="color:#34A07C; font-size:15px; flex-shrink:0;">✓</span><span style="font-size:15px; line-height:1.55; color:#3E4842;">{{ t }}</span></div>
+        </sc-for>
+      </div>
+    </div>
+  </article>
+
+  <!-- CTA -->
+  <section style="max-width:720px; margin:0 auto; padding:0 40px 40px;">
+    <div style="background:#1E5C45; border-radius:22px; padding:40px; color:#fff; text-align:center;">
+      <h3 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:28px; margin:0 0 10px;">See it in your own numbers.</h3>
+      <p style="font-size:15px; color:#CFE6DB; margin:0 0 22px;">{{ post.ctaSub }}</p>
+      <a href="Pricing.dc.html" style="display:inline-block; background:#F4F1EA; color:#1C2620; padding:13px 28px; border-radius:100px; font-weight:600; text-decoration:none;">Order your first test</a>
+    </div>
+  </section>
+
+  <!-- RELATED -->
+  <section style="max-width:720px; margin:0 auto; padding:0 40px 80px;">
+    <div style="font-family:'Geist Mono',monospace; font-size:11px; letter-spacing:0.1em; color:#7C887F; margin-bottom:14px;">KEEP READING</div>
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <sc-for list="{{ related }}" as="r" hint-placeholder-count="3">
+        <a href="{{ r.href }}" style="text-decoration:none; color:inherit; background:#FBFAF6; border:1px solid rgba(28,38,32,0.08); border-radius:14px; padding:18px 22px; display:flex; justify-content:space-between; align-items:center; gap:16px;">
+          <span style="font-weight:600; font-size:15.5px;">{{ r.title }}</span>
+          <span style="color:#1E5C45; font-weight:600; flex-shrink:0;">→</span>
+        </a>
+      </sc-for>
+    </div>
+  </section>
+
+  <dc-import name="SiteFooter" hint-size="100%,360px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const H2 = (t) => ({ isH2: true, text: t });
+    const P = (t) => ({ isP: true, text: t });
+    const C = (t) => ({ isCallout: true, text: t });
+    const L = (items) => ({ isList: true, items: items });
+
+    const posts = {
+      "apob-vs-cholesterol": {
+        cat: "BIOMARKERS", read: "8 MIN READ", author: "Arcaevo Clinical Team", date: "Reviewed June 2026",
+        title: "What is ApoB, and why does it matter more than cholesterol?",
+        answer: "ApoB (apolipoprotein B) counts the total number of artery-clogging particles in your blood. Because every one of those particles carries exactly one ApoB molecule, it's a more direct measure of heart-disease risk than standard LDL cholesterol \u2014 which only estimates how much cholesterol those particles carry. For most people optimising heart health, ApoB is the single most useful number to track.",
+        blocks: [
+          H2("Cholesterol tells you the cargo. ApoB counts the trucks."),
+          P("A standard lipid panel measures how much cholesterol is floating in your blood. But cholesterol doesn't damage your arteries on its own \u2014 it has to be carried there inside particles. The particles are what burrow into the artery wall and start the process that leads to heart disease."),
+          P("ApoB counts those particles directly. Every atherogenic particle \u2014 LDL, VLDL, Lp(a) and others \u2014 carries exactly one ApoB molecule. So your ApoB level is, quite literally, a headcount of the vehicles that can cause harm."),
+          C("Two people can have identical LDL cholesterol but very different ApoB. The one with more, smaller particles has more \u2018trucks\u2019 for the same cargo \u2014 and a higher risk that the standard panel completely misses."),
+          H2("Why LDL-C can mislead you"),
+          P("LDL-C is usually calculated, not measured, and it assumes an average amount of cholesterol per particle. In people with insulin resistance, high triglycerides or metabolic syndrome, particles tend to be smaller and more numerous \u2014 so LDL-C looks reassuring while ApoB reveals the real, elevated risk. This is called discordance, and it's common enough to matter."),
+          H2("What does a good ApoB look like?"),
+          P("General optimisation targets vary by risk profile and should be interpreted with your clinician, but as a rough guide many longevity-focused clinicians aim well below population averages. What matters more than a single reading is the trend \u2014 and whether a change you made moved it beyond test noise."),
+          L([
+            "For primary prevention, lower is generally better within reason.",
+            "Your own trend matters more than one snapshot \u2014 track it over time.",
+            "Pair ApoB with Lp(a) once, since Lp(a) is largely genetic and adds risk context.",
+          ]),
+          H2("How Arcaevo handles ApoB"),
+          P("We lead with ApoB rather than burying it in a lipid sub-panel, plot it against your own baseline, and flag a change only when it crosses your Reference Change Value \u2014 so you know a drop from 0.92 to 0.74 g/L is real, not measurement wobble. Then we fuse it with your activity and body-composition trends to suggest the lever most likely to move it for you."),
+        ],
+        takeaways: [
+          "ApoB counts the particles that actually cause arterial damage \u2014 a more direct risk marker than LDL-C.",
+          "LDL-C can look normal while ApoB is high, especially with metabolic issues (discordance).",
+          "Track the trend against your own baseline, and confirm changes exceed test noise before believing them.",
+        ],
+        ctaSub: "Arcaevo leads with ApoB and proves whether your changes moved it.",
+      },
+      "how-often-blood-test-ireland": {
+        cat: "TESTING", read: "6 MIN READ", author: "Arcaevo Clinical Team", date: "Reviewed May 2026",
+        title: "How often should you get a blood test in Ireland?",
+        answer: "For most healthy adults, a comprehensive blood test once a year is enough to spot meaningful trends. Test more often \u2014 every 3 to 6 months \u2014 when you're actively changing something (a new training block, medication, or supplement) and want to know whether it worked. There's little value in testing so frequently that you're just measuring day-to-day noise.",
+        blocks: [
+          H2("The honest answer: it depends on what you're doing"),
+          P("Blood markers move slowly. Many \u2014 like HbA1c, which reflects roughly three months of blood sugar \u2014 physically can't change meaningfully in a few weeks. Testing them monthly tells you almost nothing new. So the right frequency isn't a fixed number; it's tied to what you're trying to learn."),
+          H2("A simple framework"),
+          L([
+            "Baseline: test once to establish your personal starting point across the key systems.",
+            "Maintenance: if nothing is changing and you feel well, once a year is plenty for most healthy adults.",
+            "Intervention: when you start a new habit, supplement or medication, retest after enough time for the marker to respond \u2014 often 8\u201312 weeks \u2014 to see if it worked.",
+          ]),
+          C("Testing is only useful if a result could change what you do next. If you'd act the same way regardless of the number, you probably don't need that test right now."),
+          H2("Why your baseline changes the answer"),
+          P("Population reference ranges are wide. A marker can sit \u2018normal\u2019 for years while drifting steadily within that range \u2014 a trend you'd only catch by comparing against your own history. This is exactly why an annual test is valuable even when you feel fine: it builds the baseline that makes future changes readable."),
+          H2("Avoiding the noise trap"),
+          P("Every test has variation \u2014 from the lab and from your own biology day to day. Test too often and you'll see numbers bounce around without any real change, which leads to needless worry or false confidence. Arcaevo uses Reference Change Value to tell you when a difference is genuinely bigger than that noise, so more frequent testing only helps when it can actually reveal something."),
+        ],
+        takeaways: [
+          "Once a year suits most healthy adults; every 3\u20136 months when you're actively changing something.",
+          "Match test timing to how fast the marker can physically respond.",
+          "Only retest when the result could change your next decision \u2014 otherwise you're measuring noise.",
+        ],
+        ctaSub: "Arcaevo's membership builds your baseline and times retests around your changes.",
+      },
+      "reference-change-value": {
+        cat: "SCIENCE", read: "7 MIN READ", author: "Arcaevo Clinical Team", date: "Reviewed June 2026",
+        title: "Did your health markers actually improve, or was it just noise?",
+        answer: "A blood marker that ticks from 56 to 58 hasn't necessarily changed at all. Every result carries analytical variation (the lab) and biological variation (you, day to day). Reference Change Value (RCV) is the threshold a marker must cross before a difference is statistically real. If the change is smaller than your RCV, treat it as noise \u2014 not progress, and not a problem.",
+        blocks: [
+          H2("Why two different numbers can mean no change"),
+          P("Measure the same thing twice and you rarely get an identical result. Assays have a known analytical variation, and your own body fluctuates with hydration, time of day, recent meals and stress. Add those together and small differences between two tests are often just the machinery of measurement \u2014 not a real shift in your health."),
+          H2("The formula, in plain English"),
+          C("RCV = √2 · Z · √(CVa² + CVi²)"),
+          P("CVa is the assay's analytical variation. CVi is your within-person biological variation for that marker. Z is your confidence level (1.96 for 95%). The result is the percentage a marker must move before you can be 95% confident the change is real. Different markers have very different RCVs \u2014 some are stable, others naturally swing a lot."),
+          H2("What this looks like in practice"),
+          L([
+            "ApoB 0.92 → 0.74 g/L: a large drop that clears RCV \u2014 a real improvement.",
+            "Vitamin D 56 → 58 nmol/L: within noise \u2014 hold the course, don't over-read it.",
+            "A marker drifting up test after test, each step small but consistent: worth a retest to confirm the trend.",
+          ]),
+          H2("Why we built the whole app around this"),
+          P("It's tempting to celebrate any number that moved the right way, or panic at any that moved the wrong way. Both are often reactions to noise. By judging every change against your personal RCV, Arcaevo gives you an honest verdict \u2014 real improvement, within noise, or needs a retest \u2014 so your decisions are based on signal, not randomness."),
+        ],
+        takeaways: [
+          "Small differences between tests are frequently just measurement and biological noise.",
+          "RCV is the threshold a marker must cross to count as a real change.",
+          "Arcaevo labels every change so you never mistake noise for progress \u2014 or for a problem.",
+        ],
+        ctaSub: "Every Arcaevo result comes with an honest \u2018did it work?\u2019 verdict.",
+      },
+      "wearables-and-bloods-fusion": {
+        cat: "WEARABLES", read: "6 MIN READ", author: "Arcaevo Clinical Team", date: "Reviewed May 2026",
+        title: "Can your Apple Watch and blood tests work together?",
+        answer: "Yes \u2014 and together they're far more useful than either alone. A blood test is a snapshot from one morning; your wearable is a continuous film of your sleep, heart-rate variability and activity. Overlay them on one timeline and each explains the other: a spike in inflammation lines up with the week your recovery collapsed, and a rising blood sugar sits next to a falling step count.",
+        blocks: [
+          H2("A snapshot versus a film"),
+          P("Blood tests are precise but sparse \u2014 a handful of moments a year. Wearables are continuous but indirect \u2014 they infer a lot from heart rate, movement and skin sensors. Neither is complete on its own. The magic is in the overlap: the blood marker gives you ground truth, and the wearable gives you the context around it."),
+          H2("Three fusions that actually change decisions"),
+          L([
+            "hs-CRP (inflammation) against HRV (recovery): distinguishes a hard training block from a genuine inflammatory problem.",
+            "HbA1c (blood sugar) against daily steps and sleep: shows whether metabolic drift tracks a lifestyle change.",
+            "Ferritin (iron) against training load: flags when heavy endurance volume is quietly depleting your iron.",
+          ]),
+          C("On their own, a slightly raised hs-CRP is ambiguous. Placed over the exact week your HRV cratered from a chest infection, it tells a clear, reassuring story \u2014 and saves an unnecessary worry."),
+          H2("Why most services don't do this"),
+          P("Testing companies are built around the lab, not the wrist. Wearable apps are built around the wrist, not the lab. Very few bring both into one view, which is why a rising resting heart rate and a falling vitamin D usually live in two apps that never talk to each other."),
+          H2("How Arcaevo fuses them"),
+          P("We plot your blood draws directly over the wearable signal that best explains them, read both against your own baseline, and let the coach narrate the connection in plain English. It's the same data you already generate \u2014 finally telling a single story instead of two half-stories."),
+        ],
+        takeaways: [
+          "Blood tests and wearables are complementary: ground truth plus continuous context.",
+          "Fusing them turns ambiguous single markers into clear, decision-ready stories.",
+          "Arcaevo puts bloods and wearable trends on one timeline, read off your baseline.",
+        ],
+        ctaSub: "Connect your Apple Watch and see your bloods in context.",
+      },
+    };
+
+    const relatedMap = {
+      "apob-vs-cholesterol": ["how-often-blood-test-ireland", "reference-change-value"],
+      "how-often-blood-test-ireland": ["reference-change-value", "wearables-and-bloods-fusion"],
+      "reference-change-value": ["apob-vs-cholesterol", "wearables-and-bloods-fusion"],
+      "wearables-and-bloods-fusion": ["apob-vs-cholesterol", "how-often-blood-test-ireland"],
+    };
+
+    let slug = "apob-vs-cholesterol";
+    try {
+      const q = new URLSearchParams(window.location.search).get("post");
+      if (q && posts[q]) slug = q;
+    } catch (e) {}
+
+    const post = posts[slug];
+    const related = (relatedMap[slug] || []).map((k) => ({ title: posts[k].title, href: "Article.dc.html?post=" + k }));
+    return { post: post, related: related };
+  }
+}
+</script>
+</body>
+</html>

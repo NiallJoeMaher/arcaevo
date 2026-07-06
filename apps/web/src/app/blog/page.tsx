@@ -18,11 +18,11 @@ export default function BlogPage() {
 
       <main>
         {/* HERO */}
-        <section className="mx-auto max-w-[1000px] px-10 pb-6 pt-[72px]">
+        <section className="mx-auto max-w-[1000px] px-[22px] md:px-10 pb-6 pt-[72px]">
           <div className="mb-5 font-mono text-xs tracking-[0.14em] text-forest">
             {blogIndexMeta.kicker}
           </div>
-          <h1 className="mb-[18px] mt-0 font-serif text-[clamp(38px,5vw,56px)] font-normal leading-[1.05] tracking-[-0.015em]">
+          <h1 className="mb-[18px] mt-0 font-serif text-[clamp(38px,5vw,56px)] max-md:text-[clamp(34px,9.5vw,42px)] font-normal leading-[1.05] tracking-[-0.015em]">
             {blogIndexMeta.title}
           </h1>
           <p className="m-0 max-w-[58ch] text-lg leading-[1.6] text-muted">
@@ -31,9 +31,10 @@ export default function BlogPage() {
         </section>
 
         {/* FEATURED */}
-        <section className="mx-auto max-w-[1000px] px-10 pb-3 pt-6">
+        <section className="mx-auto max-w-[1000px] px-[22px] md:px-10 pb-3 pt-6">
           <Link
             href={`/blog/${blogFeatured.slug}`}
+            data-reveal=""
             className="grid overflow-hidden rounded-card-xl bg-ink text-inherit no-underline md:grid-cols-[1.1fr_0.9fr] md:gap-8"
           >
             <div className="p-10">
@@ -76,12 +77,13 @@ export default function BlogPage() {
         </section>
 
         {/* GRID */}
-        <section className="mx-auto max-w-[1000px] px-10 pb-20 pt-6">
+        <section className="mx-auto max-w-[1000px] px-[22px] md:px-10 pb-20 pt-6">
           <div className="grid gap-[18px] md:grid-cols-3">
             {blogIndexCards.map((p) => (
               <Link
                 key={p.slug}
                 href={`/blog/${p.slug}`}
+                data-reveal=""
                 className="flex flex-col overflow-hidden rounded-[18px] border border-hairline-soft bg-surface text-inherit no-underline"
               >
                 <div

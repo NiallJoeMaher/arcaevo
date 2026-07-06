@@ -126,6 +126,22 @@ export interface ProcessedWebhookEvent extends Document {
   processedAt: Date;
 }
 
+/**
+ * AI-narration cache (src/lib/ai-narration.ts). One doc per unique
+ * (normalised insight facts + model id) — `_id` IS the sha256 cache key, so
+ * Mongo's built-in unique `_id` index does the lookup and dedup (no extra
+ * index needed). Content-addressed and member-free by construction: the
+ * hashed input carries NO member ids/PII (see vendors/ai-narration.ts), so
+ * entries are safely shared across members and nothing here is subject to
+ * per-member erasure.
+ */
+export interface NarrationCacheDoc extends Document {
+  _id: string; // sha256(normalized NarrationInput + model id)
+  text: string;
+  modelId: string;
+  createdAt: Date;
+}
+
 /** Mock-vendor internal state (LetsGetChecked fake order machine). */
 export interface LgcMockOrder extends Document {
   _id: string; // vendor order id, e.g. "lgc_mock_0001"
@@ -184,6 +200,8 @@ export const collections = {
   /** Stripe webhook idempotency ledger. See webhooks/stripe/route.ts. */
   processedWebhookEvents: () =>
     collection<ProcessedWebhookEvent>("processed_webhook_events"),
+  /** AI-narration cache (content-addressed, PII-free). See src/lib/ai-narration.ts. */
+  narrations: () => collection<NarrationCacheDoc>("narrations"),
 };
 
 /** Close the shared client (used by scripts like seed.ts; not by the app). */

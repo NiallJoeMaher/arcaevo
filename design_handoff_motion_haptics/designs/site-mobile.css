@@ -1,0 +1,42 @@
+/* Arcaevo site — mobile layout layer.
+   Media queries can't be written inline, so this file holds ONLY the ≤760px overrides.
+   Desktop styling stays inline on the elements.
+   Markers:
+     data-m="stack"   grid → single column (spans reset)
+     data-m="stack2"  grid → two columns
+     data-m="scroll"  comparison tables → horizontal scroll, rows keep min-width
+     data-mpad        non-<section> page wrappers that need the mobile gutter
+   Nav: data-nav-inner / data-nav-links / data-nav-wordmark / data-nav-cta (see SiteNav). */
+
+@media (max-width: 760px) {
+  section, [data-mpad] {
+    padding-left: 22px !important;
+    padding-right: 22px !important;
+  }
+
+  h1 { font-size: clamp(34px, 9.5vw, 42px) !important; }
+
+  [data-m="stack"] { grid-template-columns: 1fr !important; }
+  [data-m="stack"] > * { grid-column: auto !important; }
+  [data-m="stack"] > aside { position: static !important; }
+  [data-m="stack2"] { grid-template-columns: repeat(2, 1fr) !important; }
+
+  [data-m="scroll"] { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
+  [data-m="scroll"] > * { min-width: 600px; }
+
+  /* Nav: mark only (no wordmark), links become a scrollable second row */
+  [data-nav-inner] { flex-wrap: wrap; padding: 12px 20px 10px !important; row-gap: 8px !important; }
+  [data-nav-wordmark] { display: none !important; }
+  [data-nav-cta] { padding: 9px 16px !important; font-size: 12.5px !important; }
+  [data-nav-links] {
+    order: 3;
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+    gap: 22px !important;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+  }
+  [data-nav-links]::-webkit-scrollbar { display: none; }
+  [data-nav-links] a { white-space: nowrap; }
+}

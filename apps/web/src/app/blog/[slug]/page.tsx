@@ -39,7 +39,10 @@ function ArticleBlockView({ block }: { block: ArticleBlock }) {
   switch (block.type) {
     case "heading":
       return (
-        <h2 className="mb-[14px] mt-9 font-serif text-[28px] font-normal tracking-[-0.01em]">
+        <h2
+          data-reveal=""
+          className="mb-[14px] mt-9 font-serif text-[28px] font-normal tracking-[-0.01em]"
+        >
           {block.text}
         </h2>
       );
@@ -100,7 +103,9 @@ export default async function ArticlePage({ params }: Props) {
         url: canonicalUrl("/opengraph-image"),
       },
     },
-    image: canonicalUrl("/opengraph-image"),
+    // Per-post OG card (./opengraph-image.tsx); publisher.logo stays on the
+    // site-default brand card above.
+    image: canonicalUrl(`/blog/${post.slug}/opengraph-image`),
     ...(publishedIso
       ? { datePublished: publishedIso, dateModified: publishedIso }
       : {}),
@@ -154,7 +159,7 @@ export default async function ArticlePage({ params }: Props) {
         {/* BREADCRUMB */}
         <nav
           aria-label="Breadcrumb"
-          className="mx-auto max-w-[720px] px-10 pt-6 font-mono text-[11px] tracking-[0.06em] text-caption"
+          className="mx-auto max-w-[720px] px-[22px] md:px-10 pt-6 font-mono text-[11px] tracking-[0.06em] text-caption"
         >
           <Link href="/" className="text-caption no-underline">
             HOME
@@ -167,11 +172,11 @@ export default async function ArticlePage({ params }: Props) {
         </nav>
 
         {/* HEADER + BODY */}
-        <article className="mx-auto max-w-[720px] px-10 pb-10 pt-6">
+        <article className="mx-auto max-w-[720px] px-[22px] md:px-10 pb-10 pt-6">
           <span className="font-mono text-[11px] tracking-[0.12em] text-forest">
             {post.cat} · {post.read}
           </span>
-          <h1 className="mb-[22px] mt-4 font-serif text-[clamp(32px,4.4vw,48px)] font-normal leading-[1.08] tracking-[-0.015em]">
+          <h1 className="mb-[22px] mt-4 font-serif text-[clamp(32px,4.4vw,48px)] max-md:text-[clamp(34px,9.5vw,42px)] font-normal leading-[1.08] tracking-[-0.015em]">
             {post.title}
           </h1>
           <div className="flex items-center gap-3 border-b border-hairline-mid pb-6">
@@ -198,7 +203,10 @@ export default async function ArticlePage({ params }: Props) {
           ))}
 
           {/* KEY TAKEAWAYS */}
-          <div className="my-8 rounded-[18px] border border-hairline-soft bg-surface p-[26px]">
+          <div
+            data-reveal=""
+            className="my-8 rounded-[18px] border border-hairline-soft bg-surface p-[26px]"
+          >
             <div className="mb-[14px] font-mono text-[11px] tracking-[0.1em] text-forest">
               KEY TAKEAWAYS
             </div>
@@ -216,7 +224,7 @@ export default async function ArticlePage({ params }: Props) {
         </article>
 
         {/* CTA */}
-        <section className="mx-auto max-w-[720px] px-10 pb-10">
+        <section className="mx-auto max-w-[720px] px-[22px] md:px-10 pb-10">
           <div className="rounded-card-lg bg-forest p-10 text-center text-white">
             <h3 className="mb-[10px] mt-0 font-serif text-[28px] font-normal">
               See it in your own numbers.
@@ -234,7 +242,7 @@ export default async function ArticlePage({ params }: Props) {
         </section>
 
         {/* RELATED */}
-        <section className="mx-auto max-w-[720px] px-10 pb-20">
+        <section className="mx-auto max-w-[720px] px-[22px] md:px-10 pb-20">
           <div className="mb-[14px] font-mono text-[11px] tracking-[0.1em] text-caption">
             KEEP READING
           </div>

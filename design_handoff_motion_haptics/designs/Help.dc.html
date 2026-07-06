@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #ECE7DD; }
+  ::selection { background: #1E5C45; color: #F4F1EA; }
+  a:hover { opacity: 0.72; }
+</style>
+<link rel="stylesheet" href="./site-mobile.css">
+<script src="./site-motion.js"></script>
+</helmet>
+
+<div style="font-family:'Hanken Grotesk',sans-serif; background:#ECE7DD; color:#1C2620; width:100%; overflow-x:hidden;">
+  <dc-import name="SiteNav" active="help" hint-size="100%,72px"></dc-import>
+
+  <section style="max-width:820px; margin:0 auto; padding:72px 40px 32px; text-align:center;">
+    <div style="font-family:'Geist Mono',monospace; font-size:12px; letter-spacing:0.14em; color:#1E5C45; margin-bottom:20px;">HELP CENTRE</div>
+    <h1 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:clamp(38px,5vw,54px); line-height:1.05; letter-spacing:-0.015em; margin:0 0 22px;">How can we help?</h1>
+    <div style="display:flex; align-items:center; gap:10px; background:#FBFAF6; border:1px solid rgba(28,38,32,0.12); border-radius:100px; padding:14px 22px; max-width:520px; margin:0 auto;">
+      <span style="font-size:16px; color:#9AA39C;">⌕</span>
+      <span style="font-size:15px; color:#9AA39C;">Search articles — testing, results, billing, privacy…</span>
+    </div>
+  </section>
+
+  <!-- CATEGORY CHIPS -->
+  <section style="max-width:900px; margin:0 auto; padding:16px 40px 8px;">
+    <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
+      <sc-for list="{{ cats }}" as="c" hint-placeholder-count="5">
+        <span style="font-family:'Geist Mono',monospace; font-size:12px; padding:9px 16px; background:#FBFAF6; border:1px solid rgba(28,38,32,0.1); border-radius:100px; color:#4A554D;">{{ c }}</span>
+      </sc-for>
+    </div>
+  </section>
+
+  <!-- FAQ ACCORDION -->
+  <section style="max-width:820px; margin:0 auto; padding:36px 40px 60px;">
+    <sc-for list="{{ groups }}" as="g" hint-placeholder-count="4">
+      <div style="margin-bottom:40px;">
+        <h2 data-reveal style="font-family:'Instrument Serif',serif; font-weight:400; font-size:26px; margin:0 0 14px; letter-spacing:-0.01em;">{{ g.title }}</h2>
+        <div style="border-top:1px solid rgba(28,38,32,0.12);">
+          <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="4">
+            <div onClick="{{ it.toggle }}" style="padding:18px 4px; border-bottom:1px solid rgba(28,38,32,0.12); cursor:pointer;">
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:16px;">
+                <span style="font-weight:600; font-size:16px;">{{ it.q }}</span>
+                <span style="color:#7C887F; font-size:20px; flex-shrink:0;">{{ it.sign }}</span>
+              </div>
+              <sc-if value="{{ it.open }}" hint-placeholder-val="{{ false }}">
+                <p style="font-size:14.5px; color:#4A554D; line-height:1.6; margin:12px 0 0; max-width:66ch;">{{ it.a }}</p>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-for>
+
+    <div data-reveal style="text-align:center; background:#1E5C45; border-radius:22px; padding:44px 40px; color:#fff; margin-top:20px;">
+      <h3 style="font-family:'Instrument Serif',serif; font-weight:400; font-size:28px; margin:0 0 10px;">Still stuck?</h3>
+      <p style="font-size:15px; color:#CFE6DB; margin:0 0 22px;">Our team replies within one working day — clinical questions go to our medical team.</p>
+      <a href="Contact.dc.html" style="display:inline-block; background:#F4F1EA; color:#1C2620; padding:13px 28px; border-radius:100px; font-weight:600; text-decoration:none;">Contact support</a>
+    </div>
+  </section>
+
+  <dc-import name="SiteFooter" hint-size="100%,360px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { open: "0-0" };
+  toggle(id) { this.setState((s) => ({ open: s.open === id ? null : id })); }
+  renderVals() {
+    const self = this;
+    const raw = [
+      { title: "Testing & samples", items: [
+        { q: "What's the difference between finger-prick and venous?", a: "A finger-prick kit is posted to your door and covers 15\u201335 markers \u2014 great for regular tracking. An in-home venous draw is done by a nurse who visits you and unlocks the full 45\u201380 marker panel, including hormones and advanced lipids. You can mix both across a year." },
+        { q: "Do I need to fast before a test?", a: "For most panels, yes \u2014 a 10-hour fast gives the cleanest glucose and lipid readings. We send a fasting reminder to your Watch the night before, and the app tells you exactly which tests need it." },
+        { q: "How is my sample collected and shipped?", a: "Finger-prick kits include a prepaid return envelope; drop it in any post box. Venous samples are handled by the visiting phlebotomist. Both are processed in ISO-accredited EU laboratories." },
+      ]},
+      { title: "Results & the app", items: [
+        { q: "How long until I get results?", a: "Typically 5\u20137 days from when the lab receives your sample. A registered clinician reviews every panel before it's released to your app, and you're notified the moment it lands." },
+        { q: "What does \u2018read against your baseline\u2019 mean?", a: "Instead of only comparing you to a wide population range, we track each marker against your own history. Using Reference Change Value, we only flag a change as real when it exceeds the combined analytical and biological noise \u2014 so you're not chasing meaningless wobble." },
+        { q: "Can the AI coach give me medical advice?", a: "No. The coach explains your results and the deterministic rules in plain English and answers questions grounded in your data. It cannot diagnose, prescribe, or set thresholds. Anything clinical is flagged to our reviewing doctor and, where needed, back to your GP." },
+      ]},
+      { title: "Billing & membership", items: [
+        { q: "Why is membership annual?", a: "Your tests are real-world cost \u2014 kits, labs, nurses \u2014 so annual billing covers them upfront, and your first test ships or gets booked the day you join. The product also works over time: baselines and retest verdicts take most of a year to prove themselves. Monthly billing is on the roadmap." },
+        { q: "Can I test more than twice a year?", a: "Yes. Essential includes two tests (a full baseline and a lighter recheck). Add the quarterly upgrade \u2014 \u20ac130/yr for two extra rechecks \u2014 or buy single add-ons anytime: \u20ac99 full panel, \u20ac69 recheck, \u20ac199 venous draw with nurse visit." },
+        { q: "Can I cancel my membership?", a: "Anytime, from your profile. You keep full access until the end of your paid year, and there are no cancellation fees. You can also export or delete all your data whenever you leave." },
+        { q: "Is everything included in the price?", a: "Yes \u2014 the kit or nurse visit, postage both ways, lab processing, clinician sign-off and app access are all included. No surprise phlebotomy or handling fees." },
+      ]},
+      { title: "Privacy & data", items: [
+        { q: "Where is my data stored, and is it ever sold?", a: "Your data is encrypted and stored in the EU (eu-west-1). It is used only to build your trends and coaching. We never sell it or share it for advertising. See our privacy policy for the full detail." },
+        { q: "How do I export or delete everything?", a: "In the app: Profile \u2192 Export my data for a full copy, or Delete all my data to permanently erase everything with no copies kept. You can also email privacy@arcaevo.health. See our data deletion & export page." },
+      ]},
+    ];
+    const groups = raw.map(function (g, gi) {
+      return {
+        title: g.title,
+        items: g.items.map(function (it, ii) {
+          const id = gi + "-" + ii;
+          const open = self.state.open === id;
+          return { q: it.q, a: it.a, open: open, sign: open ? "\u2212" : "+", toggle: function () { self.toggle(id); } };
+        }),
+      };
+    });
+    return {
+      cats: ["Testing", "Results", "The app", "Billing", "Privacy", "Wearables"],
+      groups: groups,
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -45,7 +45,7 @@ export default async function LegalDocPage({ params }: Props) {
       <SiteNav />
 
       <main>
-        <div className="mx-auto grid max-w-[1120px] items-start gap-12 px-10 pb-20 pt-10 lg:grid-cols-[250px_1fr]">
+        <div className="mx-auto grid max-w-[1120px] items-start gap-12 px-[22px] md:px-10 pb-20 pt-10 lg:grid-cols-[250px_1fr]">
           {/* SIDEBAR */}
           <aside className="lg:sticky lg:top-24">
             <div className="mb-[14px] font-mono text-[11px] tracking-[0.1em] text-caption">
@@ -88,7 +88,7 @@ export default async function LegalDocPage({ params }: Props) {
             <div className="mb-3 font-mono text-[11px] tracking-[0.1em] text-forest">
               {doc.kicker}
             </div>
-            <h1 className="mb-3 mt-0 font-serif text-[clamp(32px,4.4vw,46px)] font-normal leading-[1.08] tracking-[-0.015em]">
+            <h1 className="mb-3 mt-0 font-serif text-[clamp(32px,4.4vw,46px)] max-md:text-[clamp(34px,9.5vw,42px)] font-normal leading-[1.08] tracking-[-0.015em]">
               {doc.title}
             </h1>
             <div className="mb-3 text-[13.5px] text-caption">{doc.updated}</div>

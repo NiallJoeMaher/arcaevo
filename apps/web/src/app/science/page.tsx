@@ -75,11 +75,11 @@ export default function SciencePage() {
 
       <main>
         {/* HERO */}
-        <section className="mx-auto max-w-[900px] px-10 pb-10 pt-[72px]">
+        <section className="mx-auto max-w-[900px] px-[22px] md:px-10 pb-10 pt-[72px]">
           <div className="mb-5 font-mono text-xs tracking-[0.14em] text-forest">
             SCIENCE &amp; EVIDENCE
           </div>
-          <h1 className="mb-[22px] mt-0 font-serif text-[clamp(38px,5vw,56px)] font-normal leading-[1.05] tracking-[-0.015em]">
+          <h1 className="mb-[22px] mt-0 font-serif text-[clamp(38px,5vw,56px)] max-md:text-[clamp(34px,9.5vw,42px)] font-normal leading-[1.05] tracking-[-0.015em]">
             The logic is deterministic. The AI only narrates.
           </h1>
           <p className="m-0 max-w-[60ch] text-[19px] leading-[1.55] text-muted">
@@ -91,11 +91,12 @@ export default function SciencePage() {
         </section>
 
         {/* PILLARS */}
-        <section className="mx-auto max-w-[1100px] px-10 pb-5 pt-6">
+        <section className="mx-auto max-w-[1100px] px-[22px] md:px-10 pb-5 pt-6">
           <div className="grid gap-[18px] md:grid-cols-2">
             {PILLARS.map((pillar) => (
               <div
                 key={pillar.tag}
+                data-reveal=""
                 className="rounded-card border border-hairline-soft bg-surface p-7"
               >
                 <div className="mb-[14px] font-mono text-[11px] tracking-[0.1em] text-forest">
@@ -113,12 +114,15 @@ export default function SciencePage() {
         </section>
 
         {/* RCV EXPLAINER */}
-        <section className="mt-10 bg-ink px-10 py-20 text-bone-white">
+        <section className="mt-10 bg-ink px-[22px] md:px-10 py-20 text-bone-white">
           <div className="mx-auto max-w-[1000px]">
             <div className="mb-4 font-mono text-xs tracking-[0.14em] text-vitality-light">
               REFERENCE CHANGE VALUE
             </div>
-            <h2 className="mb-[18px] mt-0 max-w-[22ch] font-serif text-4xl font-normal tracking-[-0.01em]">
+            <h2
+              data-reveal=""
+              className="mb-[18px] mt-0 max-w-[22ch] font-serif text-4xl font-normal tracking-[-0.01em]"
+            >
               Was it a real change, or was it just noise?
             </h2>
             <p className="mb-7 mt-0 max-w-[64ch] text-base leading-[1.65] text-muted-dark">
@@ -158,9 +162,12 @@ export default function SciencePage() {
         </section>
 
         {/* EVIDENCE / MARKERS */}
-        <section className="px-10 py-20">
+        <section className="px-[22px] md:px-10 py-20">
           <div className="mx-auto max-w-[1000px]">
-            <h2 className="mb-3 mt-0 font-serif text-[34px] font-normal tracking-[-0.01em]">
+            <h2
+              data-reveal=""
+              className="mb-3 mt-0 font-serif text-[34px] font-normal tracking-[-0.01em]"
+            >
               Why these markers
             </h2>
             <p className="mb-8 mt-0 max-w-[60ch] text-base text-muted">
@@ -172,6 +179,7 @@ export default function SciencePage() {
               {MARKERS.map((marker) => (
                 <div
                   key={marker.name}
+                  data-reveal=""
                   className="grid items-baseline gap-5 rounded-2xl border border-hairline-soft bg-surface px-6 py-[22px] md:grid-cols-[160px_1fr]"
                 >
                   <div className="text-base font-bold">{marker.name}</div>
@@ -185,9 +193,12 @@ export default function SciencePage() {
         </section>
 
         {/* SAFETY BAR */}
-        <section className="border-t border-hairline-soft bg-surface px-10 py-[60px]">
+        <section className="border-t border-hairline-soft bg-surface px-[22px] md:px-10 py-[60px]">
           <div className="mx-auto max-w-[900px] text-center">
-            <h2 className="mb-[14px] mt-0 font-serif text-[30px] font-normal">
+            <h2
+              data-reveal=""
+              className="mb-[14px] mt-0 font-serif text-[30px] font-normal"
+            >
               Wellness &amp; optimisation — not diagnosis
             </h2>
             <p className="mx-auto mb-[22px] mt-0 max-w-[60ch] text-[15.5px] leading-[1.6] text-muted">

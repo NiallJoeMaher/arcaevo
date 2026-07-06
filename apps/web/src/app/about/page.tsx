@@ -49,11 +49,11 @@ export default function AboutPage() {
 
       <main>
         {/* HERO */}
-        <section className="mx-auto max-w-[820px] px-10 pb-10 pt-20">
+        <section className="mx-auto max-w-[820px] px-[22px] md:px-10 pb-10 pt-20">
           <div className="mb-5 font-mono text-xs tracking-[0.14em] text-forest">
             ABOUT ARCAEVO
           </div>
-          <h1 className="mb-6 mt-0 font-serif text-[clamp(38px,5vw,56px)] font-normal leading-[1.05] tracking-[-0.015em]">
+          <h1 className="mb-6 mt-0 font-serif text-[clamp(38px,5vw,56px)] max-md:text-[clamp(34px,9.5vw,42px)] font-normal leading-[1.05] tracking-[-0.015em]">
             Health data should belong to you — calm, clear, and yours.
           </h1>
           <p className="mb-5 mt-0 text-[19px] leading-[1.6] text-muted">
@@ -72,11 +72,12 @@ export default function AboutPage() {
         </section>
 
         {/* VALUES */}
-        <section className="mx-auto max-w-[1100px] px-10 py-12">
+        <section className="mx-auto max-w-[1100px] px-[22px] md:px-10 py-12">
           <div className="grid gap-[18px] md:grid-cols-3">
             {VALUES.map((value) => (
               <div
                 key={value.t}
+                data-reveal=""
                 className="rounded-[18px] border border-hairline-soft bg-surface p-[26px]"
               >
                 <h2 className="mb-[10px] mt-0 text-lg font-bold tracking-[-0.01em]">
@@ -91,7 +92,7 @@ export default function AboutPage() {
         </section>
 
         {/* STATS */}
-        <section className="bg-ink px-10 py-16 text-bone-white">
+        <section className="bg-ink px-[22px] md:px-10 py-16 text-bone-white">
           <div className="mx-auto grid max-w-[1000px] grid-cols-2 gap-6 text-center md:grid-cols-4">
             {STATS.map((stat) => (
               <div key={stat.l}>
@@ -107,8 +108,11 @@ export default function AboutPage() {
         </section>
 
         {/* TEAM */}
-        <section className="mx-auto max-w-[1000px] px-10 py-[72px]">
-          <h2 className="mb-8 mt-0 font-serif text-[34px] font-normal tracking-[-0.01em]">
+        <section className="mx-auto max-w-[1000px] px-[22px] md:px-10 py-[72px]">
+          <h2
+            data-reveal=""
+            className="mb-8 mt-0 font-serif text-[34px] font-normal tracking-[-0.01em]"
+          >
             The team
           </h2>
           <div className="grid gap-[22px] md:grid-cols-3">
@@ -128,7 +132,7 @@ export default function AboutPage() {
         </section>
 
         {/* CTA */}
-        <section className="px-10 pb-[90px]">
+        <section className="px-[22px] md:px-10 pb-[90px]">
           <div className="mx-auto max-w-[900px] rounded-card-xl border border-hairline-soft bg-surface px-10 py-[52px] text-center">
             <h2 className="mb-3 mt-0 font-serif text-[32px] font-normal">
               Want to build this with us?

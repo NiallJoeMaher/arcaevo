@@ -5,20 +5,28 @@ import {
   DbDownNotice,
   EmptyDbNotice,
   MONO,
+  PILL,
   PanelBody,
   SERIF,
   Topbar,
 } from "../chrome";
 import {
+  formatDateTime,
   formatDayMonth,
   loadWaitlistDemand,
   type WaitlistDemandData,
 } from "../data";
+import type { WaitlistEntry } from "@/lib/models";
 
 /**
  * /admin/waitlist — "Where do we open next?" (design_handoff_v2 §18 ADM-1).
  * Waitlist demand aggregated by county: signups, top routing keys, oldest
  * entry. Expansion decisions come from here, not from gut feel.
+ *
+ * Task 7b adds "People on the list" below the aggregates — the individual
+ * entries (newest first, capped at 200 on screen) plus a CSV export of the
+ * full list, so the founder can actually send the "your area opens" email.
+ * The export route access-logs every download (DPIA R4).
  */
 
 export const metadata: Metadata = { title: "Waitlist demand" };
@@ -42,10 +50,59 @@ export default async function AdminWaitlistPage() {
         ) : data.total === 0 ? (
           <EmptyDbNotice />
         ) : (
-          <Demand data={data} />
+          <>
+            {/* Launch-gate signups from ELIGIBLE areas are NOT expansion
+                demand — they get their own honest one-liner and are excluded
+                from the county aggregates below (data.ts). */}
+            {data.launchArea > 0 ? <LaunchAreaCard count={data.launchArea} /> : null}
+            {/* Every entry could be launch-area (flag-off Dublin joins only)
+                — then there is no expansion demand to aggregate. */}
+            {data.counties.length > 0 ? <Demand data={data} /> : null}
+            <People entries={data.entries} />
+          </>
         )}
       </PanelBody>
     </>
+  );
+}
+
+/**
+ * "Launch-area early access" — people whose Eircode is already in the Dublin
+ * service area, who joined while BLOOD_TIERS_ENABLED was off. They're waiting
+ * for sales to OPEN, not for their county, so they'd fake the "where do we
+ * open next?" numbers if counted. Styled like the KPI cards above.
+ */
+function LaunchAreaCard({ count }: { count: number }) {
+  return (
+    <div
+      style={{
+        ...CARD,
+        padding: "16px 20px",
+        marginBottom: 20,
+        display: "flex",
+        alignItems: "baseline",
+        gap: 12,
+        flexWrap: "wrap",
+      }}
+    >
+      <span
+        style={{
+          fontFamily: MONO,
+          fontSize: 10,
+          letterSpacing: "0.08em",
+          color: "#7C887F",
+        }}
+      >
+        LAUNCH-AREA EARLY ACCESS
+      </span>
+      <span style={{ fontFamily: SERIF, fontSize: 28, lineHeight: 1 }}>
+        {count.toLocaleString("en-IE")}
+      </span>
+      <span style={{ fontSize: 12.5, color: "#4A554D" }}>
+        {count === 1 ? "person" : "people"} waiting for sales to open — already
+        in the service area, so not counted as expansion demand.
+      </span>
+    </div>
   );
 }
 
@@ -272,5 +329,142 @@ function Demand({ data }: { data: WaitlistDemandData }) {
         </div>
       </div>
     </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// People on the list (Task 7b) — individual entries + CSV export
+// ---------------------------------------------------------------------------
+
+/** On-screen cap; the CSV export is never capped. */
+const MAX_TABLE_ROWS = 200;
+
+const PEOPLE_GRID = "1.1fr 1.7fr 0.7fr 0.8fr 0.9fr 0.6fr 1.1fr";
+
+function People({ entries }: { entries: WaitlistEntry[] }) {
+  const shown = entries.slice(0, MAX_TABLE_ROWS);
+
+  return (
+    <div style={{ marginTop: 24 }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-end",
+          gap: 16,
+          marginBottom: 12,
+        }}
+      >
+        <div>
+          <h2
+            style={{
+              fontSize: 16,
+              fontWeight: 700,
+              letterSpacing: "-0.01em",
+              margin: 0,
+            }}
+          >
+            People on the list
+          </h2>
+          <div style={{ fontSize: 12.5, color: "#7C887F", marginTop: 2 }}>
+            Showing {shown.length.toLocaleString("en-IE")} of{" "}
+            {entries.length.toLocaleString("en-IE")} — newest first. The CSV
+            includes everyone.
+          </div>
+        </div>
+        {/* Every download is recorded in the admin access log (DPIA R4). */}
+        <a
+          href="/api/v1/admin/waitlist/export"
+          style={{
+            background: "#1C2620",
+            color: "#F4F1EA",
+            borderRadius: 100,
+            padding: "9px 18px",
+            fontSize: 13,
+            fontWeight: 600,
+            textDecoration: "none",
+            whiteSpace: "nowrap",
+          }}
+        >
+          Download CSV
+        </a>
+      </div>
+
+      <div style={{ ...CARD, overflow: "hidden" }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: PEOPLE_GRID,
+            gap: 12,
+            padding: "14px 22px",
+            background: "#1C2620",
+            color: "#8FA89A",
+            fontFamily: MONO,
+            fontSize: 10,
+            letterSpacing: "0.08em",
+          }}
+        >
+          <span>NAME</span>
+          <span>EMAIL</span>
+          <span>ROUTING KEY</span>
+          <span>COUNTY</span>
+          <span>PLAN INTEREST</span>
+          <span>POSITION</span>
+          <span>JOINED</span>
+        </div>
+        {shown.map((e) => (
+          <div
+            key={e._id}
+            style={{
+              display: "grid",
+              gridTemplateColumns: PEOPLE_GRID,
+              gap: 12,
+              padding: "13px 22px",
+              borderBottom: "1px solid rgba(28,38,32,0.07)",
+              alignItems: "center",
+            }}
+          >
+            <span style={{ fontSize: 13.5, fontWeight: 600 }}>
+              {e.name ?? "—"}
+            </span>
+            <span style={{ fontFamily: MONO, fontSize: 12, color: "#4A554D" }}>
+              {e.email}
+            </span>
+            <span style={{ fontFamily: MONO, fontSize: 12, color: "#1E5C45" }}>
+              {e.routingKey}
+              {e.eligibleAtJoin ? (
+                // Launch-gate join from an ELIGIBLE area — waiting for sales
+                // to open, not expansion demand.
+                <span style={{ ...PILL.vitality, marginLeft: 6 }}>
+                  LAUNCH AREA
+                </span>
+              ) : null}
+            </span>
+            <span style={{ fontSize: 13, color: "#4A554D" }}>{e.county}</span>
+            <span style={{ fontSize: 13, color: "#4A554D" }}>
+              {e.planInterest ?? "—"}
+            </span>
+            <span style={{ fontFamily: MONO, fontSize: 12, color: "#4A554D" }}>
+              #{e.position}
+            </span>
+            <span style={{ fontSize: 13, color: "#4A554D" }}>
+              {formatDateTime(e.createdAt)}
+            </span>
+          </div>
+        ))}
+        <div
+          style={{
+            padding: "13px 22px",
+            fontSize: 12,
+            color: "#7C887F",
+            lineHeight: 1.55,
+          }}
+        >
+          Personal data — used only for the &ldquo;your area opens&rdquo; email
+          promised at signup. CSV downloads are recorded in the admin access
+          log.
+        </div>
+      </div>
+    </div>
   );
 }

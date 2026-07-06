@@ -17,7 +17,10 @@ export default function HelpAccordion({ groups }: { groups: HelpGroup[] }) {
     <>
       {groups.map((g, gi) => (
         <div key={g.title} className="mb-10">
-          <h2 className="mb-[14px] mt-0 font-serif text-[26px] font-normal tracking-[-0.01em]">
+          <h2
+            data-reveal=""
+            className="mb-[14px] mt-0 font-serif text-[26px] font-normal tracking-[-0.01em]"
+          >
             {g.title}
           </h2>
           <div className="border-t border-hairline-mid">

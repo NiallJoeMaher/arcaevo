@@ -25,6 +25,46 @@ test("waitlist demand shows Cork (ADM-1)", async ({ page }) => {
   await expect(page.getByText("TOP ROUTING KEYS")).toBeVisible();
 });
 
+test("waitlist people table lists entries with a CSV export (Task 7b)", async ({
+  page,
+}) => {
+  await login(page);
+  await page.goto("/admin/waitlist");
+
+  // The individual-entries section under the aggregates.
+  await expect(
+    page.getByRole("heading", { name: "People on the list" })
+  ).toBeVisible();
+  await expect(page.getByText(/Showing 2 of 2/)).toBeVisible();
+  // Seeded people (scripts/seed.ts): Cork + Galway entries.
+  await expect(page.getByText("sinead.corkonian@example.ie")).toBeVisible();
+  await expect(page.getByText("padraic.galway@example.ie")).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Download CSV" })
+  ).toBeVisible();
+
+  // The export route, hit with the page's admin cookie: CSV attachment.
+  const res = await page.request.get("/api/v1/admin/waitlist/export");
+  expect(res.status()).toBe(200);
+  expect(res.headers()["content-type"]).toContain("text/csv");
+  expect(res.headers()["content-disposition"]).toContain(
+    "arcaevo-waitlist-"
+  );
+  const body = await res.text();
+  expect(
+    body.startsWith("name,email,routingKey,county,planInterest,position,createdAt")
+  ).toBe(true);
+  expect(body).toContain("sinead.corkonian@example.ie");
+});
+
+test("waitlist CSV export refuses without an admin session (Task 7b)", async ({
+  request,
+}) => {
+  // The bare request fixture carries no cookies — the guard must 401.
+  const res = await request.get("/api/v1/admin/waitlist/export");
+  expect(res.status()).toBe(401);
+});
+
 test("eligibility allowlist renders 31 launch keys incl. D08, with the editor (ADM-2)", async ({
   page,
 }) => {

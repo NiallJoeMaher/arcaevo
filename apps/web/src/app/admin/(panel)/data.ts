@@ -270,6 +270,9 @@ export interface WaitlistDemandData {
   /** Sorted by signups, busiest county first. */
   counties: WaitlistCountyRow[];
   total: number;
+  /** Individual signups, newest first — the "People on the list" table
+   * (Task 7b). Same single query as the aggregates, just un-grouped. */
+  entries: WaitlistEntry[];
 }
 
 export async function loadWaitlistDemand(): Promise<WaitlistDemandData | null> {
@@ -304,7 +307,11 @@ export async function loadWaitlistDemand(): Promise<WaitlistDemandData | null> {
       })
       .sort((a, b) => b.count - a.count || a.county.localeCompare(b.county));
 
-    return { counties, total: entries.length };
+    return {
+      counties,
+      total: entries.length,
+      entries: [...entries].reverse(), // fetched oldest-first → newest first
+    };
   } catch {
     return null;
   }

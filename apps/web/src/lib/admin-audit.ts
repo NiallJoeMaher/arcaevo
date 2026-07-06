@@ -14,7 +14,7 @@
  */
 import { collections } from "@/lib/db";
 import { newId } from "@/lib/ids";
-import type { AdminRole } from "@/lib/models";
+import type { AdminAccessLog, AdminRole } from "@/lib/models";
 
 export interface AdminAccessEntry {
   /** Dotted action key, e.g. "login" | "results.queue.read" | "result.review.signoff". */
@@ -26,6 +26,13 @@ export interface AdminAccessEntry {
   /** The member whose Art.9 record was touched, when applicable. */
   targetMemberId?: string | null;
   ip?: string | null;
+  /**
+   * How many records a bulk read/export touched (e.g. "waitlist.export").
+   * Stored on the log doc only when provided — like eligibility's changeLog,
+   * it lives outside the v2-frozen zod schema (models.ts) by design. Never
+   * the data itself, only the size of the disclosure.
+   */
+  count?: number;
 }
 
 /**
@@ -36,7 +43,8 @@ export function logAdminAccess(entry: AdminAccessEntry): void {
   void (async () => {
     try {
       const col = await collections.adminAccessLog();
-      await col.insertOne({
+      // `count` rides outside the v2-frozen zod schema (see AdminAccessEntry).
+      const doc: AdminAccessLog & { count?: number } = {
         _id: newId("aal"),
         at: new Date(),
         action: entry.action,
@@ -46,7 +54,9 @@ export function logAdminAccess(entry: AdminAccessEntry): void {
         outcome: entry.outcome ?? "success",
         targetMemberId: entry.targetMemberId ?? null,
         ip: entry.ip ?? null,
-      });
+      };
+      if (entry.count !== undefined) doc.count = entry.count;
+      await col.insertOne(doc);
     } catch {
       // Best-effort: never break the audited request. (No credential/health
       // data is in `entry`, so there is nothing sensitive to fall back on.)

@@ -32,7 +32,9 @@ export default function EarlyAccessSection() {
         body: JSON.stringify({
           email,
           eircode,
-          name: name || undefined,
+          // Trimmed: a whitespace-only name would pass `name || undefined`
+          // here but fail the server's .trim().min(1) — a 400 dead-end.
+          name: name.trim() || undefined,
           planInterest: plan.toLowerCase() as
             | "essential"
             | "performance"
@@ -41,10 +43,14 @@ export default function EarlyAccessSection() {
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) {
+        // Zod 400s carry `issues` but no `message` — tell the user it's
+        // their input (fixable), not a server fault.
         setError(
           typeof body.message === "string"
             ? body.message
-            : "Something went wrong — try again."
+            : body.error === "validation"
+              ? "Check your details and try again."
+              : "Something went wrong — try again."
         );
         return;
       }

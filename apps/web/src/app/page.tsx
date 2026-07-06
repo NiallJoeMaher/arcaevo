@@ -10,6 +10,7 @@ import {
   routeMetadata,
 } from "@/lib/seo";
 import { getServerMessages } from "@/i18n/server";
+import { bloodTiersEnabled } from "@/lib/env";
 
 export const metadata: Metadata = routeMetadata({ path: "/" });
 
@@ -293,6 +294,7 @@ export default async function Home() {
   // en-IE default. See docs/LOCALIZATION.md for the static-vs-dynamic trade-off.
   const { locale, m } = await getServerMessages();
   const h = m.home;
+  const bloodEnabled = bloodTiersEnabled();
   return (
     <div className="w-full overflow-x-hidden bg-bone font-sans text-ink">
       <SiteNav active="home" locale={locale} />
@@ -691,10 +693,17 @@ export default async function Home() {
               {h.finalCta.title}
             </h2>
             {/* Price-bearing line: contractual €119 stays hardcoded, never localized. */}
-            <p className="mb-[26px] mt-0 text-base text-vitality-faint">
-              Join Essential and your first kit ships today. Not ready to test?
-              Fusion starts at €119 a year.
-            </p>
+            {bloodEnabled ? (
+              <p className="mb-[26px] mt-0 text-base text-vitality-faint">
+                Join Essential and your first kit ships today. Not ready to
+                test? Fusion starts at €119 a year.
+              </p>
+            ) : (
+              <p className="mb-[26px] mt-0 text-base text-vitality-faint">
+                Fusion is live today from €119 a year. Tested plans open soon —
+                join the early-access list for the first booking window.
+              </p>
+            )}
             <div className="flex flex-wrap justify-center gap-[14px]">
               <Link
                 href="/pricing"
@@ -702,12 +711,21 @@ export default async function Home() {
               >
                 {h.finalCta.plansBtn}
               </Link>
-              <Link
-                href="/help"
-                className="inline-block rounded-pill border border-[rgba(255,255,255,0.4)] px-8 py-[15px] text-base font-semibold text-white no-underline"
-              >
-                {h.finalCta.helpBtn}
-              </Link>
+              {bloodEnabled ? (
+                <Link
+                  href="/help"
+                  className="inline-block rounded-pill border border-[rgba(255,255,255,0.4)] px-8 py-[15px] text-base font-semibold text-white no-underline"
+                >
+                  {h.finalCta.helpBtn}
+                </Link>
+              ) : (
+                <Link
+                  href="/pricing#early-access"
+                  className="inline-block rounded-pill border border-[rgba(255,255,255,0.4)] px-8 py-[15px] text-base font-semibold text-white no-underline"
+                >
+                  Get early access
+                </Link>
+              )}
             </div>
           </div>
         </section>

@@ -53,13 +53,14 @@ Until these are set the checkout path stays on the deterministic mock vendor —
 
 ### 4. Pending founder — AI narration (Amazon Bedrock, `docs/MOCKED_APIS.md` §20)
 
-Fail-safe OFF until the founder creates an **IAM user with `bedrock:InvokeModel` on the Claude Haiku model/inference profile in eu-west-1** (reuse or extend the ARCAEVO_AWS_* keys below). While the flag is unset the insights API serves the deterministic templates only — identical to today.
+The IAM policy is now code: `ArcaevoEmailStack` (infra/cdk) grants `bedrock:InvokeModel` on the Haiku EU inference profile + underlying foundation model to the same `arcaevo-ses-smtp` user whose keys are the ARCAEVO_AWS_* values — **redeploy `ArcaevoEmailStack` to apply**; the existing long-lived keys then work with no console edits. The full path (our SigV4 signer → Bedrock EU → Haiku narration) was **live-verified 2026-07-06** with temporary STS credentials. While the flag is unset the insights API serves the deterministic templates only — identical to today.
 
 | Variable | Value source | Scope | Status |
 |---|---|---|---|
-| `ARCAEVO_AWS_ACCESS_KEY_ID` / `ARCAEVO_AWS_SECRET_ACCESS_KEY` / `ARCAEVO_AWS_REGION` (`eu-west-1`) | Shared app-wide AWS creds (already documented for SES) — the IAM policy must ALSO allow `bedrock:InvokeModel` on the Haiku model/inference profile in eu-west-1 (EU data residency; LLM provider is a listed sub-processor on `/legal/privacy`) | Production | ⏳ pending founder (IAM policy) |
-| `AI_NARRATION_ENABLED` (`true`) | flip **only after** the IAM policy above exists and a one-off `InvokeModel` smoke call succeeds — exactly `"true"`, anything else stays off | Production | ⏳ pending founder — **leave unset until then** |
-| `BEDROCK_MODEL_ID` (optional) | default `eu.anthropic.claude-haiku-4-5-20251001-v1:0` (EU cross-region inference profile). Set the bare `anthropic.claude-haiku-4-5-20251001-v1:0` form here if InvokeModel rejects the profile id on this account | Production | ⏳ optional override |
+| `ARCAEVO_AWS_ACCESS_KEY_ID` / `ARCAEVO_AWS_SECRET_ACCESS_KEY` / `ARCAEVO_AWS_REGION` (`eu-west-1`) | Shared app-wide AWS creds (already documented for SES) — Bedrock access ships with the CDK email stack (see above; EU data residency; LLM provider is a listed sub-processor on `/legal/privacy`) | Production | ⏳ pending founder (redeploy `ArcaevoEmailStack`) |
+| `ARCAEVO_AWS_SESSION_TOKEN` (optional) | **only for STS temporary credentials** (smoke tests / assumed roles) — signed + sent as `x-amz-security-token`. Long-lived IAM keys don't need it; leave unset in production | Production | — leave unset (long-lived keys) |
+| `AI_NARRATION_ENABLED` (`true`) | flip **only after** the stack redeploy above — exactly `"true"`, anything else stays off | Production | ⏳ pending founder — **leave unset until then** |
+| `BEDROCK_MODEL_ID` (optional) | default `eu.anthropic.claude-haiku-4-5-20251001-v1:0` (EU cross-region inference profile) — the profile form is **required**: verified 2026-07-06 that the bare `anthropic.claude-haiku-4-5-20251001-v1:0` id is rejected for on-demand InvokeModel ("Retry with an inference profile"). Override only to change model/profile | Production | ⏳ optional override |
 
 ### Never set in production
 

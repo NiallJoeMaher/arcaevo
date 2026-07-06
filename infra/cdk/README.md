@@ -19,12 +19,17 @@ adapters until real agreements/keys exist — these secrets are their future hom
 
 - **`ArcaevoEmailStack` (SES transactional email, eu-west-1)** — a separate
   stack: an SES domain identity for **arcaevo.com** (Easy DKIM + custom MAIL
-  FROM), a least-privilege IAM SMTP sender (`ses:SendEmail`/`ses:SendRawEmail`
-  only, scoped to the identity + a `ses:FromAddress` condition), and its access
-  key, with the IAM secret parked in Secrets Manager (`arcaevo/ses-smtp`) — the
-  SMTP password is **derived** from it, never output in plaintext. Feeds the
-  existing nodemailer adapter (`apps/web/.../email.smtp.ts`). Full walkthrough
-  — DNS records, sandbox → production, password derivation, env vars — in
+  FROM), a least-privilege IAM user (`arcaevo-ses-smtp` — historically the SMTP
+  sender, now the app-wide **ARCAEVO_AWS_*** identity) with two scoped grants:
+  `ses:SendEmail`/`ses:SendRawEmail` on the identity + a `ses:FromAddress`
+  condition, and `bedrock:InvokeModel` on the Claude Haiku EU inference profile
+  + its underlying foundation model (AI narration — `docs/MOCKED_APIS.md` §20;
+  live-verified 2026-07-06). Its access key feeds both the SMTP transport and
+  the web app's SigV4 Bedrock calls; the IAM secret is parked in Secrets
+  Manager (`arcaevo/ses-smtp`) — the SMTP password is **derived** from it,
+  never output in plaintext. Feeds the existing nodemailer adapter
+  (`apps/web/.../email.smtp.ts`). Full walkthrough — DNS records, sandbox →
+  production, password derivation, env vars — in
   **[`SES_SETUP.md`](./SES_SETUP.md)**. The sending domain is a one-line
   constant / `-c sendingDomain=` context param (default `arcaevo.com`).
 

@@ -83,6 +83,9 @@ export interface NarrationCredentials {
   accessKeyId: string;
   secretAccessKey: string;
   region: string;
+  /** STS session token (temporary credentials only). Long-lived IAM keys —
+   * the primary production path — leave this undefined. */
+  sessionToken?: string;
 }
 
 /**
@@ -90,15 +93,20 @@ export interface NarrationCredentials {
  * ARCAEVO_AWS_* vars (bare AWS_* names are RESERVED on Vercel — see
  * email.ses.ts). Region defaults to eu-west-1 (EU residency). Returns null
  * when the key pair is incomplete — the factory then keeps narration OFF.
+ * ARCAEVO_AWS_SESSION_TOKEN is OPTIONAL: set only for STS temporary creds
+ * (the signer then signs + sends x-amz-security-token); long-lived keys
+ * don't need it and behavior is unchanged when it is unset.
  */
 export function resolveNarrationCredentials(): NarrationCredentials | null {
   const accessKeyId = process.env.ARCAEVO_AWS_ACCESS_KEY_ID;
   const secretAccessKey = process.env.ARCAEVO_AWS_SECRET_ACCESS_KEY;
   if (!accessKeyId || !secretAccessKey) return null;
+  const sessionToken = process.env.ARCAEVO_AWS_SESSION_TOKEN;
   return {
     accessKeyId,
     secretAccessKey,
     region: process.env.ARCAEVO_AWS_REGION ?? "eu-west-1",
+    ...(sessionToken ? { sessionToken } : {}),
   };
 }
 

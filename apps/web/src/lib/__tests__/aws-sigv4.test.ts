@@ -183,3 +183,82 @@ describe("Bedrock-shaped vector (model id with '.' and ':')", () => {
     );
   });
 });
+
+describe("STS session-token vector (x-amz-security-token participates in signing)", () => {
+  // Same Bedrock-shaped request as above but with temporary (STS) credentials.
+  // Expected values computed by an independent, hand-built SigV4 chain
+  // (spec-following, separate from src/lib/aws-sigv4.ts) and pinned here —
+  // same methodology as the vector above. NOT a real token.
+  const SESSION_TOKEN =
+    "FwoGZXIvYXdzEXAMPLESESSIONTOKEN/aBcD1234+eXaMpLeToKeN=";
+  const BODY = '{"anthropic_version":"bedrock-2023-05-31"}';
+  const BODY_HASH =
+    "661f62a67d543adab5f8cd5f03e2b23e3806b22b592f7b2183fa95029e90cca5";
+
+  const signed = signAwsRequestV4({
+    method: "POST",
+    host: "bedrock-runtime.eu-west-1.amazonaws.com",
+    path: `/model/${encodeURIComponent(
+      "eu.anthropic.claude-haiku-4-5-20251001-v1:0"
+    )}/invoke`,
+    region: "eu-west-1",
+    service: "bedrock",
+    headers: {
+      "content-type": "application/json",
+      accept: "application/json",
+      "x-amz-content-sha256": BODY_HASH,
+    },
+    body: BODY,
+    accessKeyId: ACCESS_KEY,
+    secretAccessKey: SECRET_KEY,
+    sessionToken: SESSION_TOKEN,
+    amzDate: "20260101T000000Z",
+  });
+
+  it("includes the lowercased token header in the canonical request, sorted last", () => {
+    const lines = signed.canonicalRequest.split("\n");
+    // Canonical headers block: accept, content-type, host,
+    // x-amz-content-sha256, x-amz-date, x-amz-security-token (sorted).
+    expect(lines).toContain(`x-amz-security-token:${SESSION_TOKEN}`);
+    const dateIdx = lines.indexOf("x-amz-date:20260101T000000Z");
+    expect(lines[dateIdx + 1]).toBe(`x-amz-security-token:${SESSION_TOKEN}`);
+  });
+
+  it("appends the token to the signed-headers list (sorted position)", () => {
+    expect(signed.authorization).toContain(
+      "SignedHeaders=accept;content-type;host;x-amz-content-sha256;x-amz-date;x-amz-security-token"
+    );
+  });
+
+  it("produces the independently computed string-to-sign and signature", () => {
+    expect(signed.stringToSign).toBe(
+      [
+        "AWS4-HMAC-SHA256",
+        "20260101T000000Z",
+        "20260101/eu-west-1/bedrock/aws4_request",
+        "b423bb3f7b7aee6023e12ee3c723b4a98ee2ed03ed3e1e2a4507a0d2d96c89eb",
+      ].join("\n")
+    );
+    expect(signed.signature).toBe(
+      "8d45ad4f065f778b2e07af6fa71ee5d72305f6cdd2d987185786370c6d4d57a3"
+    );
+  });
+
+  it("sends x-amz-security-token on the wire; omits it when no token given", () => {
+    expect(signed.headers["x-amz-security-token"]).toBe(SESSION_TOKEN);
+
+    const withoutToken = signAwsRequestV4({
+      method: "POST",
+      host: "bedrock-runtime.eu-west-1.amazonaws.com",
+      path: "/model/x/invoke",
+      region: "eu-west-1",
+      service: "bedrock",
+      body: BODY,
+      accessKeyId: ACCESS_KEY,
+      secretAccessKey: SECRET_KEY,
+      amzDate: "20260101T000000Z",
+    });
+    expect(withoutToken.headers["x-amz-security-token"]).toBeUndefined();
+    expect(withoutToken.canonicalRequest).not.toContain("security-token");
+  });
+});

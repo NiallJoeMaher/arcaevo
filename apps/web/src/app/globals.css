@@ -53,12 +53,19 @@ body {
   font-family: var(--font-sans);
 }
 
-a {
-  transition: opacity 0.15s;
-}
+/* In @layer base so Tailwind utilities (utilities layer) can override — the
+   design prototypes declare per-element transitions inline (inline beats a
+   global rule), so utility-built pages need the same precedence: base-layer
+   globals, utility overrides (e.g. the Home teaser cards' duration-300 lift,
+   nav links' transition-colors). Unlayered, these rules would win instead. */
+@layer base {
+  a {
+    transition: opacity 0.15s;
+  }
 
-a:hover {
-  opacity: 0.72;
+  a:hover {
+    opacity: 0.72;
+  }
 }
 
 :focus-visible {

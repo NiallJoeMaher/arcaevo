@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import EarlyAccessSection from "./EarlyAccessSection";
 import { bloodTiersEnabled } from "@/lib/env";
 import {
   jsonLd,
@@ -141,11 +142,25 @@ export default function PricingPage() {
           <h1 className="mb-5 mt-0 font-serif text-[clamp(38px,5vw,58px)] max-md:text-[clamp(34px,9.5vw,42px)] font-normal leading-[1.04] tracking-[-0.015em]">
             One annual membership. Tests included.
           </h1>
-          <p className="mx-auto mb-2 mt-0 max-w-[54ch] text-[19px] leading-[1.55] text-muted">
-            Billed once a year, so your tests are covered upfront — the first
-            one ships or gets booked the day you join. Cancel anytime and keep
-            access until your year ends.
-          </p>
+          {bloodEnabled ? (
+            <p className="mx-auto mb-2 mt-0 max-w-[54ch] text-[19px] leading-[1.55] text-muted">
+              Billed once a year, so your tests are covered upfront — the first
+              one ships or gets booked the day you join. Cancel anytime and
+              keep access until your year ends.
+            </p>
+          ) : (
+            <p className="mx-auto mb-2 mt-0 max-w-[54ch] text-[19px] leading-[1.55] text-muted">
+              Billed once a year, so your tests are covered upfront. Fusion is
+              live today; the tested plans open area by area —{" "}
+              <a
+                href="#early-access"
+                className="font-semibold text-forest no-underline"
+              >
+                early access below
+              </a>
+              . Cancel anytime and keep access until your year ends.
+            </p>
+          )}
         </section>
 
         {/* PLANS */}
@@ -205,7 +220,9 @@ export default function PricingPage() {
                 </span>
               </div>
               <div className="mt-2 font-mono text-[12.5px] text-muted-dark-soft">
-                ≈ €27/MO · FIRST KIT SHIPS TODAY
+                {bloodEnabled
+                  ? "≈ €27/MO · FIRST KIT SHIPS TODAY"
+                  : "≈ €27/MO · FROM LAUNCH: KIT SHIPS DAY ONE"}
               </div>
               <div className="my-[22px] h-px bg-hairline-dark" />
               <div className="flex-1 text-[14.5px] leading-[2] text-[#CFD6CF]">
@@ -232,18 +249,15 @@ export default function PricingPage() {
                 </>
               ) : (
                 <>
-                  <div
-                    aria-disabled="true"
-                    className="mt-[22px] block rounded-pill border border-hairline-dark p-[13px] text-center font-semibold text-muted-dark-soft"
+                  <a
+                    href="#early-access"
+                    className="mt-[22px] block rounded-pill bg-bone-white p-[13px] text-center font-semibold text-ink no-underline"
                   >
-                    Coming soon
+                    Get early access →
+                  </a>
+                  <div className="mt-[10px] text-center font-mono text-[10px] tracking-[0.08em] text-[#E9BC85]">
+                    NOT ON SALE YET · DUBLIN LAUNCH SOON · NO CARD
                   </div>
-                  <Link
-                    href="/early-access"
-                    className="mt-[10px] block text-center text-[11.5px] font-semibold text-vitality-light no-underline"
-                  >
-                    Join the waitlist →
-                  </Link>
                 </>
               )}
             </div>
@@ -261,7 +275,9 @@ export default function PricingPage() {
                 <span className="font-sans text-base text-caption">/yr</span>
               </div>
               <div className="mt-2 font-mono text-[12.5px] text-caption">
-                ≈ €33/MO · BOOK YOUR NURSE TODAY
+                {bloodEnabled
+                  ? "≈ €33/MO · BOOK YOUR NURSE TODAY"
+                  : "≈ €33/MO · FROM LAUNCH: NURSE COMES TO YOU"}
               </div>
               <div className="my-[22px] h-px bg-hairline" />
               <div className="flex-1 text-[14.5px] leading-[2] text-muted">
@@ -288,18 +304,15 @@ export default function PricingPage() {
                 </>
               ) : (
                 <>
-                  <div
-                    aria-disabled="true"
-                    className="mt-[22px] block rounded-pill border border-hairline p-[13px] text-center font-semibold text-caption"
+                  <a
+                    href="#early-access"
+                    className="mt-[22px] block rounded-pill border border-ink p-[13px] text-center font-semibold text-ink no-underline"
                   >
-                    Coming soon
+                    Get early access →
+                  </a>
+                  <div className="mt-[10px] text-center font-mono text-[10px] tracking-[0.08em] text-[#B3543A]">
+                    NOT ON SALE YET · DUBLIN LAUNCH SOON · NO CARD
                   </div>
-                  <Link
-                    href="/early-access"
-                    className="mt-[10px] block text-center text-[11.5px] font-semibold text-forest no-underline"
-                  >
-                    Join the waitlist →
-                  </Link>
                 </>
               )}
             </div>
@@ -310,6 +323,9 @@ export default function PricingPage() {
             phlebotomy fees.
           </p>
         </section>
+
+        {/* EARLY ACCESS (launch gate — only while the tested plans are off sale) */}
+        {!bloodEnabled && <EarlyAccessSection />}
 
         {/* CADENCE UPGRADE */}
         <section className="mx-auto max-w-[1100px] px-[22px] md:px-10 pb-2 pt-12">
@@ -474,7 +490,7 @@ export default function PricingPage() {
               fuses blood with your Apple Watch.
             </p>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4">
             {MARKET_CARDS.map((card) => (
               <div
                 key={card.name}

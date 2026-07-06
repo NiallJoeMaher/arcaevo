@@ -92,9 +92,16 @@ body {
 /* App.dc.html's hero ring starts 50ms earlier than Home's (0.4s vs 0.45s). */
 .motion-ring-app { animation: ring314 1.3s cubic-bezier(0.33, 1, 0.68, 1) 0.4s backwards; }
 .motion-trace { animation: draw100 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.5s backwards; }
+/* Early-access confirmation pop (Pricing.dc.html confirmIn). */
+@keyframes confirm-in {
+  0% { opacity: 0; transform: scale(0.94); }
+  55% { transform: scale(1.015); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.motion-confirm { animation: confirm-in 0.45s cubic-bezier(0.22, 1, 0.36, 1); }
 
 @media (prefers-reduced-motion: reduce) {
-  .motion-rise, .motion-rise-delayed, .motion-ring, .motion-ring-app, .motion-trace {
+  .motion-rise, .motion-rise-delayed, .motion-ring, .motion-ring-app, .motion-trace, .motion-confirm {
     animation: none !important;
   }
 }

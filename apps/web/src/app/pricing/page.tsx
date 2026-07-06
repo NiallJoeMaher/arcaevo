@@ -124,9 +124,10 @@ const FAQS = [
 export default function PricingPage() {
   // Blood tiers (Essential/Performance) are gated until the lab partner +
   // clinician are live. When off, the cards stay visible (so people see the
-  // roadmap) but aren't buyable — "Coming soon" + a waitlist CTA instead of a
-  // checkout button. Fusion is always purchasable. Server-enforced in the
-  // checkout/orders routes; this is the matching UI.
+  // roadmap) but aren't buyable — their CTAs become "Get early access →"
+  // anchors into the EarlyAccessSection gate below (which posts to the real
+  // waitlist), instead of checkout buttons. Fusion is always purchasable.
+  // Server-enforced in the checkout/orders routes; this is the matching UI.
   const bloodEnabled = bloodTiersEnabled();
 
   return (

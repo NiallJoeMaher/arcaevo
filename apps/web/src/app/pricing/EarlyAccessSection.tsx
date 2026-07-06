@@ -49,6 +49,10 @@ export default function EarlyAccessSection() {
         return;
       }
       setSent(true);
+    } catch {
+      // Network-level failure (offline, DNS) — fetch rejected before any
+      // response existed, so show the same generic fallback.
+      setError("Something went wrong — try again.");
     } finally {
       setBusy(false);
     }

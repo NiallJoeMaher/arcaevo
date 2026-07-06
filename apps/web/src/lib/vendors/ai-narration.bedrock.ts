@@ -90,6 +90,9 @@ class BedrockNarration implements NarrationVendor {
       body,
       accessKeyId: creds.accessKeyId,
       secretAccessKey: creds.secretAccessKey,
+      // STS temp creds only (ARCAEVO_AWS_SESSION_TOKEN); undefined for the
+      // long-lived key pair, in which case the request is unchanged.
+      sessionToken: creds.sessionToken,
     });
 
     // Single attempt, hard 3s deadline, null on ANY failure.

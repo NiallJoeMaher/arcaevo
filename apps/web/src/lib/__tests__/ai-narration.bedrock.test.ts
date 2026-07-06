@@ -97,6 +97,27 @@ describe("request shape", () => {
       "/model/anthropic.claude-haiku-4-5-20251001-v1%3A0/invoke"
     );
   });
+
+  it("signs + sends x-amz-security-token when ARCAEVO_AWS_SESSION_TOKEN is set", async () => {
+    vi.stubEnv("ARCAEVO_AWS_SESSION_TOKEN", "FwoGZXIvYXdzEXAMPLETOKEN=");
+    fetchMock.mockResolvedValueOnce(messagesResponse("ok text"));
+    await bedrockNarrationVendor.narrate(INPUT);
+    const headers = (fetchMock.mock.calls[0][1] as RequestInit)
+      .headers as Record<string, string>;
+    expect(headers["x-amz-security-token"]).toBe("FwoGZXIvYXdzEXAMPLETOKEN=");
+    // The token header participates in the signature, not just the wire.
+    expect(headers.Authorization).toContain("x-amz-security-token");
+  });
+
+  it("omits x-amz-security-token when the session token env is unset", async () => {
+    vi.stubEnv("ARCAEVO_AWS_SESSION_TOKEN", ""); // empty === unset (falsy)
+    fetchMock.mockResolvedValueOnce(messagesResponse("ok text"));
+    await bedrockNarrationVendor.narrate(INPUT);
+    const headers = (fetchMock.mock.calls[0][1] as RequestInit)
+      .headers as Record<string, string>;
+    expect(headers["x-amz-security-token"]).toBeUndefined();
+    expect(headers.Authorization).not.toContain("x-amz-security-token");
+  });
 });
 
 describe("fail-safe null on every failure path (never throws)", () => {

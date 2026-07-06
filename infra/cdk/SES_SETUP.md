@@ -34,7 +34,7 @@ npx cdk deploy -c sendingDomain=arcaevo.health
 | Resource | Purpose |
 | --- | --- |
 | `AWS::SES::EmailIdentity` | Domain identity for `arcaevo.com`, **Easy DKIM** on, custom MAIL FROM `mail.arcaevo.com`. |
-| `AWS::IAM::User` (`arcaevo-ses-smtp`) | Least-privilege sender: only `ses:SendEmail` + `ses:SendRawEmail`, scoped to this identity, with a `ses:FromAddress` `*@arcaevo.com` condition. |
+| `AWS::IAM::User` (`arcaevo-ses-smtp`) | Least-privilege app identity (name kept for continuity — renaming would replace the user and rotate its keys). Two grants: (1) `ses:SendEmail` + `ses:SendRawEmail`, scoped to this identity, with a `ses:FromAddress` `*@arcaevo.com` condition; (2) `bedrock:InvokeModel` on the Claude Haiku EU cross-region inference profile **and** its underlying foundation-model ARNs (profile invocations authorize against both) — powers AI narration via the same `ARCAEVO_AWS_*` keys (live-verified 2026-07-06). |
 | `AWS::IAM::AccessKey` | The programmatic credential. Its **access key id = the SES-SMTP username**. |
 | `AWS::SecretsManager::Secret` (`arcaevo/ses-smtp`) | Holds the IAM **secret access key** (never emitted in a plaintext output). This is the input to the SMTP-password derivation — it is **not** the SMTP password itself. |
 

@@ -38,6 +38,32 @@ export default function SiteMotion() {
             } else {
               el.style.opacity = "1";
               el.style.transform = "none";
+              // Once the reveal transition ends, drop the inline styles so
+              // class-driven hover transitions (e.g. the Home pricing-teaser
+              // lift) regain control — inline transform/transition would
+              // otherwise override them forever. Natural state is visible, so
+              // removal is a visual no-op. The timeout is a fallback for
+              // transitionend never firing (element scrolled away or hidden
+              // mid-transition).
+              let cleared = false;
+              const clear = () => {
+                if (cleared) return;
+                cleared = true;
+                el.removeEventListener("transitionend", onEnd);
+                el.style.removeProperty("opacity");
+                el.style.removeProperty("transform");
+                el.style.removeProperty("transition");
+              };
+              const onEnd = (e: Event) => {
+                if (
+                  e.target === el &&
+                  (e as TransitionEvent).propertyName === "opacity"
+                ) {
+                  clear();
+                }
+              };
+              el.addEventListener("transitionend", onEnd);
+              window.setTimeout(clear, 800);
             }
           }, delay);
         }

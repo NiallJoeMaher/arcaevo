@@ -50,7 +50,8 @@ function HeroScoreCard() {
             <div className="font-mono text-[30px] font-medium leading-none">
               81
             </div>
-            <div className="text-[9px] tracking-[0.08em] text-muted-dark-soft">
+            {/* Caption sized to clear the ring's inner edge (~72px across). */}
+            <div className="mt-[3px] text-[8px] tracking-[0.04em] text-muted-dark-soft">
               HEALTH SCORE
             </div>
           </div>

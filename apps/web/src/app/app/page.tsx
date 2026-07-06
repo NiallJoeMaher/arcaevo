@@ -80,7 +80,10 @@ function PhoneMock() {
               <div className="font-mono text-[26px] font-medium leading-none">
                 81
               </div>
-              <div className="text-[8px] text-muted-dark-soft">HEALTH SCORE</div>
+              {/* Caption sized to clear the ring's inner edge (~64px across). */}
+              <div className="mt-[2px] text-[7px] tracking-[0.03em] text-muted-dark-soft">
+                HEALTH SCORE
+              </div>
             </div>
           </div>
         </div>

@@ -163,7 +163,6 @@ function getReq() {
 }
 
 function stubNarrationOn() {
-  vi.stubEnv("AI_NARRATION_ENABLED", "true");
   vi.stubEnv("ARCAEVO_AWS_ACCESS_KEY_ID", "AKIDEXAMPLE");
   vi.stubEnv("ARCAEVO_AWS_SECRET_ACCESS_KEY", "fake-secret");
 }

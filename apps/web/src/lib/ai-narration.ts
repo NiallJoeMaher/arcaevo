@@ -5,10 +5,13 @@
  *
  * "Deterministic rules decide, AI narrates" — three hard invariants:
  *
- *  1. FAIL-SAFE OFF. Narration runs ONLY when AI_NARRATION_ENABLED is exactly
- *     "true" AND the ARCAEVO_AWS_* key pair is present (same fail-safe posture
- *     as BLOOD_TIERS_ENABLED). Otherwise `getNarrationVendor()` is null and
- *     the insights payload is byte-identical to today's template-only output.
+ *  1. CREDENTIALS ARE THE SWITCH. Narration is DEFAULT-ON whenever the
+ *     ARCAEVO_AWS_* key pair is present (founder decision 2026-07-06 — no
+ *     separate flag). No keys → `getNarrationVendor()` is null and the
+ *     insights payload is byte-identical template-only output. Keys without
+ *     the Bedrock IAM grant degrade the same way (background 403 → template
+ *     ships + one log line per attempt) — deploy ArcaevoEmailStack's grant
+ *     to keep the logs quiet.
  *
  *  2. NEVER BLOCKING. The insights GET does ONE indexed `_id $in` cache read
  *     (zero when the feature is off). A cache MISS never calls Bedrock
@@ -43,10 +46,9 @@ export type NarrationVendorKind = "bedrock" | "off";
 
 /** Which vendor the current environment selects (pure — safe to unit-test). */
 export function selectedNarrationVendorKind(): NarrationVendorKind {
-  // Fail-safe: exactly "true" (BLOOD_TIERS_ENABLED convention), never auto-on.
-  if (process.env.AI_NARRATION_ENABLED !== "true") return "off";
-  if (!resolveNarrationCredentials()) return "off"; // needs ARCAEVO_AWS_* keys
-  return "bedrock";
+  // Default-on: the ARCAEVO_AWS_* key pair IS the switch (no flag). Absent
+  // keys → off; dev/e2e/CI have no keys, so they exercise the template path.
+  return resolveNarrationCredentials() ? "bedrock" : "off";
 }
 
 /**

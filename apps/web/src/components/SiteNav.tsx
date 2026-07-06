@@ -26,7 +26,7 @@ export default function SiteNav({
       <SiteMotion />
       <nav
         aria-label="Main"
-        className="mx-auto flex max-w-[1180px] flex-wrap items-center justify-between gap-6 gap-y-2 px-10 py-4 max-md:px-5 max-md:pb-[10px] max-md:pt-3"
+        className="mx-auto flex max-w-[1180px] flex-wrap items-center justify-between gap-6 gap-y-0 px-10 py-4 max-md:px-5 max-md:pb-0 max-md:pt-3"
       >
         <Link
           href="/"
@@ -41,13 +41,13 @@ export default function SiteNav({
             {m.brand}
           </span>
         </Link>
-        <div className="order-3 flex w-full items-center gap-[22px] overflow-x-auto pb-1 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:order-none md:w-auto md:gap-7 md:overflow-visible md:pb-0">
+        <div className="order-3 -mx-1 -mt-1 flex w-full items-center gap-[22px] overflow-x-auto px-1 pb-1 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:order-none md:w-auto md:gap-7 md:overflow-visible md:pb-0">
           {NAV_ITEMS.map((item) => (
             <Link
               key={item.key}
               href={item.href}
               aria-current={item.key === active ? "page" : undefined}
-              className={`whitespace-nowrap text-sm tracking-[-0.005em] no-underline transition-colors duration-150 ${
+              className={`whitespace-nowrap text-sm tracking-[-0.005em] no-underline transition-colors duration-150 max-md:py-3 ${
                 item.key === active
                   ? "font-semibold text-forest"
                   : "font-medium text-muted"

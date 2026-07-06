@@ -392,7 +392,10 @@ export default function PricingPage() {
           </h2>
           <div
             data-reveal=""
-            className="overflow-x-auto rounded-card border border-hairline-soft bg-surface [-webkit-overflow-scrolling:touch]"
+            tabIndex={0}
+            role="region"
+            aria-label="Plan comparison"
+            className="overflow-x-auto rounded-card border border-hairline-soft bg-surface"
           >
             <table className="w-full min-w-[600px] table-fixed border-collapse">
               <colgroup>

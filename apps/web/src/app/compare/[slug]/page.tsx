@@ -120,7 +120,10 @@ export default async function VersusPage({ params }: Props) {
           </h2>
           <div
             data-reveal=""
-            className="overflow-x-auto rounded-card border border-hairline-soft bg-surface [-webkit-overflow-scrolling:touch]"
+            tabIndex={0}
+            role="region"
+            aria-label="At a glance comparison"
+            className="overflow-x-auto rounded-card border border-hairline-soft bg-surface"
           >
             <table className="w-full min-w-[600px] table-fixed border-collapse text-left">
               <colgroup>

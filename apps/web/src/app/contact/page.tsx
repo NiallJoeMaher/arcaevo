@@ -45,12 +45,12 @@ export default function ContactPage() {
       <SiteNav active="contact" />
 
       <main>
-        <section className="mx-auto grid max-w-[1080px] gap-14 px-10 pb-20 pt-[72px] lg:grid-cols-2">
+        <section className="mx-auto grid max-w-[1080px] gap-14 px-[22px] md:px-10 pb-20 pt-[72px] lg:grid-cols-2">
           <div>
             <div className="mb-5 font-mono text-xs tracking-[0.14em] text-forest">
               CONTACT
             </div>
-            <h1 className="mb-[22px] mt-0 font-serif text-[clamp(36px,4.6vw,50px)] font-normal leading-[1.05] tracking-[-0.015em]">
+            <h1 className="mb-[22px] mt-0 font-serif text-[clamp(36px,4.6vw,50px)] max-md:text-[clamp(34px,9.5vw,42px)] font-normal leading-[1.05] tracking-[-0.015em]">
               Talk to a human.
             </h1>
             <p className="mb-[34px] mt-0 max-w-[40ch] text-[17px] leading-[1.6] text-muted">

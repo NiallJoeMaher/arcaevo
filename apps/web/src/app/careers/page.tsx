@@ -65,11 +65,11 @@ export default function CareersPage() {
 
       <main>
         {/* HERO */}
-        <section className="mx-auto max-w-[820px] px-10 pb-10 pt-20">
+        <section className="mx-auto max-w-[820px] px-[22px] md:px-10 pb-10 pt-20">
           <div className="mb-5 font-mono text-xs tracking-[0.14em] text-forest">
             CAREERS · DUBLIN / REMOTE-EU
           </div>
-          <h1 className="mb-[22px] mt-0 font-serif text-[clamp(38px,5vw,56px)] font-normal leading-[1.05] tracking-[-0.015em]">
+          <h1 className="mb-[22px] mt-0 font-serif text-[clamp(38px,5vw,56px)] max-md:text-[clamp(34px,9.5vw,42px)] font-normal leading-[1.05] tracking-[-0.015em]">
             Build the layer that makes health data usable.
           </h1>
           <p className="m-0 max-w-[56ch] text-lg leading-[1.6] text-muted">
@@ -81,7 +81,7 @@ export default function CareersPage() {
         </section>
 
         {/* PERKS */}
-        <section className="mx-auto max-w-[1000px] px-10 py-8">
+        <section className="mx-auto max-w-[1000px] px-[22px] md:px-10 py-8">
           <div className="grid gap-[14px] sm:grid-cols-2 md:grid-cols-4">
             {PERKS.map((perk) => (
               <div
@@ -101,7 +101,7 @@ export default function CareersPage() {
         </section>
 
         {/* ROLES */}
-        <section className="mx-auto max-w-[1000px] px-10 pb-10 pt-8">
+        <section className="mx-auto max-w-[1000px] px-[22px] md:px-10 pb-10 pt-8">
           <h2
             data-reveal=""
             className="mb-6 mt-0 font-serif text-[32px] font-normal tracking-[-0.01em]"

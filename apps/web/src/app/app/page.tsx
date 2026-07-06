@@ -160,12 +160,12 @@ export default function AppPage() {
 
       <main>
         {/* HERO */}
-        <section className="mx-auto grid max-w-[1180px] items-center gap-12 px-10 pb-10 pt-16 lg:grid-cols-2">
+        <section className="mx-auto grid max-w-[1180px] items-center gap-12 px-[22px] md:px-10 pb-10 pt-16 lg:grid-cols-2">
           <div className="motion-rise">
             <div className="mb-5 font-mono text-xs tracking-[0.14em] text-forest">
               THE APP · iOS &amp; APPLE WATCH
             </div>
-            <h1 className="mb-5 mt-0 font-serif text-[clamp(38px,5vw,56px)] font-normal leading-[1.04] tracking-[-0.015em]">
+            <h1 className="mb-5 mt-0 font-serif text-[clamp(38px,5vw,56px)] max-md:text-[clamp(34px,9.5vw,42px)] font-normal leading-[1.04] tracking-[-0.015em]">
               Your trends, in your pocket and on your wrist.
             </h1>
             <p className="mb-7 mt-0 max-w-[44ch] text-lg leading-[1.6] text-muted">
@@ -204,7 +204,7 @@ export default function AppPage() {
         </section>
 
         {/* FEATURE GRID */}
-        <section className="px-10 py-[60px]">
+        <section className="px-[22px] md:px-10 py-[60px]">
           <div className="mx-auto max-w-[1100px]">
             <div className="grid gap-[18px] md:grid-cols-3">
               {FEATURES.map((feature) => (
@@ -229,7 +229,7 @@ export default function AppPage() {
         </section>
 
         {/* CTA */}
-        <section className="px-10 pb-[90px] pt-5">
+        <section className="px-[22px] md:px-10 pb-[90px] pt-5">
           <div
             data-reveal=""
             className="mx-auto max-w-[900px] rounded-card-xl bg-forest px-10 py-14 text-center text-white"

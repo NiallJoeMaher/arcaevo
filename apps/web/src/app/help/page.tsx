@@ -42,11 +42,11 @@ export default function HelpPage() {
 
       <main>
         {/* HERO */}
-        <section className="mx-auto max-w-[820px] px-10 pb-8 pt-[72px] text-center">
+        <section className="mx-auto max-w-[820px] px-[22px] md:px-10 pb-8 pt-[72px] text-center">
           <div className="mb-5 font-mono text-xs tracking-[0.14em] text-forest">
             HELP CENTRE
           </div>
-          <h1 className="mb-[22px] mt-0 font-serif text-[clamp(38px,5vw,54px)] font-normal leading-[1.05] tracking-[-0.015em]">
+          <h1 className="mb-[22px] mt-0 font-serif text-[clamp(38px,5vw,54px)] max-md:text-[clamp(34px,9.5vw,42px)] font-normal leading-[1.05] tracking-[-0.015em]">
             How can we help?
           </h1>
           <div className="mx-auto flex max-w-[520px] items-center gap-[10px] rounded-pill border border-hairline-mid bg-surface px-[22px] py-[14px]">
@@ -58,7 +58,7 @@ export default function HelpPage() {
         </section>
 
         {/* CATEGORY CHIPS */}
-        <section className="mx-auto max-w-[900px] px-10 pb-2 pt-4">
+        <section className="mx-auto max-w-[900px] px-[22px] md:px-10 pb-2 pt-4">
           <div className="flex flex-wrap justify-center gap-[10px]">
             {helpCategories.map((c) => (
               <span
@@ -72,7 +72,7 @@ export default function HelpPage() {
         </section>
 
         {/* FAQ ACCORDION */}
-        <section className="mx-auto max-w-[820px] px-10 pb-[60px] pt-9">
+        <section className="mx-auto max-w-[820px] px-[22px] md:px-10 pb-[60px] pt-9">
           <HelpAccordion groups={helpGroups} />
 
           <div

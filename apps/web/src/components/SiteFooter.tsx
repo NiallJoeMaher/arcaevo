@@ -65,7 +65,7 @@ export default function SiteFooter({
 }) {
   const m = getDictionary(locale).footer;
   return (
-    <footer className="bg-ink-deep px-10 pt-16 pb-10 font-sans text-muted-dark">
+    <footer className="bg-ink-deep px-[22px] md:px-10 pt-16 pb-10 font-sans text-muted-dark">
       <div className="mx-auto max-w-[1180px]">
         <div className="flex flex-wrap items-start justify-between gap-x-8 gap-y-12">
           <div className="max-w-[280px]">

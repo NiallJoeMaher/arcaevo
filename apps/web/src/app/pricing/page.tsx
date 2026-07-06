@@ -134,11 +134,11 @@ export default function PricingPage() {
 
       <main>
         {/* HERO */}
-        <section className="mx-auto max-w-[900px] px-10 pb-10 pt-[72px] text-center">
+        <section className="mx-auto max-w-[900px] px-[22px] md:px-10 pb-10 pt-[72px] text-center">
           <div className="mb-5 font-mono text-xs tracking-[0.14em] text-forest">
             MEMBERSHIP &amp; PRICING
           </div>
-          <h1 className="mb-5 mt-0 font-serif text-[clamp(38px,5vw,58px)] font-normal leading-[1.04] tracking-[-0.015em]">
+          <h1 className="mb-5 mt-0 font-serif text-[clamp(38px,5vw,58px)] max-md:text-[clamp(34px,9.5vw,42px)] font-normal leading-[1.04] tracking-[-0.015em]">
             One annual membership. Tests included.
           </h1>
           <p className="mx-auto mb-2 mt-0 max-w-[54ch] text-[19px] leading-[1.55] text-muted">
@@ -149,7 +149,7 @@ export default function PricingPage() {
         </section>
 
         {/* PLANS */}
-        <section className="mx-auto max-w-[1100px] px-10 pb-4">
+        <section className="mx-auto max-w-[1100px] px-[22px] md:px-10 pb-4">
           <div className="grid items-stretch gap-[22px] md:grid-cols-3">
             <div
               data-reveal=""
@@ -312,7 +312,7 @@ export default function PricingPage() {
         </section>
 
         {/* CADENCE UPGRADE */}
-        <section className="mx-auto max-w-[1100px] px-10 pb-2 pt-12">
+        <section className="mx-auto max-w-[1100px] px-[22px] md:px-10 pb-2 pt-12">
           <div data-reveal="" className="rounded-card-lg bg-ink p-10 text-bone-white">
             <div className="grid items-center gap-10 md:grid-cols-[1fr_1.3fr]">
               <div>
@@ -383,7 +383,7 @@ export default function PricingPage() {
         </section>
 
         {/* COMPARISON TABLE */}
-        <section className="mx-auto max-w-[1100px] px-10 py-12">
+        <section className="mx-auto max-w-[1100px] px-[22px] md:px-10 py-12">
           <h2
             data-reveal=""
             className="mb-7 mt-0 text-center font-serif text-[32px] font-normal tracking-[-0.01em]"
@@ -392,9 +392,9 @@ export default function PricingPage() {
           </h2>
           <div
             data-reveal=""
-            className="overflow-hidden rounded-card border border-hairline-soft bg-surface"
+            className="overflow-x-auto rounded-card border border-hairline-soft bg-surface [-webkit-overflow-scrolling:touch]"
           >
-            <table className="w-full table-fixed border-collapse">
+            <table className="w-full min-w-[600px] table-fixed border-collapse">
               <colgroup>
                 <col className="w-[40%]" />
                 <col className="w-[20%]" />
@@ -458,7 +458,7 @@ export default function PricingPage() {
         </section>
 
         {/* MARKET CONTEXT */}
-        <section className="mx-auto max-w-[1100px] px-10 pb-12 pt-2">
+        <section className="mx-auto max-w-[1100px] px-[22px] md:px-10 pb-12 pt-2">
           <div className="mb-6 text-center">
             <h2
               data-reveal=""
@@ -501,7 +501,7 @@ export default function PricingPage() {
         </section>
 
         {/* FAQ */}
-        <section className="mx-auto max-w-[760px] px-10 pb-20 pt-6">
+        <section className="mx-auto max-w-[760px] px-[22px] md:px-10 pb-20 pt-6">
           <h2
             data-reveal=""
             className="mb-5 mt-0 text-center font-serif text-[30px] font-normal"

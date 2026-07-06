@@ -26,7 +26,7 @@ export default function SiteNav({
       <SiteMotion />
       <nav
         aria-label="Main"
-        className="mx-auto flex max-w-[1180px] items-center justify-between gap-6 px-10 py-4"
+        className="mx-auto flex max-w-[1180px] flex-wrap items-center justify-between gap-6 gap-y-2 px-10 py-4 max-md:px-5 max-md:pb-[10px] max-md:pt-3"
       >
         <Link
           href="/"
@@ -41,13 +41,13 @@ export default function SiteNav({
             {m.brand}
           </span>
         </Link>
-        <div className="hidden items-center gap-7 md:flex">
+        <div className="order-3 flex w-full items-center gap-[22px] overflow-x-auto pb-1 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:order-none md:w-auto md:gap-7 md:overflow-visible md:pb-0">
           {NAV_ITEMS.map((item) => (
             <Link
               key={item.key}
               href={item.href}
               aria-current={item.key === active ? "page" : undefined}
-              className={`text-sm tracking-[-0.005em] no-underline transition-colors duration-150 ${
+              className={`whitespace-nowrap text-sm tracking-[-0.005em] no-underline transition-colors duration-150 ${
                 item.key === active
                   ? "font-semibold text-forest"
                   : "font-medium text-muted"
@@ -59,7 +59,7 @@ export default function SiteNav({
         </div>
         <Link
           href="/pricing"
-          className="shrink-0 rounded-pill bg-ink px-5 py-[10px] text-[13.5px] font-semibold text-bone-white no-underline"
+          className="shrink-0 rounded-pill bg-ink px-5 py-[10px] text-[13.5px] font-semibold text-bone-white no-underline max-md:px-4 max-md:py-[9px] max-md:text-[12.5px]"
         >
           {m.cta}
         </Link>

@@ -299,13 +299,13 @@ export default async function Home() {
 
       <main>
         {/* HERO */}
-        <section className="mx-auto max-w-[1180px] px-10 pb-[72px] pt-16">
+        <section className="mx-auto max-w-[1180px] px-[22px] md:px-10 pb-[72px] pt-16">
           <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
             <div className="motion-rise">
               <div className="mb-[22px] font-mono text-xs tracking-[0.14em] text-forest">
                 {h.hero.eyebrow}
               </div>
-              <h1 className="mb-[22px] mt-0 font-serif text-[clamp(40px,5.4vw,62px)] font-normal leading-[1.02] tracking-[-0.015em]">
+              <h1 className="mb-[22px] mt-0 font-serif text-[clamp(40px,5.4vw,62px)] max-md:text-[clamp(34px,9.5vw,42px)] font-normal leading-[1.02] tracking-[-0.015em]">
                 {h.hero.title}
               </h1>
               <p className="mb-[34px] mt-0 max-w-[46ch] text-[19px] leading-[1.55] text-muted">
@@ -343,7 +343,7 @@ export default async function Home() {
 
         {/* LOGO STRIP / TRUST */}
         <section className="border-y border-hairline-soft bg-surface">
-          <div className="mx-auto flex max-w-[1180px] flex-wrap items-center justify-between gap-5 px-10 py-[26px]">
+          <div className="mx-auto flex max-w-[1180px] flex-wrap items-center justify-between gap-5 px-[22px] md:px-10 py-[26px]">
             <span className="font-mono text-[11px] tracking-[0.12em] text-caption">
               {h.logoStrip.builtFor}
             </span>
@@ -365,7 +365,7 @@ export default async function Home() {
         </section>
 
         {/* HOW IT WORKS */}
-        <section className="bg-surface px-10 py-[84px]">
+        <section className="bg-surface px-[22px] md:px-10 py-[84px]">
           <div className="mx-auto max-w-[1180px]">
             <div data-reveal="" className="mb-[54px] text-center">
               <div className="mb-[14px] font-mono text-xs tracking-[0.14em] text-forest">
@@ -424,7 +424,7 @@ export default async function Home() {
         </section>
 
         {/* DIFFERENTIATORS */}
-        <section className="bg-ink px-10 py-[84px] text-bone-white">
+        <section className="bg-ink px-[22px] md:px-10 py-[84px] text-bone-white">
           <div className="mx-auto max-w-[1180px]">
             <div data-reveal="" className="mb-[52px] max-w-[62ch]">
               <div className="mb-[14px] font-mono text-xs tracking-[0.14em] text-vitality-light">
@@ -519,7 +519,7 @@ export default async function Home() {
         </section>
 
         {/* PRICING TEASER */}
-        <section className="px-10 py-[84px]">
+        <section className="px-[22px] md:px-10 py-[84px]">
           <div className="mx-auto max-w-[1180px]">
             <div data-reveal="" className="mb-[52px] text-center">
               <div className="mb-[14px] font-mono text-xs tracking-[0.14em] text-forest">
@@ -607,7 +607,7 @@ export default async function Home() {
         </section>
 
         {/* CREDIBILITY / TRUST */}
-        <section className="bg-surface px-10 py-[84px]">
+        <section className="bg-surface px-[22px] md:px-10 py-[84px]">
           <div className="mx-auto max-w-[1180px]">
             <div className="mb-[52px] max-w-[62ch]">
               <div className="mb-[14px] font-mono text-xs tracking-[0.14em] text-forest">
@@ -656,7 +656,7 @@ export default async function Home() {
         </section>
 
         {/* FOUNDER + CTA */}
-        <section className="px-10 pb-[90px] pt-5">
+        <section className="px-[22px] md:px-10 pb-[90px] pt-5">
           <div className="mx-auto mb-16 max-w-[760px] text-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img

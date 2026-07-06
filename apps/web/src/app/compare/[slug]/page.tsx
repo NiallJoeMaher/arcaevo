@@ -83,7 +83,7 @@ export default async function VersusPage({ params }: Props) {
         {/* BREADCRUMB */}
         <nav
           aria-label="Breadcrumb"
-          className="mx-auto max-w-[900px] px-10 pt-6 font-mono text-[11px] tracking-[0.06em] text-caption"
+          className="mx-auto max-w-[900px] px-[22px] md:px-10 pt-6 font-mono text-[11px] tracking-[0.06em] text-caption"
         >
           <Link href="/" className="text-caption no-underline">
             HOME
@@ -96,8 +96,8 @@ export default async function VersusPage({ params }: Props) {
         </nav>
 
         {/* HERO / DIRECT ANSWER (AEO) */}
-        <section className="mx-auto max-w-[900px] px-10 pb-8 pt-7">
-          <h1 className="mb-[22px] mt-0 font-serif text-[clamp(34px,4.6vw,52px)] font-normal leading-[1.05] tracking-[-0.015em]">
+        <section className="mx-auto max-w-[900px] px-[22px] md:px-10 pb-8 pt-7">
+          <h1 className="mb-[22px] mt-0 font-serif text-[clamp(34px,4.6vw,52px)] max-md:text-[clamp(34px,9.5vw,42px)] font-normal leading-[1.05] tracking-[-0.015em]">
             Arcaevo vs {page.name}: which should you choose?
           </h1>
           <div className="rounded-card-sm border border-hairline border-l-[3px] border-l-forest bg-surface px-6 py-[22px]">
@@ -111,7 +111,7 @@ export default async function VersusPage({ params }: Props) {
         </section>
 
         {/* AT A GLANCE TABLE */}
-        <section className="mx-auto max-w-[1000px] px-10 pb-2 pt-4">
+        <section className="mx-auto max-w-[1000px] px-[22px] md:px-10 pb-2 pt-4">
           <h2
             data-reveal=""
             className="mb-5 mt-0 font-serif text-[30px] font-normal tracking-[-0.01em]"
@@ -120,9 +120,9 @@ export default async function VersusPage({ params }: Props) {
           </h2>
           <div
             data-reveal=""
-            className="overflow-hidden rounded-card border border-hairline-soft bg-surface"
+            className="overflow-x-auto rounded-card border border-hairline-soft bg-surface [-webkit-overflow-scrolling:touch]"
           >
-            <table className="w-full table-fixed border-collapse text-left">
+            <table className="w-full min-w-[600px] table-fixed border-collapse text-left">
               <colgroup>
                 <col className="w-[38%]" />
                 <col className="w-[31%]" />
@@ -173,7 +173,7 @@ export default async function VersusPage({ params }: Props) {
         </section>
 
         {/* WHERE EACH WINS */}
-        <section className="mx-auto max-w-[1000px] px-10 py-11">
+        <section className="mx-auto max-w-[1000px] px-[22px] md:px-10 py-11">
           <div className="grid gap-[18px] md:grid-cols-2">
             <div className="rounded-card bg-ink p-7 text-bone-white">
               <div className="mb-[14px] font-mono text-[11px] tracking-[0.1em] text-vitality-light">
@@ -214,7 +214,7 @@ export default async function VersusPage({ params }: Props) {
         </section>
 
         {/* NARRATIVE */}
-        <section className="mx-auto max-w-[820px] px-10 pb-6 pt-2">
+        <section className="mx-auto max-w-[820px] px-[22px] md:px-10 pb-6 pt-2">
           <h2
             data-reveal=""
             className="mb-4 mt-0 font-serif text-[30px] font-normal tracking-[-0.01em]"
@@ -232,7 +232,7 @@ export default async function VersusPage({ params }: Props) {
         </section>
 
         {/* FAQ (AEO) */}
-        <section className="mx-auto max-w-[820px] px-10 pb-10 pt-6">
+        <section className="mx-auto max-w-[820px] px-[22px] md:px-10 pb-10 pt-6">
           <h2
             data-reveal=""
             className="mb-[18px] mt-0 font-serif text-[30px] font-normal tracking-[-0.01em]"
@@ -255,7 +255,7 @@ export default async function VersusPage({ params }: Props) {
         </section>
 
         {/* CTA + OTHER COMPARISONS */}
-        <section className="mx-auto max-w-[1000px] px-10 pb-10 pt-4">
+        <section className="mx-auto max-w-[1000px] px-[22px] md:px-10 pb-10 pt-4">
           <div className="mb-10 rounded-card-lg bg-forest px-10 py-11 text-center text-white">
             <h3 className="mb-[10px] mt-0 font-serif text-[30px] font-normal">
               See the difference in your own numbers.

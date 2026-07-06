@@ -105,7 +105,10 @@ export async function resolveNarrations(
 
   const modelId = narrationModelId();
   // Defense in depth: a flagged verdict never reaches the model even if a
-  // future caller forgets the isNarrationEligible gate.
+  // future caller forgets the isNarrationEligible gate. This re-drop covers
+  // only "worsened" — the primary route gate also drops harmful out-of-band
+  // values, but inputs carry no baseline band, so this layer can't re-check
+  // bands by design.
   const safe = inputs.map((i) => (i && i.verdict !== "worsened" ? i : null));
   const keys = safe.map((i) => (i ? narrationCacheKey(i, modelId) : null));
 

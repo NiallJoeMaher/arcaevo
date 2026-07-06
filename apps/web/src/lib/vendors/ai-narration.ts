@@ -25,7 +25,12 @@ import type { RcvVerdict, RuleDirection } from "@/lib/models";
 // Interface
 // ---------------------------------------------------------------------------
 
-/** The rule-generated facts of one insight — nothing member-identifying. */
+/** The rule-generated facts of one insight — nothing member-identifying.
+ *
+ * NOTE: the PII-free-BY-TYPE guarantee holds only because the insights route
+ * narrates clinicianReviewed readings exclusively, whose `code`/`unit`/`name`
+ * come from the shared biomarker_rules table. Self-reported readings carry
+ * unconstrained member-typed `code`/`unit` strings and must NEVER flow here. */
 export interface NarrationInput {
   /** BiomarkerRule code, e.g. "apob". */
   code: string;

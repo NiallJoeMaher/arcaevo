@@ -30,6 +30,7 @@ export default function SiteNav({
       >
         <Link
           href="/"
+          aria-label={m.brand}
           className="flex min-h-11 shrink-0 items-center gap-[11px] text-ink no-underline"
         >
           <BrandMark width={22} className="shrink-0 text-forest" />

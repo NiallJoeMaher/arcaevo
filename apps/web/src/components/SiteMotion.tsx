@@ -5,7 +5,8 @@ import { useEffect } from "react";
 /**
  * The site motion layer — a 1:1 port of the handoff's site-motion.js
  * (design_handoff_motion_haptics/designs/site-motion.js). Scroll-reveal for
- * [data-reveal] (optional [data-reveal-delay] ms stagger, ≤180ms) and SVG
+ * [data-reveal] (optional [data-reveal-delay] ms stagger; markers keep it
+ * ≤180ms by convention — not enforced here) and SVG
  * line draw for [data-draw]. Elements already visible on first paint are left
  * completely static so the page never flashes; under prefers-reduced-motion
  * the whole layer no-ops. Hero load animations are NOT here — they're CSS
@@ -27,7 +28,7 @@ export default function SiteMotion() {
       (entries) => {
         for (const entry of entries) {
           if (!entry.isIntersecting) continue;
-          const el = entry.target as HTMLElement;
+          const el = entry.target as HTMLElement | SVGElement;
           io.unobserve(el);
           pending.delete(el);
           const delay = parseFloat(el.dataset.revealDelay ?? "0") || 0;
@@ -81,9 +82,7 @@ export default function SiteMotion() {
       // nodes added directly with the marker on themselves).
       if (root instanceof Element) {
         if (root.hasAttribute("data-reveal")) prepReveal(root as HTMLElement);
-        if (root.hasAttribute("data-draw")) {
-          prepDraw(root as unknown as SVGElement);
-        }
+        if (root.hasAttribute("data-draw")) prepDraw(root as SVGElement);
       }
     };
 

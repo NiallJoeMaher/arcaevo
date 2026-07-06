@@ -4,7 +4,7 @@
  *
  * Deterministic rules decide the verdicts (lib/rcv.ts); these strings are
  * fixed templates. AI-NARRATION SLOT (now WIRED — src/lib/ai-narration.ts):
- * when AI_NARRATION_ENABLED=true + AWS creds exist, Claude Haiku on Bedrock
+ * when the ARCAEVO_AWS_* creds exist (default-on, no flag), Claude Haiku on Bedrock
  * rewrites the `text` of an ELIGIBLE insight in warmer language — but it
  * ONLY narrates the deterministic verdict, never changes it. The rewrite
  * ships as an ADDITIVE `narration?: string` next to the untouched template

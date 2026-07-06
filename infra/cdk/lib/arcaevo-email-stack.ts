@@ -91,6 +91,11 @@ export class ArcaevoEmailStack extends cdk.Stack {
     });
 
     // --- IAM: least-privilege SMTP sender ------------------------------------
+    // NAMING NOTE: "SmtpUser"/arcaevo-ses-smtp started as the SES-only sender,
+    // but its access keys are the app-wide ARCAEVO_AWS_* credentials in the web
+    // env, and the user now also carries the Bedrock narration grant below.
+    // Do NOT rename the construct or userName — CloudFormation would REPLACE
+    // the IAM user, rotating the access keys and breaking the deployed env.
     const smtpUser = new iam.User(this, "SmtpUser", {
       userName: "arcaevo-ses-smtp",
     });
@@ -108,6 +113,30 @@ export class ArcaevoEmailStack extends cdk.Stack {
           // address at the verified domain).
           StringLike: { "ses:FromAddress": fromAddressCondition },
         },
+      }),
+    );
+
+    // --- Bedrock: AI-narration InvokeModel (apps/web, docs/MOCKED_APIS.md §20)
+    // The web app's ARCAEVO_AWS_* creds (this user's access key) also sign
+    // Bedrock InvokeModel calls for insight narration. Invoking via a
+    // cross-region INFERENCE PROFILE authorizes against BOTH the profile ARN
+    // AND the underlying foundation-model ARNs it routes to, so the statement
+    // needs both resources. Live-verified 2026-07-06: the EU profile id works
+    // in eu-west-1; the bare foundation-model id is REJECTED for on-demand
+    // invocation ("Retry with an inference profile"), so the profile is the
+    // only invocation path — but the model ARNs must still be allowed.
+    // Foundation-model ARNs are region-scoped with an EMPTY account field;
+    // the region wildcard tolerates AWS changing the EU routing set while
+    // staying least-privilege on the single MODEL id.
+    smtpUser.addToPolicy(
+      new iam.PolicyStatement({
+        sid: "InvokeClaudeHaikuForNarration",
+        effect: iam.Effect.ALLOW,
+        actions: ["bedrock:InvokeModel"],
+        resources: [
+          `arn:aws:bedrock:eu-west-1:${this.account}:inference-profile/eu.anthropic.claude-haiku-4-5-20251001-v1:0`,
+          "arn:aws:bedrock:*::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0",
+        ],
       }),
     );
 

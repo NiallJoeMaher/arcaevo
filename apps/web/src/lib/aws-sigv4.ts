@@ -108,6 +108,14 @@ export interface SignAwsRequestInput {
   body: string;
   accessKeyId: string;
   secretAccessKey: string;
+  /**
+   * STS temporary-credential session token. When present it is sent as
+   * `x-amz-security-token` AND participates in the signature (canonical
+   * headers + signed-headers list) — the header-inclusion variant of the
+   * spec, which Bedrock accepts (live-verified 2026-07-06). Long-lived IAM
+   * keys omit it; the output is then byte-identical to before.
+   */
+  sessionToken?: string;
   /** Basic ISO8601, e.g. 20150830T123600Z. Defaults to now. */
   amzDate?: string;
 }
@@ -137,6 +145,11 @@ export function signAwsRequestV4(
   const headers: Record<string, string> = {
     host: input.host,
     "x-amz-date": amzDate,
+    // STS session token (temp creds): signed like any other header AND sent
+    // on the wire. Absent for long-lived keys — nothing changes then.
+    ...(input.sessionToken
+      ? { "x-amz-security-token": input.sessionToken }
+      : {}),
     ...(input.headers ?? {}),
   };
 

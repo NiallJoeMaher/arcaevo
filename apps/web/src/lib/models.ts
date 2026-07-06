@@ -480,6 +480,9 @@ export const WaitlistEntrySchema = z.object({
   /** Position within the county queue (1-based, assigned at join). */
   position: z.number().int(),
   createdAt: z.date(),
+  /** Optional, from the pricing early-access form — pre-Task-7 rows have neither. */
+  name: z.string().optional(),
+  planInterest: z.enum(["essential", "performance", "either"]).optional(),
 });
 export type WaitlistEntry = z.infer<typeof WaitlistEntrySchema>;
 
@@ -914,6 +917,9 @@ export const EligibilityCheckInput = z.object({
 export const WaitlistJoinInput = z.object({
   email: z.string().email(),
   eircode: z.string().min(1),
+  /** Optional early-access fields (pricing form) — old {email, eircode} shape unchanged. */
+  name: z.string().trim().min(1).max(200).optional(),
+  planInterest: z.enum(["essential", "performance", "either"]).optional(),
 });
 
 export const CheckoutInput = z.object({

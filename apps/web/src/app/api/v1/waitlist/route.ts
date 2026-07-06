@@ -1,8 +1,14 @@
 /**
  * /api/v1/waitlist — the early-access list (design §06 W6, §14 X5).
  *
- *  POST — join: { email, eircode } → county queue position; sends E10.
- *         Idempotent per email: joining again returns the existing position.
+ *  POST — join: { email, eircode, name?, planInterest? } → county queue
+ *         position; sends E10. Idempotent per email: joining again returns
+ *         the existing position.
+ *         Same promise as the in-app waitlist: one email when the area opens,
+ *         founding-member pricing honoured.
+ *         Eligible routing keys 409 (already_eligible → checkout) ONLY while
+ *         BLOOD_TIERS_ENABLED is on; while the flag is off checkout is closed,
+ *         so eligible areas join the early-access list like everyone else.
  *  GET  — position: authenticated member (uses their email) or ?email=…
  *         (position + county only — nothing sensitive).
  */
@@ -12,6 +18,7 @@ import { parseJsonBody, siteUrl } from "@/lib/api";
 import { collections } from "@/lib/db";
 import { checkEligibility } from "@/lib/eligibility";
 import { sendEmail } from "@/lib/emails";
+import { bloodTiersEnabled } from "@/lib/env";
 import { newId } from "@/lib/ids";
 import { WaitlistJoinInput } from "@/lib/models";
 
@@ -31,7 +38,10 @@ export async function POST(req: Request) {
       { status: 422 }
     );
   }
-  if (result.status === "eligible") {
+  // "Head to checkout" is only a real answer while checkout is open. With
+  // blood tiers flagged off (early-access gate), eligible areas fall through
+  // and join the list too — county comes from checkEligibility as usual.
+  if (result.status === "eligible" && bloodTiersEnabled()) {
     return Response.json(
       {
         error: "already_eligible",
@@ -67,6 +77,11 @@ export async function POST(req: Request) {
     county,
     position,
     createdAt: new Date(),
+    // Early-access extras (pricing form) — pass-through, both optional.
+    ...(parsed.data.name ? { name: parsed.data.name } : {}),
+    ...(parsed.data.planInterest
+      ? { planInterest: parsed.data.planInterest }
+      : {}),
   };
   await waitlist.insertOne(entry);
 

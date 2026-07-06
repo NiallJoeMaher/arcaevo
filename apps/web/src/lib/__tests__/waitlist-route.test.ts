@@ -6,8 +6,13 @@
  *    already on the list, so a third party can't probe an address.
  *  - GET /waitlist is member-scoped only: the `?email=` bypass that confirmed
  *    an arbitrary address is gone (401 without a member session).
+ *
+ * Plus the early-access extensions (motion handoff Task 7):
+ *  - name/planInterest pass through onto the stored entry.
+ *  - eligible routing keys 409 only while BLOOD_TIERS_ENABLED is on; while
+ *    the flag is off they join the list like everyone else.
  */
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 type Doc = { _id: string; [k: string]: unknown };
 
@@ -46,12 +51,11 @@ vi.mock("@/lib/db", () => ({
   },
 }));
 vi.mock("@/lib/emails", () => ({ sendEmail: (...a: unknown[]) => sendEmail(...a) }));
+const eligibility = vi.hoisted(() => ({
+  result: { status: "ineligible", routingKey: "T12", county: "Cork" },
+}));
 vi.mock("@/lib/eligibility", () => ({
-  checkEligibility: async () => ({
-    status: "ineligible",
-    routingKey: "T12",
-    county: "Cork",
-  }),
+  checkEligibility: async () => ({ ...eligibility.result }),
 }));
 
 import { GET, POST } from "@/app/api/v1/waitlist/route";
@@ -59,13 +63,18 @@ import { GET, POST } from "@/app/api/v1/waitlist/route";
 beforeEach(() => {
   for (const k of Object.keys(store)) delete store[k];
   sendEmail.mockClear();
+  eligibility.result = { status: "ineligible", routingKey: "T12", county: "Cork" };
 });
 
-function joinReq(email: string) {
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
+
+function joinReq(email: string, extra: Record<string, unknown> = {}) {
   return new Request("http://localhost/api/v1/waitlist", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, eircode: "T12AB34" }),
+    body: JSON.stringify({ email, eircode: "T12AB34", ...extra }),
   });
 }
 
@@ -86,6 +95,41 @@ describe("POST /api/v1/waitlist — non-revealing (W-2)", () => {
     expect("alreadyJoined" in secondBody).toBe(false);
     // No second confirmation email (no spam) — but that's not response-visible.
     expect(sendEmail).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("POST /api/v1/waitlist — early-access extensions (Task 7)", () => {
+  it("persists name + planInterest onto the stored entry (pass-through)", async () => {
+    const res = await POST(
+      joinReq("Aoife.Byrne@arcaevo.test", {
+        name: "Aoife Byrne",
+        planInterest: "either",
+      })
+    );
+    expect(res.status).toBe(201);
+    const doc = col("waitlist").docs[0];
+    expect(doc.email).toBe("aoife.byrne@arcaevo.test"); // still lowercased
+    expect(doc.name).toBe("Aoife Byrne");
+    expect(doc.planInterest).toBe("either");
+  });
+
+  it("joins an ELIGIBLE routing key while BLOOD_TIERS_ENABLED is off (no dead-end 409)", async () => {
+    // vitest does not set BLOOD_TIERS_ENABLED, so the flag is off here.
+    eligibility.result = { status: "eligible", routingKey: "D08", county: "Dublin" };
+    const res = await POST(joinReq("dub@arcaevo.test"));
+    expect(res.status).toBe(201);
+    expect(await res.json()).toEqual({ ok: true, position: 1, county: "Dublin" });
+    expect(sendEmail).toHaveBeenCalledTimes(1); // E10 still sent on first join
+  });
+
+  it("keeps the 409 already_eligible redirect while BLOOD_TIERS_ENABLED is on", async () => {
+    vi.stubEnv("BLOOD_TIERS_ENABLED", "true");
+    eligibility.result = { status: "eligible", routingKey: "D08", county: "Dublin" };
+    const res = await POST(joinReq("dub@arcaevo.test"));
+    expect(res.status).toBe(409);
+    const body = await res.json();
+    expect(body.error).toBe("already_eligible");
+    expect(sendEmail).not.toHaveBeenCalled();
   });
 });
 

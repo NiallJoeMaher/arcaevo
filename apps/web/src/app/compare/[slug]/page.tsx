@@ -112,10 +112,16 @@ export default async function VersusPage({ params }: Props) {
 
         {/* AT A GLANCE TABLE */}
         <section className="mx-auto max-w-[1000px] px-10 pb-2 pt-4">
-          <h2 className="mb-5 mt-0 font-serif text-[30px] font-normal tracking-[-0.01em]">
+          <h2
+            data-reveal=""
+            className="mb-5 mt-0 font-serif text-[30px] font-normal tracking-[-0.01em]"
+          >
             At a glance
           </h2>
-          <div className="overflow-hidden rounded-card border border-hairline-soft bg-surface">
+          <div
+            data-reveal=""
+            className="overflow-hidden rounded-card border border-hairline-soft bg-surface"
+          >
             <table className="w-full table-fixed border-collapse text-left">
               <colgroup>
                 <col className="w-[38%]" />
@@ -184,7 +190,12 @@ export default async function VersusPage({ params }: Props) {
                 ))}
               </div>
             </div>
-            <div className="rounded-card border border-hairline-soft bg-surface p-7">
+            {/* Versus.dc.html reveals only this light card — the dark
+                "where Arcaevo wins" card stays static. */}
+            <div
+              data-reveal=""
+              className="rounded-card border border-hairline-soft bg-surface p-7"
+            >
               <div className="mb-[14px] font-mono text-[11px] tracking-[0.1em] text-[#A66A1F]">
                 WHERE {page.name.toUpperCase()} WINS
               </div>
@@ -204,7 +215,10 @@ export default async function VersusPage({ params }: Props) {
 
         {/* NARRATIVE */}
         <section className="mx-auto max-w-[820px] px-10 pb-6 pt-2">
-          <h2 className="mb-4 mt-0 font-serif text-[30px] font-normal tracking-[-0.01em]">
+          <h2
+            data-reveal=""
+            className="mb-4 mt-0 font-serif text-[30px] font-normal tracking-[-0.01em]"
+          >
             The honest take
           </h2>
           {page.paras.map((p) => (
@@ -219,7 +233,10 @@ export default async function VersusPage({ params }: Props) {
 
         {/* FAQ (AEO) */}
         <section className="mx-auto max-w-[820px] px-10 pb-10 pt-6">
-          <h2 className="mb-[18px] mt-0 font-serif text-[30px] font-normal tracking-[-0.01em]">
+          <h2
+            data-reveal=""
+            className="mb-[18px] mt-0 font-serif text-[30px] font-normal tracking-[-0.01em]"
+          >
             People also ask
           </h2>
           <div className="border-t border-hairline-mid">

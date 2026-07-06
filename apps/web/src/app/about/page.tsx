@@ -77,6 +77,7 @@ export default function AboutPage() {
             {VALUES.map((value) => (
               <div
                 key={value.t}
+                data-reveal=""
                 className="rounded-[18px] border border-hairline-soft bg-surface p-[26px]"
               >
                 <h2 className="mb-[10px] mt-0 text-lg font-bold tracking-[-0.01em]">
@@ -108,7 +109,10 @@ export default function AboutPage() {
 
         {/* TEAM */}
         <section className="mx-auto max-w-[1000px] px-10 py-[72px]">
-          <h2 className="mb-8 mt-0 font-serif text-[34px] font-normal tracking-[-0.01em]">
+          <h2
+            data-reveal=""
+            className="mb-8 mt-0 font-serif text-[34px] font-normal tracking-[-0.01em]"
+          >
             The team
           </h2>
           <div className="grid gap-[22px] md:grid-cols-3">

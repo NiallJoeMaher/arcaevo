@@ -20,7 +20,10 @@ export default function ContactForm() {
   const [sent, setSent] = useState(false);
 
   return (
-    <div className="rounded-card-lg border border-hairline-soft bg-surface p-8">
+    <div
+      data-reveal=""
+      className="rounded-card-lg border border-hairline-soft bg-surface p-8"
+    >
       <h2 className="mb-5 mt-0 text-xl font-bold">Send us a message</h2>
       <form
         className="flex flex-col gap-4"

@@ -82,10 +82,12 @@ a:hover {
 .motion-rise { animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
 .motion-rise-delayed { animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.12s backwards; }
 .motion-ring { animation: ring314 1.3s cubic-bezier(0.33, 1, 0.68, 1) 0.45s backwards; }
+/* App.dc.html's hero ring starts 50ms earlier than Home's (0.4s vs 0.45s). */
+.motion-ring-app { animation: ring314 1.3s cubic-bezier(0.33, 1, 0.68, 1) 0.4s backwards; }
 .motion-trace { animation: draw100 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.5s backwards; }
 
 @media (prefers-reduced-motion: reduce) {
-  .motion-rise, .motion-rise-delayed, .motion-ring, .motion-trace {
+  .motion-rise, .motion-rise-delayed, .motion-ring, .motion-ring-app, .motion-trace {
     animation: none !important;
   }
 }

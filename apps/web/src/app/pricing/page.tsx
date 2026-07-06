@@ -151,7 +151,10 @@ export default function PricingPage() {
         {/* PLANS */}
         <section className="mx-auto max-w-[1100px] px-10 pb-4">
           <div className="grid items-stretch gap-[22px] md:grid-cols-3">
-            <div className="flex flex-col rounded-card-lg border border-hairline bg-surface p-8">
+            <div
+              data-reveal=""
+              className="flex flex-col rounded-card-lg border border-hairline bg-surface p-8"
+            >
               <div className="mb-[6px] text-[19px] font-bold">Fusion</div>
               <div className="mb-[22px] text-[13px] text-caption">
                 Your watch &amp; your own bloodwork
@@ -184,7 +187,10 @@ export default function PricingPage() {
               </div>
             </div>
 
-            <div className="relative flex flex-col rounded-card-lg bg-ink p-8 text-bone-white shadow-card-dark">
+            <div
+              data-reveal=""
+              className="relative flex flex-col rounded-card-lg bg-ink p-8 text-bone-white shadow-card-dark"
+            >
               <div className="absolute right-6 top-6 rounded-pill bg-vitality px-[9px] py-1 font-mono text-[10px] tracking-[0.06em] text-[#04130D]">
                 MOST POPULAR
               </div>
@@ -242,7 +248,10 @@ export default function PricingPage() {
               )}
             </div>
 
-            <div className="flex flex-col rounded-card-lg border border-hairline bg-surface p-8">
+            <div
+              data-reveal=""
+              className="flex flex-col rounded-card-lg border border-hairline bg-surface p-8"
+            >
               <div className="mb-[6px] text-[19px] font-bold">Performance</div>
               <div className="mb-[22px] text-[13px] text-caption">
                 The deep venous panel, nurse included
@@ -304,13 +313,16 @@ export default function PricingPage() {
 
         {/* CADENCE UPGRADE */}
         <section className="mx-auto max-w-[1100px] px-10 pb-2 pt-12">
-          <div className="rounded-card-lg bg-ink p-10 text-bone-white">
+          <div data-reveal="" className="rounded-card-lg bg-ink p-10 text-bone-white">
             <div className="grid items-center gap-10 md:grid-cols-[1fr_1.3fr]">
               <div>
                 <div className="mb-[14px] font-mono text-[11px] tracking-[0.14em] text-vitality-light">
                   TEST CADENCE
                 </div>
-                <h2 className="mb-3 mt-0 font-serif text-[34px] font-normal tracking-[-0.01em]">
+                <h2
+                  data-reveal=""
+                  className="mb-3 mt-0 font-serif text-[34px] font-normal tracking-[-0.01em]"
+                >
                   Twice a year is the rhythm. Quarterly is the upgrade.
                 </h2>
                 <p className="m-0 text-[15px] leading-[1.6] text-muted-dark">
@@ -372,10 +384,16 @@ export default function PricingPage() {
 
         {/* COMPARISON TABLE */}
         <section className="mx-auto max-w-[1100px] px-10 py-12">
-          <h2 className="mb-7 mt-0 text-center font-serif text-[32px] font-normal tracking-[-0.01em]">
+          <h2
+            data-reveal=""
+            className="mb-7 mt-0 text-center font-serif text-[32px] font-normal tracking-[-0.01em]"
+          >
             Compare the plans
           </h2>
-          <div className="overflow-hidden rounded-card border border-hairline-soft bg-surface">
+          <div
+            data-reveal=""
+            className="overflow-hidden rounded-card border border-hairline-soft bg-surface"
+          >
             <table className="w-full table-fixed border-collapse">
               <colgroup>
                 <col className="w-[40%]" />
@@ -442,7 +460,10 @@ export default function PricingPage() {
         {/* MARKET CONTEXT */}
         <section className="mx-auto max-w-[1100px] px-10 pb-12 pt-2">
           <div className="mb-6 text-center">
-            <h2 className="mb-2 mt-0 font-serif text-[30px] font-normal tracking-[-0.01em]">
+            <h2
+              data-reveal=""
+              className="mb-2 mt-0 font-serif text-[30px] font-normal tracking-[-0.01em]"
+            >
               Where €329 sits in the market
             </h2>
             <p className="m-0 text-[15px] text-muted">
@@ -454,6 +475,7 @@ export default function PricingPage() {
             {MARKET_CARDS.map((card) => (
               <div
                 key={card.name}
+                data-reveal=""
                 className="rounded-card-sm border border-hairline-soft bg-surface px-[18px] py-4"
               >
                 <div className="flex items-baseline justify-between gap-[10px]">
@@ -480,7 +502,10 @@ export default function PricingPage() {
 
         {/* FAQ */}
         <section className="mx-auto max-w-[760px] px-10 pb-20 pt-6">
-          <h2 className="mb-5 mt-0 text-center font-serif text-[30px] font-normal">
+          <h2
+            data-reveal=""
+            className="mb-5 mt-0 text-center font-serif text-[30px] font-normal"
+          >
             Pricing questions
           </h2>
           <div className="border-t border-hairline-mid">

@@ -34,6 +34,7 @@ export default function BlogPage() {
         <section className="mx-auto max-w-[1000px] px-10 pb-3 pt-6">
           <Link
             href={`/blog/${blogFeatured.slug}`}
+            data-reveal=""
             className="grid overflow-hidden rounded-card-xl bg-ink text-inherit no-underline md:grid-cols-[1.1fr_0.9fr] md:gap-8"
           >
             <div className="p-10">
@@ -82,6 +83,7 @@ export default function BlogPage() {
               <Link
                 key={p.slug}
                 href={`/blog/${p.slug}`}
+                data-reveal=""
                 className="flex flex-col overflow-hidden rounded-[18px] border border-hairline-soft bg-surface text-inherit no-underline"
               >
                 <div

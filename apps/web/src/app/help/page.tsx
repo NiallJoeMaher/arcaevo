@@ -75,7 +75,10 @@ export default function HelpPage() {
         <section className="mx-auto max-w-[820px] px-10 pb-[60px] pt-9">
           <HelpAccordion groups={helpGroups} />
 
-          <div className="mt-5 rounded-card-lg bg-forest px-10 py-11 text-center text-white">
+          <div
+            data-reveal=""
+            className="mt-5 rounded-card-lg bg-forest px-10 py-11 text-center text-white"
+          >
             <h3 className="mb-[10px] mt-0 font-serif text-[28px] font-normal">
               Still stuck?
             </h3>

@@ -39,7 +39,10 @@ function ArticleBlockView({ block }: { block: ArticleBlock }) {
   switch (block.type) {
     case "heading":
       return (
-        <h2 className="mb-[14px] mt-9 font-serif text-[28px] font-normal tracking-[-0.01em]">
+        <h2
+          data-reveal=""
+          className="mb-[14px] mt-9 font-serif text-[28px] font-normal tracking-[-0.01em]"
+        >
           {block.text}
         </h2>
       );
@@ -198,7 +201,10 @@ export default async function ArticlePage({ params }: Props) {
           ))}
 
           {/* KEY TAKEAWAYS */}
-          <div className="my-8 rounded-[18px] border border-hairline-soft bg-surface p-[26px]">
+          <div
+            data-reveal=""
+            className="my-8 rounded-[18px] border border-hairline-soft bg-surface p-[26px]"
+          >
             <div className="mb-[14px] font-mono text-[11px] tracking-[0.1em] text-forest">
               KEY TAKEAWAYS
             </div>

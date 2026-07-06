@@ -33,7 +33,10 @@ export default function ComparePage() {
 
         {/* ARCAEVO SUMMARY ROW */}
         <section className="mx-auto max-w-[1000px] px-10 pb-2 pt-6">
-          <div className="grid gap-5 rounded-card bg-ink px-[30px] py-[26px] text-bone-white md:grid-cols-3">
+          <div
+            data-reveal=""
+            className="grid gap-5 rounded-card bg-ink px-[30px] py-[26px] text-bone-white md:grid-cols-3"
+          >
             {compareIndexMeta.summary.map((card) => (
               <div key={card.kicker}>
                 <div className="mb-2 font-mono text-[10px] tracking-[0.1em] text-vitality-light">
@@ -55,6 +58,7 @@ export default function ComparePage() {
               <Link
                 key={c.slug}
                 href={`/compare/${c.slug}`}
+                data-reveal=""
                 className="flex flex-col gap-3 rounded-[18px] border border-hairline-soft bg-surface p-6 text-inherit no-underline"
               >
                 <div className="flex items-center justify-between">

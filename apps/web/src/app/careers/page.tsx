@@ -86,6 +86,7 @@ export default function CareersPage() {
             {PERKS.map((perk) => (
               <div
                 key={perk.t}
+                data-reveal=""
                 className="rounded-card-sm border border-hairline-soft bg-surface p-[18px]"
               >
                 <div className="mb-1 text-[14.5px] font-semibold">
@@ -101,7 +102,10 @@ export default function CareersPage() {
 
         {/* ROLES */}
         <section className="mx-auto max-w-[1000px] px-10 pb-10 pt-8">
-          <h2 className="mb-6 mt-0 font-serif text-[32px] font-normal tracking-[-0.01em]">
+          <h2
+            data-reveal=""
+            className="mb-6 mt-0 font-serif text-[32px] font-normal tracking-[-0.01em]"
+          >
             Open roles
           </h2>
           <div className="flex flex-col gap-3">

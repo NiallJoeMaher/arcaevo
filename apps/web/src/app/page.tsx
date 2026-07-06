@@ -19,7 +19,7 @@ function HeroScoreCard() {
   return (
     <div
       aria-hidden="true"
-      className="rounded-card-xl bg-ink p-[26px] text-bone-white shadow-hero-card"
+      className="motion-rise-delayed rounded-card-xl bg-ink p-[26px] text-bone-white shadow-hero-card"
     >
       <div className="mb-[22px] flex items-center gap-[18px]">
         {/* Handoff's -84px offset undershot the ring; overlay centers for real. */}
@@ -34,6 +34,7 @@ function HeroScoreCard() {
               strokeWidth="10"
             />
             <circle
+              className="motion-ring"
               cx="60"
               cy="60"
               r="50"
@@ -91,6 +92,7 @@ function FusionChart() {
     >
       <rect x="0" y="26" width="240" height="22" rx="4" fill="rgba(52,160,124,0.16)" />
       <polyline
+        data-draw=""
         points="6,52 66,46 126,34 186,24 232,18"
         fill="none"
         stroke="#34A07C"
@@ -98,6 +100,7 @@ function FusionChart() {
         strokeLinecap="round"
       />
       <polyline
+        data-draw=""
         points="18,40 90,34 162,52 224,48"
         fill="none"
         stroke="#F4F1EA"
@@ -298,7 +301,7 @@ export default async function Home() {
         {/* HERO */}
         <section className="mx-auto max-w-[1180px] px-10 pb-[72px] pt-16">
           <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
-            <div>
+            <div className="motion-rise">
               <div className="mb-[22px] font-mono text-xs tracking-[0.14em] text-forest">
                 {h.hero.eyebrow}
               </div>
@@ -364,7 +367,7 @@ export default async function Home() {
         {/* HOW IT WORKS */}
         <section className="bg-surface px-10 py-[84px]">
           <div className="mx-auto max-w-[1180px]">
-            <div className="mb-[54px] text-center">
+            <div data-reveal="" className="mb-[54px] text-center">
               <div className="mb-[14px] font-mono text-xs tracking-[0.14em] text-forest">
                 {h.howItWorks.eyebrow}
               </div>
@@ -373,7 +376,7 @@ export default async function Home() {
               </h2>
             </div>
             <div className="grid gap-7 md:grid-cols-3">
-              <div>
+              <div data-reveal="">
                 <div className="mb-4 font-mono text-[13px] text-forest">01</div>
                 <h3 className="mb-[10px] mt-0 text-[21px] font-bold">
                   {h.howItWorks.step1Title}
@@ -390,7 +393,7 @@ export default async function Home() {
                   </span>
                 </div>
               </div>
-              <div>
+              <div data-reveal="" data-reveal-delay="90">
                 <div className="mb-4 font-mono text-[13px] text-forest">02</div>
                 <h3 className="mb-[10px] mt-0 text-[21px] font-bold">
                   {h.howItWorks.step2Title}
@@ -399,7 +402,7 @@ export default async function Home() {
                   {h.howItWorks.step2Body}
                 </p>
               </div>
-              <div>
+              <div data-reveal="" data-reveal-delay="180">
                 <div className="mb-4 font-mono text-[13px] text-forest">03</div>
                 <h3 className="mb-[10px] mt-0 text-[21px] font-bold">
                   {h.howItWorks.step3Title}
@@ -423,7 +426,7 @@ export default async function Home() {
         {/* DIFFERENTIATORS */}
         <section className="bg-ink px-10 py-[84px] text-bone-white">
           <div className="mx-auto max-w-[1180px]">
-            <div className="mb-[52px] max-w-[62ch]">
+            <div data-reveal="" className="mb-[52px] max-w-[62ch]">
               <div className="mb-[14px] font-mono text-xs tracking-[0.14em] text-vitality-light">
                 {h.differentiators.eyebrow}
               </div>
@@ -435,7 +438,7 @@ export default async function Home() {
               </p>
             </div>
             <div className="grid gap-6 md:grid-cols-6">
-              <div className="rounded-card bg-[rgba(255,255,255,0.05)] p-[26px] md:col-span-2">
+              <div data-reveal="" className="rounded-card bg-[rgba(255,255,255,0.05)] p-[26px] md:col-span-2">
                 <div className="mb-[18px] font-mono text-[11px] tracking-[0.1em] text-vitality-light">
                   01 · FUSION
                 </div>
@@ -448,7 +451,7 @@ export default async function Home() {
                   same timeline. We connect the dots no one else does.
                 </p>
               </div>
-              <div className="rounded-card bg-[rgba(255,255,255,0.05)] p-[26px] md:col-span-2">
+              <div data-reveal="" className="rounded-card bg-[rgba(255,255,255,0.05)] p-[26px] md:col-span-2">
                 <div className="mb-[18px] font-mono text-[11px] tracking-[0.1em] text-vitality-light">
                   02 · YOUR BASELINE
                 </div>
@@ -462,7 +465,7 @@ export default async function Home() {
                   Reference Change Value.
                 </p>
               </div>
-              <div className="rounded-card bg-[rgba(255,255,255,0.05)] p-[26px] md:col-span-2">
+              <div data-reveal="" className="rounded-card bg-[rgba(255,255,255,0.05)] p-[26px] md:col-span-2">
                 <div className="mb-[18px] font-mono text-[11px] tracking-[0.1em] text-vitality-light">
                   03 · THE LOOP
                 </div>
@@ -475,7 +478,7 @@ export default async function Home() {
                   next test, whether it really moved — or it was just noise.
                 </p>
               </div>
-              <div className="rounded-card bg-[rgba(255,255,255,0.05)] p-[26px] md:col-span-3">
+              <div data-reveal="" className="rounded-card bg-[rgba(255,255,255,0.05)] p-[26px] md:col-span-3">
                 <div className="mb-[18px] font-mono text-[11px] tracking-[0.1em] text-vitality-light">
                   04 · EU-NATIVE
                 </div>
@@ -489,7 +492,7 @@ export default async function Home() {
                   withdraw — and export or delete in a tap.
                 </p>
               </div>
-              <div className="rounded-card bg-[rgba(255,255,255,0.05)] p-[26px] md:col-span-3">
+              <div data-reveal="" className="rounded-card bg-[rgba(255,255,255,0.05)] p-[26px] md:col-span-3">
                 <div className="mb-[18px] font-mono text-[11px] tracking-[0.1em] text-vitality-light">
                   05 · ON YOUR WRIST
                 </div>
@@ -518,7 +521,7 @@ export default async function Home() {
         {/* PRICING TEASER */}
         <section className="px-10 py-[84px]">
           <div className="mx-auto max-w-[1180px]">
-            <div className="mb-[52px] text-center">
+            <div data-reveal="" className="mb-[52px] text-center">
               <div className="mb-[14px] font-mono text-xs tracking-[0.14em] text-forest">
                 {h.pricingTeaser.eyebrow}
               </div>
@@ -529,7 +532,8 @@ export default async function Home() {
             <div className="grid items-stretch gap-[22px] md:grid-cols-3">
               <Link
                 href="/pricing"
-                className="block rounded-card-lg border border-hairline bg-surface p-[30px] text-inherit no-underline"
+                data-reveal=""
+                className="block rounded-card-lg border border-hairline bg-surface p-[30px] text-inherit no-underline transition-[transform,box-shadow] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:opacity-100 hover:shadow-[0_18px_40px_-26px_rgba(28,38,32,0.4)]"
               >
                 <div className="mb-[6px] text-lg font-bold">Fusion</div>
                 <div className="mb-5 text-[13px] text-caption">
@@ -550,7 +554,9 @@ export default async function Home() {
               </Link>
               <Link
                 href="/pricing"
-                className="relative block rounded-card-lg bg-ink p-[30px] text-bone-white no-underline shadow-card-dark"
+                data-reveal=""
+                data-reveal-delay="80"
+                className="relative block rounded-card-lg bg-ink p-[30px] text-bone-white no-underline shadow-card-dark transition-[transform,box-shadow] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:opacity-100 hover:shadow-[0_30px_60px_-28px_rgba(28,38,32,0.7)]"
               >
                 <div className="absolute right-[22px] top-[22px] rounded-pill bg-vitality px-[9px] py-1 font-mono text-[10px] tracking-[0.06em] text-[#04130D]">
                   MOST POPULAR
@@ -576,7 +582,8 @@ export default async function Home() {
               </Link>
               <Link
                 href="/pricing"
-                className="block rounded-card-lg border border-hairline bg-surface p-[30px] text-inherit no-underline"
+                data-reveal=""
+                className="block rounded-card-lg border border-hairline bg-surface p-[30px] text-inherit no-underline transition-[transform,box-shadow] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:opacity-100 hover:shadow-[0_18px_40px_-26px_rgba(28,38,32,0.4)]"
               >
                 <div className="mb-[6px] text-lg font-bold">Performance</div>
                 <div className="mb-5 text-[13px] text-caption">
@@ -660,17 +667,26 @@ export default async function Home() {
               height={56}
               className="mx-auto mb-6 h-14 w-14 rounded-full"
             />
-            <p className="mb-5 mt-0 font-serif text-[26px] leading-[1.4] tracking-[-0.005em] text-ink">
+            {/* Home.dc.html reveals the whole founder block, but its wrapper
+                holds the brand mark (never animated) — so the marker sits on
+                the quote + attribution instead. */}
+            <p
+              data-reveal=""
+              className="mb-5 mt-0 font-serif text-[26px] leading-[1.4] tracking-[-0.005em] text-ink"
+            >
               {h.founder.quote}
             </p>
-            <div className="font-mono text-sm text-caption">
+            <div data-reveal="" className="font-mono text-sm text-caption">
               {h.founder.attribution}{" "}
               <Link href="/about" className="text-forest underline underline-offset-2">
                 {h.founder.storyLink}
               </Link>
             </div>
           </div>
-          <div className="mx-auto max-w-[900px] rounded-card-xl bg-forest px-10 py-14 text-center text-white">
+          <div
+            data-reveal=""
+            className="mx-auto max-w-[900px] rounded-card-xl bg-forest px-10 py-14 text-center text-white"
+          >
             <h2 className="mb-3 mt-0 font-serif text-[38px] font-normal tracking-[-0.01em]">
               {h.finalCta.title}
             </h2>

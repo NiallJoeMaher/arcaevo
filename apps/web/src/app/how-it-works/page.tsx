@@ -120,6 +120,7 @@ export default function HowItWorksPage() {
           {STEPS.map((step) => (
             <div
               key={step.n}
+              data-reveal=""
               className="grid items-start gap-7 rounded-card-lg border border-hairline-soft bg-surface p-[34px] md:grid-cols-[120px_1fr]"
             >
               <div className="font-serif text-[64px] leading-[0.9] text-forest">
@@ -147,7 +148,10 @@ export default function HowItWorksPage() {
               <div className="mb-4 font-mono text-xs tracking-[0.14em] text-vitality-light">
                 THE FUSION ENGINE
               </div>
-              <h2 className="mb-[18px] mt-0 font-serif text-4xl font-normal tracking-[-0.01em]">
+              <h2
+                data-reveal=""
+                className="mb-[18px] mt-0 font-serif text-4xl font-normal tracking-[-0.01em]"
+              >
                 Bloods explain the trend. Wearables explain the blood.
               </h2>
               <p className="mb-4 mt-0 text-base leading-[1.6] text-muted-dark">
@@ -175,13 +179,17 @@ export default function HowItWorksPage() {
         {/* WHAT YOU GET */}
         <section className="px-10 py-20">
           <div className="mx-auto max-w-[1000px]">
-            <h2 className="mb-9 mt-0 text-center font-serif text-4xl font-normal tracking-[-0.01em]">
+            <h2
+              data-reveal=""
+              className="mb-9 mt-0 text-center font-serif text-4xl font-normal tracking-[-0.01em]"
+            >
               What lands in your app
             </h2>
             <div className="grid gap-[18px] md:grid-cols-2">
               {OUTPUTS.map((output) => (
                 <div
                   key={output.t}
+                  data-reveal=""
                   className="rounded-[18px] border border-hairline-soft bg-surface p-6"
                 >
                   <h3 className="mb-2 mt-0 text-[17px] font-bold">

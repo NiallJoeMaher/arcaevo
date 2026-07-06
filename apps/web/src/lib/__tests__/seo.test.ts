@@ -63,12 +63,12 @@ describe("routeMetadata", () => {
       type: "article",
       publishedTime: "2026-06-01",
       modifiedTime: "2026-06-01",
-      authors: ["Arcaevo Clinical Team"],
+      authors: ["The Arcaevo Team"],
     });
     const og = meta.openGraph as Record<string, unknown>;
     expect(og.type).toBe("article");
     expect(og.publishedTime).toBe("2026-06-01");
-    expect(og.authors).toEqual(["Arcaevo Clinical Team"]);
+    expect(og.authors).toEqual(["The Arcaevo Team"]);
   });
 });
 
@@ -116,9 +116,9 @@ describe("entity JSON-LD", () => {
 });
 
 describe("articleIsoDate", () => {
-  it("parses 'Reviewed <Month> <Year>' to an ISO date", () => {
-    expect(articleIsoDate("Reviewed June 2026")).toBe("2026-06-01");
-    expect(articleIsoDate("Reviewed May 2026")).toBe("2026-05-01");
+  it("parses an 'Updated <Month> <Year>' date line to an ISO date", () => {
+    expect(articleIsoDate("Updated June 2026")).toBe("2026-06-01");
+    expect(articleIsoDate("Updated July 2026")).toBe("2026-07-01");
   });
 
   it("returns undefined for unparseable input", () => {

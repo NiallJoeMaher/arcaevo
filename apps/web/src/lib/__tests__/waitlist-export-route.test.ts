@@ -1,15 +1,21 @@
 /**
  * Unit tests for GET /api/v1/admin/waitlist/export (Task 7b):
- *  - requireAdmin gate: 401 with no/garbage session cookie;
- *  - authenticated: 200 text/csv attachment with the exact header row,
+ *  - role gate (F4): 401 with no/garbage session cookie; 403 for a clinician
+ *    (bulk marketing-PII export is ops work, not result review); 200 for
+ *    ops and owner — requireAdminRole("owner","ops");
+ *  - authenticated: 200 text/csv attachment with a single leading UTF-8 BOM
+ *    (F8 — Excel misreads BOM-less UTF-8 as ANSI), the exact header row,
  *    newest-first rows, RFC-4180 + formula-injection-safe fields;
  *  - GDPR/DPIA-R4: every export writes a "waitlist.export" row (with count)
- *    to admin_access_log — and never the entries themselves.
+ *    to admin_access_log — and never the entries themselves. The write is
+ *    AWAITED before the response (F7 — serverless freeze-after-response
+ *    would otherwise race the detached insert), so the row is visible as
+ *    soon as GET resolves, no flush needed.
  *
  * Same idiom as admin-management.test.ts: `next/headers` and `@/lib/db` are
- * stubbed in-memory; the HMAC session + guard logic run for real. The session
- * uses the synthetic "bootstrap-owner" identity, which skips the admins-DB
- * lookup (auth.ts SYNTHETIC_ADMIN_IDS).
+ * stubbed in-memory; the HMAC session + guard logic run for real. The owner
+ * session uses the synthetic "bootstrap-owner" identity (skips the admins-DB
+ * lookup); ops/clinician sessions resolve against the stubbed `admins` docs.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { WaitlistEntry } from "@/lib/models";
@@ -21,6 +27,8 @@ type LogDoc = { _id: string; action: string; count?: number } & Record<
 
 const waitlistDocs: WaitlistEntry[] = [];
 const accessLog: LogDoc[] = [];
+/** Real (non-synthetic) admin accounts for the role-gate tests. */
+const adminDocs: { _id: string; role: string; disabledAt?: Date }[] = [];
 let cookieValue: string | undefined;
 
 vi.mock("next/headers", () => ({
@@ -54,8 +62,11 @@ vi.mock("@/lib/db", () => ({
         return { insertedId: d._id };
       },
     }),
-    // currentAdmin() only hits `admins` for non-synthetic ids; present for safety.
-    admins: async () => ({ findOne: async () => null }),
+    // currentAdmin() hits `admins` for non-synthetic ids (ops/clinician).
+    admins: async () => ({
+      findOne: async (filter: { _id: string }) =>
+        adminDocs.find((d) => d._id === filter._id) ?? null,
+    }),
   },
 }));
 
@@ -67,13 +78,11 @@ const req = () =>
     headers: { "x-forwarded-for": "1.2.3.4" },
   });
 
-/** logAdminAccess is fire-and-forget — let its detached insert settle. */
-const flushLog = () => new Promise((r) => setTimeout(r, 0));
-
 beforeEach(() => {
   vi.stubEnv("SESSION_SECRET", "unit-test-session-secret");
   waitlistDocs.length = 0;
   accessLog.length = 0;
+  adminDocs.length = 0;
   cookieValue = undefined;
   waitlistDocs.push(
     {
@@ -113,11 +122,30 @@ describe("GET /api/v1/admin/waitlist/export", () => {
     expect((await GET(req())).status).toBe(401);
     cookieValue = "garbage.signature";
     expect((await GET(req())).status).toBe(401);
-    await flushLog();
     expect(accessLog.length).toBe(0);
   });
 
-  it("returns a no-store text/csv attachment with the exact header row", async () => {
+  it("403s a clinician session — bulk marketing-PII export is ops work, not result review (F4)", async () => {
+    adminDocs.push({ _id: "adm_clin", role: "clinician" });
+    cookieValue = createAdminSessionValue({
+      adminId: "adm_clin",
+      role: "clinician",
+    });
+    const res = await GET(req());
+    expect(res.status).toBe(403);
+    expect((await res.json()).error).toBe("forbidden");
+    expect(accessLog.length).toBe(0); // denied ⇒ no export, no audit row
+  });
+
+  it("200s an ops session (requireAdminRole owner|ops)", async () => {
+    adminDocs.push({ _id: "adm_ops", role: "ops" });
+    cookieValue = createAdminSessionValue({ adminId: "adm_ops", role: "ops" });
+    const res = await GET(req());
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain("text/csv");
+  });
+
+  it("returns a no-store text/csv attachment: single leading UTF-8 BOM + exact header row", async () => {
     cookieValue = createAdminSessionValue({
       adminId: "bootstrap-owner",
       role: "owner",
@@ -130,7 +158,16 @@ describe("GET /api/v1/admin/waitlist/export", () => {
       /^attachment; filename="arcaevo-waitlist-\d{4}-\d{2}-\d{2}\.csv"$/
     );
 
-    const lines = (await res.text()).split("\r\n");
+    // F8: exactly one BOM, at byte position 0 — Excel opens BOM-less UTF-8
+    // as ANSI and garbles Irish names (Sinéad → SinÃ©ad). Read raw bytes:
+    // the Fetch spec makes Response.text() STRIP a leading BOM, so text()
+    // could never prove it's on the wire.
+    const bytes = Buffer.from(await res.arrayBuffer());
+    expect([...bytes.subarray(0, 3)]).toEqual([0xef, 0xbb, 0xbf]);
+    const text = bytes.toString("utf8"); // Buffer#toString keeps the BOM char
+    expect(text.match(/\uFEFF/g)).toHaveLength(1);
+
+    const lines = text.slice(1).split("\r\n"); // strip the BOM; rows unchanged
     expect(lines[0]).toBe(
       "name,email,routingKey,county,planInterest,position,createdAt,eligibleAtJoin"
     );
@@ -149,14 +186,15 @@ describe("GET /api/v1/admin/waitlist/export", () => {
     );
   });
 
-  it("records the export in admin_access_log (action + count, never the data)", async () => {
+  it("records the export in admin_access_log BEFORE responding (action + count, never the data)", async () => {
     cookieValue = createAdminSessionValue({
       adminId: "bootstrap-owner",
       role: "owner",
     });
     await GET(req());
-    await flushLog();
 
+    // F7: the audit write is AWAITED (serverless freeze-after-response would
+    // race a detached insert) — the row must exist as soon as GET resolves.
     expect(accessLog.length).toBe(1);
     const entry = accessLog[0];
     expect(entry.action).toBe("waitlist.export");

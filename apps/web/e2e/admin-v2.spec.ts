@@ -54,9 +54,11 @@ test("waitlist people table lists entries with a CSV export (Task 7b)", async ({
     "arcaevo-waitlist-"
   );
   const body = await res.text();
+  // Leading UTF-8 BOM (F8, for Excel) then the header row. Playwright's
+  // text() keeps the BOM (Buffer#toString, not the Fetch-spec strip).
   expect(
     body.startsWith(
-      "name,email,routingKey,county,planInterest,position,createdAt,eligibleAtJoin"
+      "﻿name,email,routingKey,county,planInterest,position,createdAt,eligibleAtJoin"
     )
   ).toBe(true);
   expect(body).toContain("sinead.corkonian@example.ie");

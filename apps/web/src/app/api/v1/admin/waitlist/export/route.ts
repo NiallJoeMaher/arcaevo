@@ -7,15 +7,22 @@
  *
  * GDPR: this discloses personal data (name + email) in bulk, so — per the
  * DPIA-R4 pattern used by every other admin read of member data — the export
- * is requireAdmin-gated and each download is recorded in `admin_access_log`
- * ("waitlist.export", adminId/role/ip + row count; never the data itself).
+ * is role-gated to owner|ops (models.ts role split: ops owns waitlist work;
+ * a clinician's remit is result review, not bulk marketing PII) and each
+ * download is recorded in `admin_access_log` ("waitlist.export",
+ * adminId/role/ip + row count; never the data itself). The audit write is
+ * AWAITED before the response is built: on serverless the function can
+ * freeze right after responding, which would race a detached insert and
+ * drop the mandatory audit row. The /admin/waitlist PAGE stays un-role-gated
+ * like the other ops pages (only /admin/access-log gates by role in-page);
+ * the page shows at most 200 rows on screen — the bulk disclosure is here.
  *
  * CSV safety: fields go through src/lib/csv.ts — RFC-4180 escaping plus
  * formula-injection hardening (leading =+-@ is apostrophe-prefixed), since
  * names are attacker-controlled form input destined for a spreadsheet.
  */
-import { currentAdmin, requireAdmin } from "@/lib/auth";
-import { logAdminAccess } from "@/lib/admin-audit";
+import { currentAdmin, requireAdminRole } from "@/lib/auth";
+import { logAdminAccessSettled } from "@/lib/admin-audit";
 import { serializeCsv } from "@/lib/csv";
 import { collections } from "@/lib/db";
 import { clientIp } from "@/lib/rate-limit";
@@ -37,7 +44,8 @@ const HEADER = [
 ] as const;
 
 export async function GET(req: Request) {
-  const denied = await requireAdmin();
+  // Owner|ops only (401 signed-out, 403 clinician) — see the header comment.
+  const denied = await requireAdminRole("owner", "ops");
   if (denied) return denied;
 
   const entries = await collections
@@ -45,7 +53,11 @@ export async function GET(req: Request) {
     .then((c) => c.find().sort({ createdAt: -1 }).toArray());
 
   const admin = await currentAdmin();
-  logAdminAccess({
+  // Awaited (unlike the fire-and-forget siblings, by design): a serverless
+  // freeze after the response would otherwise race the insert and lose the
+  // audit row for a bulk PII download. logAdminAccessSettled never throws,
+  // so a logging failure still doesn't break the export.
+  await logAdminAccessSettled({
     action: "waitlist.export",
     adminId: admin?.adminId ?? null,
     role: admin?.role ?? null,
@@ -68,7 +80,11 @@ export async function GET(req: Request) {
   );
 
   const stamp = new Date().toISOString().slice(0, 10);
-  return new Response(csv, {
+  // Leading UTF-8 BOM (F8): Excel opens BOM-less UTF-8 CSVs as ANSI and
+  // garbles Irish names (Sinéad → SinÃ©ad). Added here — not in the csv
+  // helper — because the BOM is a transport/file concern, not part of the
+  // RFC-4180 document itself.
+  return new Response("\uFEFF" + csv, {
     status: 200,
     headers: {
       "Content-Type": "text/csv; charset=utf-8",

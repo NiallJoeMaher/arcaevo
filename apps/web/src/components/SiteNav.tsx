@@ -1,4 +1,5 @@
 import Link from "next/link";
+import BrandMark from "@/components/BrandMark";
 import { DEFAULT_LOCALE, getDictionary, type Locale } from "@/i18n/messages";
 
 /** Route structure (hrefs + active keys); labels come from the dictionary. */
@@ -27,9 +28,13 @@ export default function SiteNav({
       >
         <Link
           href="/"
-          className="flex shrink-0 items-center gap-[11px] text-ink no-underline"
+          className="flex min-h-11 shrink-0 items-center gap-[11px] text-ink no-underline"
         >
-          <span className="text-[19px] font-semibold tracking-[-0.01em]">
+          <BrandMark width={22} className="shrink-0 text-forest" />
+          <span
+            data-nav-wordmark
+            className="text-[19px] font-semibold tracking-[-0.01em] max-md:hidden"
+          >
             {m.brand}
           </span>
         </Link>

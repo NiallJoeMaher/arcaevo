@@ -1,4 +1,5 @@
 import Link from "next/link";
+import BrandMark from "@/components/BrandMark";
 import { DEFAULT_LOCALE, getDictionary, type Locale, type Messages } from "@/i18n/messages";
 
 type FooterLinkKey = keyof Messages["footer"]["links"];
@@ -72,6 +73,7 @@ export default function SiteFooter({
               href="/"
               className="mb-4 flex items-center gap-[11px] no-underline"
             >
+              <BrandMark width={22} className="shrink-0 text-vitality-light" />
               <span className="text-[17px] font-semibold text-bone-white">
                 Arcaevo
               </span>

@@ -58,6 +58,12 @@ export interface Article {
   /** Freshness date line, e.g. "Updated July 2026". Never a clinical sign-off. */
   date: string;
   title: string;
+  /**
+   * Concise meta + OpenGraph description (~150-160 chars) for SERP snippets.
+   * Distinct from `answer`, which is the full on-page AEO block and would be
+   * truncated mid-sentence if used as the meta description.
+   */
+  description: string;
   /** "THE SHORT ANSWER" direct-answer block (AEO). */
   answer: string;
   /** Ordered body blocks. */
@@ -105,6 +111,8 @@ export const articles: Record<string, Article> = {
     author: "The Arcaevo Team",
     date: "Updated July 2026",
     title: "What is ApoB, and why does it matter more than cholesterol?",
+    description:
+      "ApoB counts the harmful particles in your blood, so it beats a standard cholesterol number for heart risk. What a good level looks like, and how to lower it.",
     answer:
       "ApoB is a protein that sits on the fatty particles in your blood that can clog your arteries. Each of those particles carries exactly one ApoB, so counting ApoB tells you how many harmful particles you have. That makes it a more direct measure of heart risk than a standard cholesterol number, which only estimates how much cholesterol the particles are carrying. For most people trying to protect their heart, ApoB is the single most useful number to watch.",
     blocks: [
@@ -174,6 +182,8 @@ export const articles: Record<string, Article> = {
     author: "The Arcaevo Team",
     date: "Updated July 2026",
     title: "How often should you get a blood test in Ireland?",
+    description:
+      "How often should you get a blood test in Ireland? Once a year suits most healthy adults, and every 3 to 6 months when you are actively changing something.",
     answer:
       "For most healthy adults, one full blood test a year is enough to spot real trends. Test more often, say every 3 to 6 months, when you are actively changing something like a new training block, a medication, or a supplement, and you want to know if it worked. There is little point testing so often that you are only measuring normal day-to-day wobble.",
     blocks: [
@@ -231,6 +241,8 @@ export const articles: Record<string, Article> = {
     author: "The Arcaevo Team",
     date: "Updated July 2026",
     title: "Did your health markers actually improve, or was it just noise?",
+    description:
+      "Did your health marker really improve, or was it just noise? Reference Change Value is the threshold a result must cross to count as a real change.",
     answer:
       "A marker that ticks from 56 to 58 may not have changed at all. Every result carries some wobble from the lab and some from your own body changing day to day. Reference Change Value, or RCV, is the size a change has to reach before it counts as real. If the difference between two tests is smaller than your RCV, treat it as noise, not progress and not a problem.",
     blocks: [
@@ -276,6 +288,8 @@ export const articles: Record<string, Article> = {
     author: "The Arcaevo Team",
     date: "Updated July 2026",
     title: "Can your Apple Watch and blood tests work together?",
+    description:
+      "Your Apple Watch and blood tests are better together. Put them on one timeline and each explains the other, turning single results into clear stories.",
     answer:
       "Yes, and together they are far more useful than either one alone. A blood test is a snapshot from a single morning. Your Apple Watch is a running record of your sleep, heart rate, and activity. Put them on one timeline and each one explains the other. A jump in an inflammation marker lines up with the week your recovery fell apart, and a rising blood sugar sits next to a drop in your daily steps.",
     blocks: [
@@ -327,6 +341,8 @@ export const articles: Record<string, Article> = {
     author: "The Arcaevo Team",
     date: "Updated July 2026",
     title: "How much does a blood test cost in Ireland?",
+    description:
+      "How much does a blood test cost in Ireland? Why the price is hard to pin down, what you are really paying for, and how flat all-in pricing from €69 compares.",
     answer:
       "In Ireland, a private blood test usually means paying for the GP or nurse visit and then paying for the lab work on top, so the total often lands somewhere in the low hundreds of euro. The exact price depends on how many markers you test and whether a doctor draws the blood. Arcaevo keeps it simple: a single full at-home panel is €99, a recheck is €69, and a nurse home visit for a deep venous panel is €199, with everything included in one price.",
     blocks: [
@@ -386,6 +402,8 @@ export const articles: Record<string, Article> = {
     author: "The Arcaevo Team",
     date: "Updated July 2026",
     title: "Can you do a blood test at home in Ireland?",
+    description:
+      "Yes, you can do a blood test at home in Ireland with a posted finger-prick kit or a nurse home visit. How each works, and how to get an accurate sample.",
     answer:
       "Yes. In Ireland you can take a blood test at home in two ways. The simple one is a finger-prick kit that arrives in the post: you collect a few drops of blood, send it back in a prepaid envelope, and get your results online. For a wider panel that needs a full arm draw, a nurse can come to your home instead. Both skip the waiting room, and your sample still goes to a proper accredited lab.",
     blocks: [
@@ -445,6 +463,8 @@ export const articles: Record<string, Article> = {
     author: "The Arcaevo Team",
     date: "Updated July 2026",
     title: "Why is vitamin D so important in Ireland?",
+    description:
+      "Ireland gets too little strong sun from October to March, so many of us run low on vitamin D. Why it matters, who is most at risk, and what to do about it.",
     answer:
       "Your body makes vitamin D from sunlight on your skin, and Ireland simply does not get enough strong sun for a large part of the year. From about October to March, the sun sits too low for your skin to make much at all, so many people here run low over winter. Low vitamin D is linked to weaker bones, low mood, and a run-down feeling, which is why testing it and topping it up matters more here than in sunnier places.",
     blocks: [
@@ -500,6 +520,8 @@ export const articles: Record<string, Article> = {
     author: "The Arcaevo Team",
     date: "Updated July 2026",
     title: "What does HbA1c tell you about your blood sugar?",
+    description:
+      "HbA1c is your average blood sugar over about three months in one number, and it can flag rising blood sugar years before you feel anything.",
     answer:
       "HbA1c is your average blood sugar over roughly the last three months, rolled into one number. Sugar in your blood sticks to a protein in your red blood cells, and because those cells live about three months, the amount that has stuck acts like a memory of your blood sugar over that time. A single sugar reading tells you this moment. HbA1c tells you the bigger picture, which is why doctors use it to spot early warning signs.",
     blocks: [
@@ -544,7 +566,7 @@ export const articles: Record<string, Article> = {
       "Its real value is early warning: it can flag rising blood sugar years before you feel anything.",
     ],
     ctaSub: "Track your HbA1c on the right schedule and see what actually moves it.",
-    related: ["apob-vs-cholesterol", "reference-change-value"],
+    related: ["apob-vs-cholesterol", "vitamin-d-ireland", "reference-change-value"],
   },
 };
 

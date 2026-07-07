@@ -39,20 +39,24 @@ import {
 export type ExtractionVendorKind = "bedrock" | "off";
 
 /**
- * The AWS EU-grouping regions the real OCR vendor is ALLOWED to target (the
- * `eu-*` regions: Ireland, London, Paris, Frankfurt, Zurich, Stockholm, Milan,
- * Spain). Region is FAIL-CLOSED against this set: an ops misconfig to anything
- * outside it disables OCR instead of shipping Art.9 health-data images to a
- * non-EU endpoint such as us-east-1.
+ * The AWS regions the real OCR vendor is ALLOWED to target — STRICTLY EU/EEA
+ * MEMBER-STATE regions only. This is a fail-closed Art.9 data-residency
+ * safeguard for special-category health data: a region outside this set
+ * DISABLES OCR (→ manual entry) rather than shipping images to a non-EU/EEA
+ * endpoint such as us-east-1.
+ *
+ * Deliberately EXCLUDED even though they are `eu-*` and hold EU adequacy
+ * decisions: `eu-west-2` (London — UK) and `eu-central-2` (Zurich —
+ * Switzerland). Neither is an EU/EEA member state; routing special-category
+ * health data there is a SEPARATE, deliberate compliance decision, so they
+ * fail closed here by default.
  */
 export const EU_AWS_REGIONS: ReadonlySet<string> = new Set([
   "eu-west-1", // Ireland
-  "eu-west-2", // London
-  "eu-west-3", // Paris
-  "eu-central-1", // Frankfurt
-  "eu-central-2", // Zurich
-  "eu-north-1", // Stockholm
-  "eu-south-1", // Milan
+  "eu-west-3", // Paris, France
+  "eu-central-1", // Frankfurt, Germany
+  "eu-north-1", // Stockholm, Sweden
+  "eu-south-1", // Milan, Italy
   "eu-south-2", // Spain
 ]);
 

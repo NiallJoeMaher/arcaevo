@@ -95,6 +95,21 @@ describe("extraction vendor selection", () => {
     warnSpy.mockRestore();
   });
 
+  it("FAIL CLOSED: a UK region (eu-west-2) is NOT EU/EEA → OCR disabled", () => {
+    // London has an EU adequacy decision but is NOT an EU/EEA member state;
+    // routing special-category health data there is a separate, deliberate
+    // compliance decision, so it must fail closed here (guards against a silent
+    // regression that re-adds it to the allowlist). Zurich (eu-central-2) is
+    // excluded for the same reason.
+    stubCredsOn();
+    vi.stubEnv("ARCAEVO_AWS_REGION", "eu-west-2");
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    expect(getExtractionVendor()).toBeNull(); // same as the us-east-1 case
+    expect(mantleImpl).not.toHaveBeenCalled();
+    warnSpy.mockRestore();
+  });
+
   it("construction failure → null, never throws (fail-safe)", () => {
     stubCredsOn();
     mantleImpl.mockImplementation(() => {

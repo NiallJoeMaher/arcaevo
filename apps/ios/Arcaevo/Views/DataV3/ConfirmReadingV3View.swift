@@ -43,7 +43,17 @@ struct ConfirmReadingV3View: View {
             .font(.arcSerif(24))
             .foregroundStyle(Color.ink)
             .lineSpacing(2)
-            .padding(.bottom, 16)
+            .padding(.bottom, state.unreadableCount > 0 ? 10 : 16)
+
+        // Non-alarming hint when OCR couldn't read some markers — the member
+        // can still add them via type-by-hand. Additive `unreadableCount`.
+        if state.unreadableCount > 0 {
+            Text("\(state.unreadableCount) \(state.unreadableCount == 1 ? "marker" : "markers") couldn't be read automatically — you can add \(state.unreadableCount == 1 ? "it" : "them") by hand.")
+                .font(.arcSans(12))
+                .foregroundStyle(Color.arcSecondaryDark)
+                .lineSpacing(3)
+                .padding(.bottom, 16)
+        }
 
         ForEach(state.values) { value in
             if value.lowConfidence {

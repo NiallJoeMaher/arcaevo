@@ -6,7 +6,7 @@
 
 **Architecture:** Generalize the narration vendor pattern into a shared AI-task shape. Add `@anthropic-ai/bedrock-sdk` (targeted un-ban) used **only** for the OCR vision call; narration/SES/Stripe keep the hand-rolled SigV4 path. Real image/PDF bytes travel as base64 in the existing JSON body; nothing is persisted or logged. Ships dark (credential-gated).
 
-**Tech Stack:** Next.js (App Router, breaking-changes version), TypeScript, zod, MongoDB, vitest, Playwright; `@anthropic-ai/bedrock-sdk` (AnthropicBedrockMantle) → Claude Haiku 4.5 on Bedrock EU; SwiftUI (iOS).
+**Tech Stack:** Next.js (App Router, breaking-changes version), TypeScript, zod, MongoDB, vitest, Playwright; `@anthropic-ai/bedrock-sdk` (`AnthropicBedrock` — classic `InvokeModel` path, same as narration) → Claude Haiku 4.5 on Bedrock EU; SwiftUI (iOS).
 
 **Design reference:** `docs/plans/2026-07-07-bloodwork-ocr-ai-framework-design.md`. **Compliance gate:** do not enable in production until the DPIA/Art.30/privacy-notice are updated and AWS Bedrock no-retention terms confirmed (Task 9).
 
@@ -44,7 +44,7 @@ Expected: package added to `dependencies`, lockfile updated, no peer-dep errors.
 
 **Step 2:** Verify it imports and the EU client constructs (no network):
 ```bash
-node -e "const {AnthropicBedrockMantle}=require('@anthropic-ai/bedrock-sdk'); new AnthropicBedrockMantle({awsRegion:'eu-west-1'}); console.log('ok')"
+node -e "const {AnthropicBedrock}=require('@anthropic-ai/bedrock-sdk'); new AnthropicBedrock({awsRegion:'eu-west-1'}); console.log('ok')"
 ```
 Expected: prints `ok`.
 
@@ -212,7 +212,7 @@ git commit -m "feat: scope-locked OCR prompt + clinical-language output guard"
 
 ## Task 4: Bedrock SDK transport (vision, DI-mockable, TDD)
 
-Thin wrapper over `AnthropicBedrockMantle`. Accepts an **injected client** so tests never hit the network. Builds an image OR pdf content block + structured-output request; returns raw JSON text or `null` on any failure. Load the `claude-api` skill for the exact vision/PDF block + structured-output syntax.
+Thin wrapper over `AnthropicBedrock` (the default export — the classic bedrock-runtime `InvokeModel` client, the same path narration signs with the ARCAEVO_AWS_* keys). Accepts an **injected client** so tests never hit the network. Builds an image OR pdf content block + structured-output request; returns raw JSON text or `null` on any failure. Load the `claude-api` skill for the exact vision/PDF block + structured-output syntax.
 
 **Files:**
 - Create: `apps/web/src/lib/ai/transports/bedrock-vision.ts`
@@ -444,7 +444,7 @@ Conform `narration` to the shared task convention (`ai/task.ts` if you introduce
 Use `superpowers:verification-before-completion`.
 
 **Step 1:** Full suites green: `cd apps/web && npm test` and `npm run e2e` (e2e keeps the deterministic mock path — assert it still works and low-confidence "41 or 47?" still fires).
-**Step 2:** One **live** smoke test via temporary STS creds (as narration was live-verified 2026-07-06): a real de-identified printout image and a real PDF → confirm extracted values + confidence flags come back through the real vendor + confirm screen. Lock the exact `modelId` string and the structured-output mechanism (free-text JSON vs `output_config.format`) here.
+**Step 2:** One **live** smoke test via temporary STS creds (as narration was live-verified 2026-07-06): a real de-identified printout image and a real PDF → confirm extracted values + confidence flags come back through the real vendor + confirm screen. Lock the structured-output mechanism (free-text JSON vs `output_config.format`) here. *(The `modelId` is already fixed: OCR uses the classic `AnthropicBedrock` `InvokeModel` path, so the `eu.anthropic.claude-haiku-4-5-20251001-v1:0` profile narration proved applies directly.)*
 **Step 3:** Confirm no image bytes are persisted or logged anywhere (grep the vendor + route; check no `console.log`/DB write of `media`).
 **Step 4:** Report results with evidence (test counts, smoke-test output). Do not claim done until all pass.
 
@@ -452,7 +452,7 @@ Use `superpowers:verification-before-completion`.
 
 ## Skills to use during execution
 - `superpowers:test-driven-development` — every task.
-- `claude-api` — before/while writing the Bedrock call (Task 4): model ids, vision/PDF blocks, structured output, Bedrock Mantle client.
+- `claude-api` — before/while writing the Bedrock call (Task 4): model ids, vision/PDF blocks, structured output, the `AnthropicBedrock` (classic `InvokeModel`) client.
 - `superpowers:systematic-debugging` — if the live call misbehaves (model id, region, structured-output adherence).
 - `superpowers:verification-before-completion` — Task 10.
 - `superpowers:requesting-code-review` — before merging to `main`.

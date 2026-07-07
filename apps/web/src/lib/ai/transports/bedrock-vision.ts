@@ -1,8 +1,10 @@
 /**
  * Bedrock VISION transport — a thin, DI-mockable wrapper over the sanctioned
- * `AnthropicBedrockMantle` client (`@anthropic-ai/bedrock-sdk`, un-banned in
- * Task 1). It sends a lab-report image OR PDF to Claude Haiku on Bedrock and
- * returns the model's raw text response (a JSON string) — or `null`.
+ * `AnthropicBedrock` client (`@anthropic-ai/bedrock-sdk`, un-banned in Task 1):
+ * the CLASSIC bedrock-runtime **InvokeModel** path, the same one AI narration
+ * already signs with the ARCAEVO_AWS_* keys. It sends a lab-report image OR PDF
+ * to Claude Haiku on Bedrock and returns the model's raw text response (a JSON
+ * string) — or `null`.
  *
  * DELIBERATELY DUMB. It builds one `image` or `document` content block plus a
  * short user extraction instruction, passes the caller's `model` and `system`
@@ -23,9 +25,11 @@
  * simplest mechanism, and Task 5 zod-validates the string regardless). We do
  * NOT set `output_config.format` — Haiku-on-Bedrock structured-output adherence
  * is unverified from the claude-api skill, and the return contract (raw JSON
- * text, validated downstream) would be unchanged even if we did. OPEN ITEM to
- * lock during the live smoke test (Task 10): confirm free-text JSON is reliable
- * on this Mantle endpoint, and only then consider `output_config.format`.
+ * text, validated downstream) would be unchanged even if we did. The InvokeModel
+ * transport + this model id are already proven by narration (live-verified
+ * 2026-07-06); the only item left to confirm on real reports during the live
+ * smoke test (Task 10) is free-text JSON reliability, before considering
+ * `output_config.format`.
  *
  * Timeout: the deadline is BOTH forwarded to the SDK call options (`{ timeout }`
  * — milliseconds in the TS SDK) AND enforced by a local race, because the SDK's
@@ -37,10 +41,11 @@
  * network work on a possibly-frozen serverless instance).
  *
  * Model id: taken as the `modelId` PARAM — the factory/vendor supplies it
- * (Task 5/6). The narration path uses the EU Haiku inference profile
- * `eu.anthropic.claude-haiku-4-5-20251001-v1:0`; VERIFY that exact string
- * resolves on the Mantle endpoint during the Task 10 live smoke test (the
- * legacy narration vendor hits bedrock-runtime InvokeModel, not Mantle).
+ * (Task 5/6). It is the EU Haiku inference profile
+ * `eu.anthropic.claude-haiku-4-5-20251001-v1:0`, the SAME id narration invokes
+ * over classic bedrock-runtime InvokeModel — the path this transport now uses
+ * too (via `AnthropicBedrock`) — so its resolution is already proven; no open
+ * model-id item remains.
  */
 import type Anthropic from "@anthropic-ai/sdk";
 
@@ -48,10 +53,10 @@ import type Anthropic from "@anthropic-ai/sdk";
 export type Media = { mime: string; base64: string };
 
 /**
- * The minimal slice of `AnthropicBedrockMantle` this transport needs. Typed
- * against the real SDK request/response types (not `any`) so the compiler
- * checks the call shape, while staying structural so a `vi.fn()` fake — or the
- * real Mantle client — both satisfy it.
+ * The minimal slice of `AnthropicBedrock` this transport needs. Typed against
+ * the real SDK request/response types (not `any`) so the compiler checks the
+ * call shape, while staying structural so a `vi.fn()` fake — or the real
+ * `AnthropicBedrock` client — both satisfy it.
  */
 export interface VisionClient {
   messages: {

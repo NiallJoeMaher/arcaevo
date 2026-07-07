@@ -22,9 +22,9 @@ Related: design `docs/plans/2026-07-07-bloodwork-ocr-ai-framework-design.md`, im
 2. **Photo path.** `POST /api/v1/uploads/bloodwork` with `{ kind: "photo", fileName, media: { mime: "image/jpeg", base64 } }` (base64 must decode to ≤ 3 MiB). Expect a `pending_confirmation` response with `extracted[]` values (code/name/unit/value), low-confidence ones flagged, and an additive `unreadableCount`.
 3. **PDF path.** Same with `{ kind: "pdf", media: { mime: "application/pdf", base64 } }`. Expect the same shape.
 4. **Confirm flow.** `POST /api/v1/uploads/bloodwork/confirm` resolving any flagged values + a `takenAt` (the iOS confirm screen now collects an editable draw-date). Expect `self_reported` readings written.
-5. **Lock the two open decisions** (flagged in code comments):
-   - **Model id on Mantle:** confirm `eu.anthropic.claude-haiku-4-5-20251001-v1:0` resolves on the `AnthropicBedrockMantle` (Messages) endpoint. If it doesn't, find the correct EU Haiku inference-profile id for Mantle and set `BEDROCK_MODEL_ID`.
+5. **Lock the remaining open decision** (flagged in code comments):
    - **Structured output:** confirm free-text JSON is reliably parsed. If adherence is poor on real reports, switch `runVisionExtraction` to `output_config.format` (structured outputs) — the vendor's zod validation is unchanged either way (`docs/plans/...-implementation-plan.md` Task 4 note).
+   - *(Model-id resolution is no longer open: OCR now uses the classic `AnthropicBedrock` **InvokeModel** path with `eu.anthropic.claude-haiku-4-5-20251001-v1:0`, the exact id + path narration live-verified 2026-07-06.)*
 6. **maxDuration:** confirm the deployed function's `maxDuration` comfortably exceeds the transport's 8s timeout + the DB writes (bump `maxDuration` in the route/segment config or upgrade the Vercel tier if on a 10s budget).
 7. **Fail-closed checks:**
    - Set `ARCAEVO_AWS_REGION=us-east-1` → OCR must be **disabled** (member routed to manual entry); a server warning names only the region.
@@ -33,7 +33,7 @@ Related: design `docs/plans/2026-07-07-bloodwork-ocr-ai-framework-design.md`, im
 
 ## Activation checklist (all must be true)
 - [ ] This smoke test passes (photo + PDF extract; confirm writes readings).
-- [ ] Model id resolves on Mantle; structured-output mechanism chosen.
+- [ ] Structured-output mechanism chosen (free-text JSON vs. `output_config.format`). *(Model-id resolution already proven via the classic InvokeModel path narration uses.)*
 - [ ] `maxDuration` covers the timeout.
 - [ ] Fail-closed region + bad-media behaviours verified; no PII/bytes logged.
 - [ ] Compliance gate signed off — `docs/legal/DPIA.md` top checklist: DPIA review, Art.30, **privacy-notice updated** (suggested sentence in the DPIA), AWS Bedrock DPA + SCCs + no-retention/no-training confirmed, `@anthropic-ai/bedrock-sdk` no-payload-logging confirmed.

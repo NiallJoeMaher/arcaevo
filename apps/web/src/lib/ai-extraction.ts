@@ -24,7 +24,7 @@
  * to manual entry) rather than constructing a client that would call a non-EU
  * endpoint. A misconfig disables the feature; it never leaks data.
  */
-import { AnthropicBedrockMantle } from "@anthropic-ai/bedrock-sdk";
+import { AnthropicBedrock } from "@anthropic-ai/bedrock-sdk";
 import { CANONICAL_BIOMARKER_RULES } from "@/lib/biomarker-rules";
 import { catalogFromRules } from "@/lib/ai/bloodwork-extraction-schema";
 import {
@@ -95,10 +95,17 @@ export function getExtractionVendor(): BedrockExtractionVendor | null {
     // Built PER REQUEST, never memoised: creds may be rotating STS session
     // tokens (`sessionToken` is threaded through), so a cached client would pin
     // stale credentials and start failing after the token rotates.
-    const client = new AnthropicBedrockMantle({
+    //
+    // `AnthropicBedrock` (the default export) is the CLASSIC bedrock-runtime
+    // InvokeModel client — the SAME path AI narration signs with these creds and
+    // that the deployed ARCAEVO_AWS_* IAM keys are already permissioned for
+    // (bedrock:InvokeModel on the Haiku EU inference profile). NOTE the classic
+    // client's cred param is `awsSecretKey` (NOT the Mantle client's
+    // `awsSecretAccessKey`) — see @anthropic-ai/bedrock-sdk client.d.ts.
+    const client = new AnthropicBedrock({
       awsRegion: creds.region,
       awsAccessKey: creds.accessKeyId,
-      awsSecretAccessKey: creds.secretAccessKey,
+      awsSecretKey: creds.secretAccessKey,
       // STS temp creds only; undefined for the long-lived key pair (unchanged).
       awsSessionToken: creds.sessionToken,
       // We enforce our own single hard deadline in the transport; don't let the

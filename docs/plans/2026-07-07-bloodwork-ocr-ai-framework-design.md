@@ -49,7 +49,7 @@ New home `apps/web/src/lib/ai/`; move the existing narration vendor files under 
 
 - `ai/task.ts` — the task shape + a `runAiTask` helper wrapping: build minimized input → call transport → validate output vs schema → run guardrail → fail-safe to `null`.
 - `ai/transports/bedrock-sigv4.ts` — the existing hand-rolled path (narration).
-- `ai/transports/bedrock-sdk.ts` — thin wrapper over `AnthropicBedrockMantle` (OCR).
+- `ai/transports/bedrock-sdk.ts` — thin wrapper over `AnthropicBedrock` (the classic `InvokeModel` path, same as narration) (OCR).
 - `ai/tasks/narration.ts` — narration refactored to the task shape; **internals unchanged** (still SigV4).
 - `ai/tasks/bloodwork-ocr.ts` — new.
 
@@ -59,7 +59,7 @@ Selection mirrors `getNarrationVendor()`: factory returns the live task when cre
 
 `apps/web/src/lib/vendors/ai-extraction.bedrock.ts` (or `ai/tasks/bloodwork-ocr.ts`) implements the existing `extractBloodwork` interface so `POST /api/v1/uploads/bloodwork` swaps vendor with **no call-site change**.
 
-- **Model:** Claude Haiku 4.5, EU inference profile (`eu.anthropic.claude-haiku-4-5-20251001-v1:0` family). *Implementation note: confirm the exact model-id string the Mantle/Messages endpoint expects vs. the InvokeModel profile id narration uses.*
+- **Model:** Claude Haiku 4.5, EU inference profile (`eu.anthropic.claude-haiku-4-5-20251001-v1:0`). *Resolved: OCR uses the classic `AnthropicBedrock` **InvokeModel** path, so it takes the exact same profile id narration uses (live-verified 2026-07-06) — no separate Mantle model-id lookup needed.*
 - **Input:** base64 image (`image/jpeg|png`) or `application/pdf` document block + a scope-locked instruction.
 - **Output:** structured output (tool-use or `output_config.format`) forcing `extracted[]` with per-value `confidence` and `alternatives`; parsed and validated with **zod against the `BiomarkerRule` catalog** (`biomarker-rules.ts`). Unknown markers/units → dropped and surfaced as needs-manual, never written (the confirm route already rejects unknown codes).
 - **Confidence → flag:** low-confidence values are flagged so the existing confirm screen forces resolution; the confirm route already enforces that every flagged value is resolved.
@@ -129,7 +129,7 @@ These run in CI and are what let prompts multiply safely.
 
 ## 13. Open items to confirm during build
 
-- Exact Bedrock model-id string for the Mantle/Messages endpoint (vs. the InvokeModel profile id).
+- ~~Exact Bedrock model-id string for the Mantle/Messages endpoint (vs. the InvokeModel profile id).~~ **RESOLVED:** OCR uses the classic `AnthropicBedrock` **InvokeModel** client, so it takes the same `eu.anthropic.claude-haiku-4-5-20251001-v1:0` profile id narration already proves (live-verified 2026-07-06).
 - Structured-output mechanism on Bedrock Haiku (tool-use vs `output_config.format`) — pick the one with the most reliable schema adherence.
 - Max upload size + accepted mime types.
 - Whether narration migrates to the shared shape now or in a follow-up (leaning: now, light-touch, SigV4 internals unchanged).

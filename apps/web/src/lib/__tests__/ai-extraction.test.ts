@@ -12,11 +12,13 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const mantleImpl = vi.fn();
+const clientImpl = vi.fn();
 vi.mock("@anthropic-ai/bedrock-sdk", () => ({
-  // A newable mock whose behaviour is delegated to `mantleImpl` per test.
-  AnthropicBedrockMantle: vi.fn(function (this: unknown, opts: unknown) {
-    return mantleImpl(opts);
+  // A newable mock whose behaviour is delegated to `clientImpl` per test.
+  // `AnthropicBedrock` is the classic bedrock-runtime InvokeModel client (the
+  // same path AI narration signs with the ARCAEVO_AWS_* keys).
+  AnthropicBedrock: vi.fn(function (this: unknown, opts: unknown) {
+    return clientImpl(opts);
   }),
 }));
 
@@ -31,8 +33,8 @@ function stubCredsOn() {
 }
 
 beforeEach(() => {
-  mantleImpl.mockReset();
-  mantleImpl.mockReturnValue({ messages: { create: vi.fn() } });
+  clientImpl.mockReset();
+  clientImpl.mockReturnValue({ messages: { create: vi.fn() } });
 });
 
 afterEach(() => {
@@ -43,7 +45,7 @@ describe("extraction vendor selection", () => {
   it("no creds → off, null vendor, SDK never constructed", () => {
     expect(selectedExtractionVendorKind()).toBe("off");
     expect(getExtractionVendor()).toBeNull();
-    expect(mantleImpl).not.toHaveBeenCalled();
+    expect(clientImpl).not.toHaveBeenCalled();
   });
 
   it("creds present → real bedrock vendor with an extract() method", () => {
@@ -55,11 +57,13 @@ describe("extraction vendor selection", () => {
     expect(typeof vendor!.extract).toBe("function");
 
     // Region defaults to eu-west-1 (EU residency); creds are threaded through.
-    expect(mantleImpl).toHaveBeenCalledTimes(1);
-    expect(mantleImpl.mock.calls[0][0]).toMatchObject({
+    expect(clientImpl).toHaveBeenCalledTimes(1);
+    expect(clientImpl.mock.calls[0][0]).toMatchObject({
       awsRegion: "eu-west-1",
       awsAccessKey: "AKIDEXAMPLE",
-      awsSecretAccessKey: "fake-secret",
+      // Classic AnthropicBedrock uses `awsSecretKey` (NOT Mantle's
+      // `awsSecretAccessKey`); see @anthropic-ai/bedrock-sdk client.d.ts.
+      awsSecretKey: "fake-secret",
       // We enforce our own single hard deadline; the SDK must not retry silently.
       maxRetries: 0,
     });
@@ -69,14 +73,14 @@ describe("extraction vendor selection", () => {
     stubCredsOn();
     vi.stubEnv("ARCAEVO_AWS_REGION", "eu-central-1");
     getExtractionVendor();
-    expect(mantleImpl.mock.calls[0][0]).toMatchObject({ awsRegion: "eu-central-1" });
+    expect(clientImpl.mock.calls[0][0]).toMatchObject({ awsRegion: "eu-central-1" });
   });
 
   it("missing region falls back to the eu-west-1 default → allowed", () => {
     stubCredsOn(); // no ARCAEVO_AWS_REGION stubbed
     const vendor = getExtractionVendor();
     expect(vendor).not.toBeNull();
-    expect(mantleImpl.mock.calls[0][0]).toMatchObject({ awsRegion: "eu-west-1" });
+    expect(clientImpl.mock.calls[0][0]).toMatchObject({ awsRegion: "eu-west-1" });
   });
 
   it("FAIL CLOSED: a non-EU region disables OCR (null vendor, SDK never built)", () => {
@@ -86,7 +90,7 @@ describe("extraction vendor selection", () => {
 
     expect(getExtractionVendor()).toBeNull(); // degrades to manual entry
     // A non-EU endpoint client is NEVER constructed (no Art.9 leak).
-    expect(mantleImpl).not.toHaveBeenCalled();
+    expect(clientImpl).not.toHaveBeenCalled();
 
     // If a warning is emitted it carries ONLY the region — never creds/PII.
     const warned = warnSpy.mock.calls.flat().map(String).join(" ");
@@ -106,13 +110,13 @@ describe("extraction vendor selection", () => {
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
     expect(getExtractionVendor()).toBeNull(); // same as the us-east-1 case
-    expect(mantleImpl).not.toHaveBeenCalled();
+    expect(clientImpl).not.toHaveBeenCalled();
     warnSpy.mockRestore();
   });
 
   it("construction failure → null, never throws (fail-safe)", () => {
     stubCredsOn();
-    mantleImpl.mockImplementation(() => {
+    clientImpl.mockImplementation(() => {
       throw new Error("sdk boom");
     });
     expect(() => getExtractionVendor()).not.toThrow();

@@ -29,7 +29,11 @@ import { collections } from "@/lib/db";
 import { mockExtractionEnabled } from "@/lib/env";
 import { getExtractionVendor } from "@/lib/ai-extraction";
 import { newId } from "@/lib/ids";
-import { BloodworkUploadInput, type BloodworkUpload } from "@/lib/models";
+import {
+  BloodworkUploadInput,
+  isAcceptableMedia,
+  type BloodworkUpload,
+} from "@/lib/models";
 import type { ValidatedValue } from "@/lib/ai/bloodwork-extraction-schema";
 import {
   CONFIDENCE_THRESHOLD,
@@ -174,6 +178,16 @@ export async function POST(req: Request) {
   // vendor. This runs even in production (mock disabled): real creds mean a real
   // member's real document, so we transcribe it rather than guess.
   if (kind !== "manual" && media) {
+    // Media POLICY (mime allowlist / decoded-size cap / base64 well-formedness)
+    // is a fail-safe, NOT a 400: a too-large or unreadable file degrades to the
+    // honest "type by hand" flow, exactly like every other OCR failure. Checked
+    // BEFORE the vendor so unusable bytes never touch a real endpoint (Art.9);
+    // nothing is logged or persisted here.
+    if (!isAcceptableMedia(media)) {
+      return manualEntryResponse(
+        "We couldn't use this file — enter your values by hand and we'll add them to your timeline."
+      );
+    }
     const vendor = getExtractionVendor();
     if (vendor) {
       // Belt-and-braces fail-safe: extract() is documented never-throw and that

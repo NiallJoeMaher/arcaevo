@@ -8,6 +8,7 @@ import { describe, expect, it } from "vitest";
 import {
   BloodworkConfirmInput,
   BloodworkUploadInput,
+  isAcceptableMedia,
   MAX_BLOODWORK_MEDIA_DECODED_BYTES,
 } from "@/lib/models";
 
@@ -64,28 +65,18 @@ describe("BloodworkUploadInput.manualValues cap", () => {
   });
 });
 
-describe("BloodworkUploadInput.media (real-OCR bytes) validation", () => {
-  // "PNG" → "UE5H" (valid, tiny, decodes to 3 bytes).
+describe("BloodworkUploadInput.media shape (NEW contract: shape-only, no policy)", () => {
+  // Media POLICY (mime/size/base64) is NO LONGER a 400 in the schema — it moved
+  // to isAcceptableMedia + a graceful manual-entry fallback in the route. The
+  // schema now only checks the basic { mime, base64 } SHAPE so the body parses
+  // and every media problem degrades to manual entry rather than a raw 400.
   const smallImage = { mime: "image/png", base64: "UE5H" };
-  const smallPdf = {
-    mime: "application/pdf",
-    base64: Buffer.from("%PDF-1.4").toString("base64"),
-  };
 
-  it("accepts a valid small image", () => {
+  it("accepts a well-formed media shape", () => {
     const ok = BloodworkUploadInput.safeParse({
       kind: "photo",
       fileName: "labs.png",
       media: smallImage,
-    });
-    expect(ok.success).toBe(true);
-  });
-
-  it("accepts a valid small PDF", () => {
-    const ok = BloodworkUploadInput.safeParse({
-      kind: "pdf",
-      fileName: "labs.pdf",
-      media: smallPdf,
     });
     expect(ok.success).toBe(true);
   });
@@ -95,41 +86,79 @@ describe("BloodworkUploadInput.media (real-OCR bytes) validation", () => {
     expect(ok.success).toBe(true);
   });
 
-  it("rejects a disallowed mime type", () => {
-    const bad = BloodworkUploadInput.safeParse({
+  it("PARSES a disallowed mime (shape-only — policy is enforced in the route now)", () => {
+    const ok = BloodworkUploadInput.safeParse({
       kind: "photo",
       fileName: "x.gif",
       media: { mime: "image/gif", base64: "UE5H" },
     });
-    expect(bad.success).toBe(false);
+    expect(ok.success).toBe(true);
   });
 
-  it("rejects malformed base64", () => {
-    const bad = BloodworkUploadInput.safeParse({
+  it("PARSES malformed base64 (shape-only — policy is enforced in the route now)", () => {
+    const ok = BloodworkUploadInput.safeParse({
       kind: "photo",
       fileName: "x.png",
       media: { mime: "image/png", base64: "not base64!!" },
     });
-    expect(bad.success).toBe(false);
+    expect(ok.success).toBe(true);
   });
 
-  it("rejects media whose decoded size exceeds the cap", () => {
+  it("PARSES oversize media (shape-only — policy is enforced in the route now)", () => {
     const oversize = base64OfDecodedBytes(MAX_BLOODWORK_MEDIA_DECODED_BYTES + 1024);
-    const bad = BloodworkUploadInput.safeParse({
+    const ok = BloodworkUploadInput.safeParse({
       kind: "photo",
       fileName: "huge.png",
       media: { mime: "image/png", base64: oversize },
     });
+    expect(ok.success).toBe(true);
+  });
+
+  it("rejects a structurally broken media shape (mime/base64 not strings)", () => {
+    const bad = BloodworkUploadInput.safeParse({
+      kind: "photo",
+      fileName: "x.png",
+      media: { mime: 123, base64: null },
+    });
     expect(bad.success).toBe(false);
+  });
+});
+
+describe("isAcceptableMedia (real-OCR media POLICY — pure, reused by the route)", () => {
+  it("accepts a valid small image", () => {
+    expect(isAcceptableMedia({ mime: "image/png", base64: "UE5H" })).toBe(true);
+  });
+
+  it("accepts a valid small PDF", () => {
+    expect(
+      isAcceptableMedia({
+        mime: "application/pdf",
+        base64: Buffer.from("%PDF-1.4").toString("base64"),
+      })
+    ).toBe(true);
+  });
+
+  it("rejects a disallowed mime type", () => {
+    expect(isAcceptableMedia({ mime: "image/gif", base64: "UE5H" })).toBe(false);
+  });
+
+  it("rejects malformed base64", () => {
+    expect(
+      isAcceptableMedia({ mime: "image/png", base64: "not base64!!" })
+    ).toBe(false);
+  });
+
+  it("rejects empty base64", () => {
+    expect(isAcceptableMedia({ mime: "image/png", base64: "" })).toBe(false);
+  });
+
+  it("rejects media whose decoded size exceeds the cap", () => {
+    const oversize = base64OfDecodedBytes(MAX_BLOODWORK_MEDIA_DECODED_BYTES + 1024);
+    expect(isAcceptableMedia({ mime: "image/png", base64: oversize })).toBe(false);
   });
 
   it("accepts media right at the decoded-size cap", () => {
     const atCap = base64OfDecodedBytes(MAX_BLOODWORK_MEDIA_DECODED_BYTES);
-    const ok = BloodworkUploadInput.safeParse({
-      kind: "photo",
-      fileName: "big.png",
-      media: { mime: "image/png", base64: atCap },
-    });
-    expect(ok.success).toBe(true);
+    expect(isAcceptableMedia({ mime: "image/png", base64: atCap })).toBe(true);
   });
 });

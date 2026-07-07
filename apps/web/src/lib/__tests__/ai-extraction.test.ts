@@ -72,6 +72,29 @@ describe("extraction vendor selection", () => {
     expect(mantleImpl.mock.calls[0][0]).toMatchObject({ awsRegion: "eu-central-1" });
   });
 
+  it("missing region falls back to the eu-west-1 default → allowed", () => {
+    stubCredsOn(); // no ARCAEVO_AWS_REGION stubbed
+    const vendor = getExtractionVendor();
+    expect(vendor).not.toBeNull();
+    expect(mantleImpl.mock.calls[0][0]).toMatchObject({ awsRegion: "eu-west-1" });
+  });
+
+  it("FAIL CLOSED: a non-EU region disables OCR (null vendor, SDK never built)", () => {
+    stubCredsOn();
+    vi.stubEnv("ARCAEVO_AWS_REGION", "us-east-1");
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    expect(getExtractionVendor()).toBeNull(); // degrades to manual entry
+    // A non-EU endpoint client is NEVER constructed (no Art.9 leak).
+    expect(mantleImpl).not.toHaveBeenCalled();
+
+    // If a warning is emitted it carries ONLY the region — never creds/PII.
+    const warned = warnSpy.mock.calls.flat().map(String).join(" ");
+    expect(warned).not.toContain("AKIDEXAMPLE"); // access key id
+    expect(warned).not.toContain("fake-secret"); // secret access key
+    warnSpy.mockRestore();
+  });
+
   it("construction failure → null, never throws (fail-safe)", () => {
     stubCredsOn();
     mantleImpl.mockImplementation(() => {

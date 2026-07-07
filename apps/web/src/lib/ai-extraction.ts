@@ -15,7 +15,14 @@
  * routes the member to safe manual entry; it never fabricates health data.
  *
  * Art.9 (health data): nothing here touches media bytes or model output — it
- * only builds the client. There is deliberately no logging in this module.
+ * only builds the client. The ONLY thing ever logged is a non-sensitive WARNING
+ * naming a misconfigured (non-EU) region — never any media/creds/PII.
+ *
+ * EU RESIDENCY IS FAIL-CLOSED: Art.9 health-data images must never leave the EU.
+ * The region is not merely defaulted to eu-west-1 — it is checked against an EU
+ * allowlist, and a non-EU region DISABLES OCR (returns null → the route degrades
+ * to manual entry) rather than constructing a client that would call a non-EU
+ * endpoint. A misconfig disables the feature; it never leaks data.
  */
 import { AnthropicBedrockMantle } from "@anthropic-ai/bedrock-sdk";
 import { CANONICAL_BIOMARKER_RULES } from "@/lib/biomarker-rules";
@@ -30,6 +37,24 @@ import {
 } from "@/lib/vendors/ai-extraction.bedrock";
 
 export type ExtractionVendorKind = "bedrock" | "off";
+
+/**
+ * The AWS EU-grouping regions the real OCR vendor is ALLOWED to target (the
+ * `eu-*` regions: Ireland, London, Paris, Frankfurt, Zurich, Stockholm, Milan,
+ * Spain). Region is FAIL-CLOSED against this set: an ops misconfig to anything
+ * outside it disables OCR instead of shipping Art.9 health-data images to a
+ * non-EU endpoint such as us-east-1.
+ */
+export const EU_AWS_REGIONS: ReadonlySet<string> = new Set([
+  "eu-west-1", // Ireland
+  "eu-west-2", // London
+  "eu-west-3", // Paris
+  "eu-central-1", // Frankfurt
+  "eu-central-2", // Zurich
+  "eu-north-1", // Stockholm
+  "eu-south-1", // Milan
+  "eu-south-2", // Spain
+]);
 
 /**
  * Which extraction vendor the current environment selects (pure — safe to
@@ -52,6 +77,16 @@ export function selectedExtractionVendorKind(): ExtractionVendorKind {
 export function getExtractionVendor(): BedrockExtractionVendor | null {
   const creds = resolveNarrationCredentials();
   if (!creds) return null;
+  // FAIL CLOSED (Art.9): a non-EU region must DISABLE OCR, never silently ship
+  // health-data images outside the EU. Degrade to manual entry instead of
+  // constructing a client that would call a non-EU endpoint. The warning names
+  // ONLY the region — never creds/media/PII.
+  if (!EU_AWS_REGIONS.has(creds.region)) {
+    console.warn(
+      `[ai-extraction] OCR disabled: AWS region "${creds.region}" is outside the EU allowlist (Art.9 health-data residency).`
+    );
+    return null;
+  }
   try {
     // Built PER REQUEST, never memoised: creds may be rotating STS session
     // tokens (`sessionToken` is threaded through), so a cached client would pin

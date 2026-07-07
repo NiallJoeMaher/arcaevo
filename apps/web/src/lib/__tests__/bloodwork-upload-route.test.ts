@@ -12,7 +12,8 @@
  *  - NO creds (factory null) → the mock/manual path is byte-shape unchanged
  *    (no `unreadableCount` key) — e2e parity;
  *  - vendor present but NO media bytes → mock path (vendor never invoked);
- *  - oversize media → 400 before any handler work.
+ *  - bad/oversize media → graceful manual entry (200), nothing persisted, the
+ *    vendor is NEVER reached (fail-safe parity, not a raw 400).
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -283,18 +284,52 @@ describe("mock/manual parity (no creds)", () => {
   });
 });
 
-describe("body limits", () => {
-  it("oversize media → 400 before any work", async () => {
+describe("bad/oversize media → graceful manual entry (NOT a 400)", () => {
+  // NEW CONTRACT: a media POLICY failure (oversize / disallowed mime / malformed
+  // base64) is no longer a raw 400 — it degrades to the honest "type by hand"
+  // flow (200), consistent with every other OCR failure, and the vendor is never
+  // reached (Art.9: unusable bytes must not touch a real endpoint).
+  async function expectManualEntry(media: { mime: string; base64: string }) {
+    const extract = vi.fn();
+    getVendor.mockReturnValue({ extract });
+
+    const res = await POST(req({ kind: "photo", fileName: "labs.png", media }));
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.manualEntryRequired).toBe(true);
+    expect(body.values).toEqual([]);
+    // Nothing persisted, and the real vendor is never asked for / invoked.
+    expect(col("bloodwork_uploads").docs).toHaveLength(0);
+    expect(getVendor).not.toHaveBeenCalled();
+    expect(extract).not.toHaveBeenCalled();
+    return body;
+  }
+
+  it("oversize media → manual entry, nothing persisted, vendor not reached", async () => {
     // Just over 3 MiB decoded → base64 well over the cap.
     const oversize = "A".repeat(Math.ceil((3 * 1024 * 1024 + 4096) / 3) * 4);
-    const res = await POST(
-      req({
-        kind: "photo",
-        fileName: "huge.png",
-        media: { mime: "image/png", base64: oversize },
-      })
+    await expectManualEntry({ mime: "image/png", base64: oversize });
+  });
+
+  it("disallowed mime → manual entry, nothing persisted, vendor not reached", async () => {
+    await expectManualEntry({ mime: "image/gif", base64: SMALL_IMAGE_B64 });
+  });
+
+  it("malformed base64 → manual entry, nothing persisted, vendor not reached", async () => {
+    await expectManualEntry({ mime: "image/png", base64: "not base64!!" });
+  });
+
+  it("does not log the media base64 on the bad-media fallback (Art.9)", async () => {
+    const oversize = "A".repeat(Math.ceil((3 * 1024 * 1024 + 4096) / 3) * 4);
+    getVendor.mockReturnValue({ extract: vi.fn() });
+    await POST(
+      req({ kind: "photo", fileName: "labs.png", media: { mime: "image/png", base64: oversize } })
     );
-    expect(res.status).toBe(400);
-    expect(col("bloodwork_uploads").docs).toHaveLength(0);
+    const allLogs = [...errorSpy.mock.calls, ...logSpy.mock.calls]
+      .flat()
+      .map((a) => String(a))
+      .join(" ");
+    expect(allLogs).not.toContain(oversize);
   });
 });

@@ -1012,23 +1012,38 @@ function base64DecodedByteLength(b64: string): number {
 /**
  * Optional real-OCR media: the image/PDF bytes as a MIME type + base64. This is
  * GDPR Art.9 health data — the route hands it straight to the vendor and NEVER
- * persists or logs it (see uploads/bloodwork/route.ts). Validated for a good
- * MIME type, well-formed base64, and a conservative decoded-size cap.
+ * persists or logs it (see uploads/bloodwork/route.ts).
+ *
+ * SHAPE-ONLY BY DESIGN: this schema validates only the basic { mime, base64 }
+ * shape so the request BODY always PARSES. The mime allowlist / decoded-size cap
+ * / base64 well-formedness are POLICY checks that live in `isAcceptableMedia`
+ * and are enforced in the route — a media policy failure degrades to honest
+ * manual entry (200), NEVER a raw 400 (fail-safe UX, consistent with every other
+ * OCR failure: a member with a too-large photo is routed to "type by hand").
  */
 export const BloodworkMediaInput = z.object({
-  mime: z.enum(BLOODWORK_MEDIA_MIME_ALLOWLIST),
-  base64: z
-    .string()
-    .min(1)
-    .refine((s) => s.length % 4 === 0 && STANDARD_BASE64.test(s), {
-      message: "media.base64 must be well-formed standard base64.",
-    })
-    .refine((s) => base64DecodedByteLength(s) <= MAX_BLOODWORK_MEDIA_DECODED_BYTES, {
-      message:
-        "Image too large — downscale or compress it to under 3 MB before uploading.",
-    }),
+  mime: z.string(),
+  base64: z.string(),
 });
 export type BloodworkMediaInput = z.infer<typeof BloodworkMediaInput>;
+
+/**
+ * Real-OCR media POLICY check (PURE — mime allowlist + well-formed standard
+ * base64 + decoded-size cap ≤ MAX_BLOODWORK_MEDIA_DECODED_BYTES). Lives here
+ * beside the constants it enforces and is reused by the upload route: media that
+ * fails is NOT a 400 — the route degrades to honest manual entry. Never logs or
+ * decodes the bytes (Art.9); the size check is byte-length arithmetic only.
+ */
+export function isAcceptableMedia(media: BloodworkMediaInput): boolean {
+  if (!(BLOODWORK_MEDIA_MIME_ALLOWLIST as readonly string[]).includes(media.mime)) {
+    return false;
+  }
+  const b64 = media.base64;
+  if (b64.length === 0 || b64.length % 4 !== 0 || !STANDARD_BASE64.test(b64)) {
+    return false;
+  }
+  return base64DecodedByteLength(b64) <= MAX_BLOODWORK_MEDIA_DECODED_BYTES;
+}
 
 export const BloodworkUploadInput = z.object({
   kind: z.enum(["photo", "pdf", "manual"]),

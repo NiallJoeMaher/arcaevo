@@ -19,7 +19,7 @@ Every loop iteration: read this file first, do the next unchecked work, update t
 
 ## Ground rules for agents
 
-- Do NOT run `npm install` or edit `package.json` in apps/web — deps are preinstalled (next, react, tailwind v4, mongodb, zod). If you need another dep, record it under "Wanted deps" below and code around it.
+- Do NOT run `npm install` or edit `package.json` in apps/web — deps are preinstalled (next, react, tailwind v4, mongodb, zod). If you need another dep, record it under "Wanted deps" below and code around it. (One targeted exception approved 2026-07-07: `@anthropic-ai/bedrock-sdk` for bloodwork OCR — see Log.)
 - Pixel-fidelity to `design_handoff/designs/*.dc.html`; copy text verbatim. No invented copy.
 - v1 integrations: Apple Watch + Apple Health only; WHOOP/Oura/Garmin only ever "on the roadmap".
 - Wellness language, never diagnosis. Keep all disclaimers from designs.

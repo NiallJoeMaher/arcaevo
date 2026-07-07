@@ -169,6 +169,17 @@ struct ManualBloodworkValue: Codable, Hashable {
     var unit: String
 }
 
+/// Real-OCR media for a photo/PDF upload: the raw bytes as a MIME type + a
+/// STANDARD base64 string. Matches the server's `BloodworkMediaInput`
+/// (`apps/web/src/lib/models.ts`): the mime must be one of `image/jpeg`,
+/// `image/png`, `application/pdf`, and the base64 must decode to ≤ 3 MiB.
+/// GDPR Art.9 health data — sent once, in-flight only; NEVER persisted by the
+/// app (kept out of the UserDefaults snapshot; see AppState `uploadConfirm`).
+struct BloodworkMedia: Codable, Hashable, Sendable {
+    var mime: String
+    var base64: String
+}
+
 /// `POST /uploads/bloodwork` → the confirm screen's data. Nothing enters the
 /// timeline until every value is confirmed; low-confidence reads BLOCK.
 struct BloodworkExtraction: Codable, Hashable {
@@ -188,15 +199,28 @@ struct BloodworkExtraction: Codable, Hashable {
         var alternatives: [Double]?
     }
 
-    var uploadId: String
-    var sourceName: String
-    /// "YYYY-MM-DD" document date suggested by the extraction.
-    var documentDate: String
+    /// nil on the honest manual-entry response (no confirm screen to build).
+    var uploadId: String?
+    /// nil on the honest manual-entry response.
+    var sourceName: String?
+    /// "YYYY-MM-DD" document date. NULLABLE: real OCR doesn't read the draw
+    /// date, so the server sends `null` and the member sets it at confirm.
+    var documentDate: String?
     var markersFound: Int
     var values: [Value]
     /// Low-confidence reads ("was this 41 or 47?") — must be resolved
     /// before confirm succeeds.
     var flagged: [Flagged]
+    /// Server signalled it couldn't reliably read the document — re-submit as
+    /// `kind:"manual"` (the app routes the member to type-by-hand).
+    var manualEntryRequired: Bool? = nil
+    /// Additive: N markers the OCR saw but couldn't trust — shown as a
+    /// non-alarming hint on the confirm screen ("add them by hand").
+    var unreadableCount: Int? = nil
+
+    /// True when the server declined to extract (production with no OCR, or
+    /// OCR found nothing legible) — there is no confirm payload to show.
+    var isManualEntryRequired: Bool { manualEntryRequired == true || uploadId == nil }
 }
 
 /// `POST /uploads/bloodwork/confirm` body value.

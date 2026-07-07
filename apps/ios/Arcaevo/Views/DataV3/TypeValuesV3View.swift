@@ -375,8 +375,10 @@ struct TypeValuesV3View: View {
                 let confirmed = extraction.values.map {
                     ConfirmedBloodworkValue(code: $0.code, value: $0.value)
                 }
+                // Manual uploads always persist, so `uploadId` is present; the
+                // `?? ""` only satisfies the now-optional type (never taken here).
                 _ = try await appState.api.confirmBloodwork(
-                    uploadId: extraction.uploadId, values: confirmed, takenAt: takenAt
+                    uploadId: extraction.uploadId ?? "", values: confirmed, takenAt: takenAt
                 )
             } catch {
                 // Offline demo: the flow still completes; nothing is faked

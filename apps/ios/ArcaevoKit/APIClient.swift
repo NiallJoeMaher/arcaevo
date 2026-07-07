@@ -253,21 +253,28 @@ struct APIClient {
 
     /// `POST /uploads/bloodwork` — upload → AI extraction. Nothing enters
     /// the timeline until `confirmBloodwork`; low-confidence values block.
-    /// MOCK: no file bytes travel — the backend fabricates the extraction
-    /// from `fileName` (docs/MOCKED_APIS.md §11).
+    ///
+    /// For a photo/PDF, `media` carries the real bytes (base64 + MIME) so the
+    /// EU OCR vendor can transcribe the actual document. When no creds are
+    /// configured the server ignores the bytes and (dev) mock-extracts from the
+    /// file name or (prod) asks for manual entry. The manual path
+    /// (`kind:"manual"`) sends NO media. The bytes are Art.9 health data — sent
+    /// once, never persisted by the app (Body omits nil `media` from the JSON).
     func uploadBloodwork(
         kind: BloodworkUploadKind,
         fileName: String? = nil,
-        manualValues: [ManualBloodworkValue]? = nil
+        manualValues: [ManualBloodworkValue]? = nil,
+        media: BloodworkMedia? = nil
     ) async throws -> BloodworkExtraction {
         struct Body: Encodable {
             var kind: BloodworkUploadKind
             var fileName: String?
             var manualValues: [ManualBloodworkValue]?
+            var media: BloodworkMedia?
         }
         return try await post(
             "uploads/bloodwork",
-            body: Body(kind: kind, fileName: fileName, manualValues: manualValues)
+            body: Body(kind: kind, fileName: fileName, manualValues: manualValues, media: media)
         )
     }
 

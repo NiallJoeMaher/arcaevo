@@ -116,21 +116,26 @@ export class ArcaevoEmailStack extends cdk.Stack {
       }),
     );
 
-    // --- Bedrock: AI-narration InvokeModel (apps/web, docs/MOCKED_APIS.md §20)
-    // The web app's ARCAEVO_AWS_* creds (this user's access key) also sign
-    // Bedrock InvokeModel calls for insight narration. Invoking via a
-    // cross-region INFERENCE PROFILE authorizes against BOTH the profile ARN
-    // AND the underlying foundation-model ARNs it routes to, so the statement
-    // needs both resources. Live-verified 2026-07-06: the EU profile id works
-    // in eu-west-1; the bare foundation-model id is REJECTED for on-demand
-    // invocation ("Retry with an inference profile"), so the profile is the
-    // only invocation path — but the model ARNs must still be allowed.
-    // Foundation-model ARNs are region-scoped with an EMPTY account field;
-    // the region wildcard tolerates AWS changing the EU routing set while
-    // staying least-privilege on the single MODEL id.
+    // --- Bedrock: AI-narration + bloodwork-OCR InvokeModel
+    // (apps/web, docs/MOCKED_APIS.md §11 + §20)
+    // The web app's ARCAEVO_AWS_* creds (this user's access key) sign Bedrock
+    // InvokeModel calls for BOTH insight narration AND bloodwork OCR — both use
+    // the classic bedrock-runtime InvokeModel path (narration via hand-rolled
+    // SigV4; OCR via `AnthropicBedrock` from @anthropic-ai/bedrock-sdk, which
+    // targets the same InvokeModel API) against the SAME Haiku EU inference
+    // profile, so this single grant covers both features with no extra action
+    // or resource. Invoking via a cross-region INFERENCE PROFILE authorizes
+    // against BOTH the profile ARN AND the underlying foundation-model ARNs it
+    // routes to, so the statement needs both resources. Live-verified
+    // 2026-07-06: the EU profile id works in eu-west-1; the bare
+    // foundation-model id is REJECTED for on-demand invocation ("Retry with an
+    // inference profile"), so the profile is the only invocation path — but the
+    // model ARNs must still be allowed. Foundation-model ARNs are region-scoped
+    // with an EMPTY account field; the region wildcard tolerates AWS changing
+    // the EU routing set while staying least-privilege on the single MODEL id.
     smtpUser.addToPolicy(
       new iam.PolicyStatement({
-        sid: "InvokeClaudeHaikuForNarration",
+        sid: "InvokeClaudeHaikuForNarrationAndOcr",
         effect: iam.Effect.ALLOW,
         actions: ["bedrock:InvokeModel"],
         resources: [

@@ -640,9 +640,15 @@ export const BloodworkUploadSchema = z.object({
   memberId: z.string(),
   kind: z.enum(["photo", "pdf", "manual"]),
   fileName: z.string().nullable().default(null),
-  /** Lab/source name AI read off the document, e.g. "St. Vincent's". */
+  /** Lab/source name AI read off the document, e.g. "St. Vincent's". The REAL
+   * OCR vendor does not transcribe this — the route falls back to the uploaded
+   * fileName there. */
   sourceName: z.string(),
-  documentDate: z.string(), // "YYYY-MM-DD" as read from the document
+  /** "YYYY-MM-DD" as read from the document, or NULL when unknown. The mock
+   * fabricates a date; the REAL OCR vendor does NOT transcribe one (out of
+   * scope — the member sets the draw date at confirm), so it is null on the
+   * real path. Nullable so the honest "unknown" persists. */
+  documentDate: z.string().nullable().default(null),
   status: z.enum(["pending_confirmation", "confirmed", "discarded"]),
   extracted: z.array(
     z.object({
@@ -964,6 +970,81 @@ export const ShareCreateInput = z.object({
   expiresInDays: z.number().int().min(1).max(90).default(30),
 });
 
+/**
+ * MIME allowlist for real-OCR media bytes. Only still-image photos and PDFs of
+ * a lab report are transcribable; everything else is rejected before the bytes
+ * reach the vendor. (The mock/manual path never carries media.)
+ */
+export const BLOODWORK_MEDIA_MIME_ALLOWLIST = [
+  "image/jpeg",
+  "image/png",
+  "application/pdf",
+] as const;
+
+/**
+ * Max DECODED media size for a bloodwork upload: 3 MiB.
+ *
+ * WHY THIS EXACT CAP — the web app runs on Vercel serverless functions (see
+ * CLAUDE.md), whose request BODY is capped at ~4.5 MB by the platform; a 413 is
+ * returned by the platform BEFORE this handler runs, so we cannot catch it.
+ * base64 inflates bytes by ~33% (4 chars per 3 bytes), so 3 MiB decoded encodes
+ * to ~4.0 MB of base64 — the whole JSON body then stays comfortably under 4.5 MB
+ * with headroom for the envelope. NOTE (App Router): unlike the legacy
+ * `pages/api` `bodyParser.sizeLimit`, App-Router Route Handlers impose NO
+ * Next-level body cap of their own, so the platform limit is the real ceiling.
+ *
+ * CROSS-TASK DEPENDENCY (Task 7, iOS): the client MUST downscale/recompress the
+ * captured photo to fit UNDER this decoded cap while keeping the printed values
+ * legible (a full-res phone photo blows the platform limit). Do NOT raise this
+ * cap to allow huge uploads — compress client-side instead.
+ */
+export const MAX_BLOODWORK_MEDIA_DECODED_BYTES = 3 * 1024 * 1024;
+
+/** Standard (non-URL) base64 alphabet with optional `=` padding. */
+const STANDARD_BASE64 = /^[A-Za-z0-9+/]+={0,2}$/;
+
+/** Decoded byte length of a WELL-FORMED base64 string, without allocating it. */
+function base64DecodedByteLength(b64: string): number {
+  const padding = b64.endsWith("==") ? 2 : b64.endsWith("=") ? 1 : 0;
+  return (b64.length / 4) * 3 - padding;
+}
+
+/**
+ * Optional real-OCR media: the image/PDF bytes as a MIME type + base64. This is
+ * GDPR Art.9 health data — the route hands it straight to the vendor and NEVER
+ * persists or logs it (see uploads/bloodwork/route.ts).
+ *
+ * SHAPE-ONLY BY DESIGN: this schema validates only the basic { mime, base64 }
+ * shape so the request BODY always PARSES. The mime allowlist / decoded-size cap
+ * / base64 well-formedness are POLICY checks that live in `isAcceptableMedia`
+ * and are enforced in the route — a media policy failure degrades to honest
+ * manual entry (200), NEVER a raw 400 (fail-safe UX, consistent with every other
+ * OCR failure: a member with a too-large photo is routed to "type by hand").
+ */
+export const BloodworkMediaInput = z.object({
+  mime: z.string(),
+  base64: z.string(),
+});
+export type BloodworkMediaInput = z.infer<typeof BloodworkMediaInput>;
+
+/**
+ * Real-OCR media POLICY check (PURE — mime allowlist + well-formed standard
+ * base64 + decoded-size cap ≤ MAX_BLOODWORK_MEDIA_DECODED_BYTES). Lives here
+ * beside the constants it enforces and is reused by the upload route: media that
+ * fails is NOT a 400 — the route degrades to honest manual entry. Never logs or
+ * decodes the bytes (Art.9); the size check is byte-length arithmetic only.
+ */
+export function isAcceptableMedia(media: BloodworkMediaInput): boolean {
+  if (!(BLOODWORK_MEDIA_MIME_ALLOWLIST as readonly string[]).includes(media.mime)) {
+    return false;
+  }
+  const b64 = media.base64;
+  if (b64.length === 0 || b64.length % 4 !== 0 || !STANDARD_BASE64.test(b64)) {
+    return false;
+  }
+  return base64DecodedByteLength(b64) <= MAX_BLOODWORK_MEDIA_DECODED_BYTES;
+}
+
 export const BloodworkUploadInput = z.object({
   kind: z.enum(["photo", "pdf", "manual"]),
   fileName: z.string().optional(),
@@ -973,6 +1054,10 @@ export const BloodworkUploadInput = z.object({
     .array(z.object({ code: z.string(), value: z.number(), unit: z.string() }))
     .max(100)
     .optional(),
+  /** OPTIONAL real-OCR bytes (photo/pdf). Present ⇒ the route calls the real
+   * vendor when creds are configured; absent ⇒ the mock/manual path. NEVER
+   * persisted or logged (Art.9). */
+  media: BloodworkMediaInput.optional(),
 });
 
 export const BloodworkConfirmInput = z.object({

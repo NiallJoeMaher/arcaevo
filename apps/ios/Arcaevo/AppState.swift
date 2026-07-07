@@ -104,6 +104,9 @@ struct UploadConfirmState: Codable, Equatable {
     var sourceName: String
     var documentDate: String // YYYY-MM-DD
     var values: [PendingValue]
+    /// Markers the OCR saw but couldn't read — surfaced as a gentle hint on the
+    /// confirm screen ("N couldn't be read automatically — add them by hand").
+    var unreadableCount: Int
 
     /// True while any low-confidence value is unresolved — confirm is blocked.
     var isBlocked: Bool {
@@ -111,9 +114,13 @@ struct UploadConfirmState: Codable, Equatable {
     }
 
     init(extraction: BloodworkExtraction) {
-        uploadId = extraction.uploadId
-        sourceName = extraction.sourceName
-        documentDate = extraction.documentDate
+        uploadId = extraction.uploadId ?? ""
+        sourceName = extraction.sourceName ?? "Your document"
+        // Real OCR sends a null draw date — seed the confirm screen's editable
+        // date picker with today; the member sets the actual draw date there and
+        // that choice (not upload day) is what's sent as `takenAt`.
+        documentDate = extraction.documentDate ?? DataV3Format.isoDay(Date())
+        unreadableCount = extraction.unreadableCount ?? 0
         values = extraction.values.map {
             PendingValue(
                 code: $0.code,
@@ -505,19 +512,41 @@ final class AppState {
 
     // MARK: - Upload → confirm (low confidence blocks)
 
-    func beginUpload(kind: BloodworkUploadKind, fileName: String?) async {
+    /// The outcome of an upload attempt — lets the calling screen route the
+    /// member correctly instead of always pushing the confirm screen.
+    enum UploadOutcome: Equatable {
+        /// Extraction succeeded → `uploadConfirm` is populated; push confirm.
+        case confirm
+        /// Server declined to auto-read (prod without OCR, or nothing legible)
+        /// → route the member to type-by-hand. Nothing was persisted.
+        case manualEntry
+        /// Network/decoding failure (offline Release) → `authError` is set.
+        case failed
+    }
+
+    @discardableResult
+    func beginUpload(
+        kind: BloodworkUploadKind,
+        fileName: String?,
+        media: BloodworkMedia? = nil
+    ) async -> UploadOutcome {
         let extraction: BloodworkExtraction
         do {
-            extraction = try await api.uploadBloodwork(kind: kind, fileName: fileName)
+            extraction = try await api.uploadBloodwork(kind: kind, fileName: fileName, media: media)
         } catch {
             guard DemoMode.isEnabled else {
                 authError = Self.offlineMessage
-                return
+                return .failed
             }
             extraction = DemoDataProvider.bloodworkExtraction(fileName: fileName)
             isDemoSession = true
         }
+        // Honest manual-entry: no confirm payload to show — hand off to typing.
+        if extraction.isManualEntryRequired {
+            return .manualEntry
+        }
         uploadConfirm = UploadConfirmState(extraction: extraction)
+        return .confirm
     }
 
     func resolveUploadValue(code: String, value: Double) {
@@ -529,8 +558,10 @@ final class AppState {
     }
 
     /// Blocked while any low-confidence read is unresolved — mirrors the
-    /// backend's 422 `unresolved_low_confidence`.
-    func confirmUpload() async -> Bool {
+    /// backend's 422 `unresolved_low_confidence`. `takenAt` is the YYYY-MM-DD
+    /// draw date the member confirms on-screen (real OCR can't read it), NOT the
+    /// upload day — otherwise a backfilled report misdates and corrupts baselines.
+    func confirmUpload(takenAt: String) async -> Bool {
         guard let state = uploadConfirm, !state.isBlocked else { return false }
         let values = state.values.map {
             ConfirmedBloodworkValue(code: $0.code, value: $0.confirmedValue)
@@ -539,7 +570,7 @@ final class AppState {
             _ = try await api.confirmBloodwork(
                 uploadId: state.uploadId,
                 values: values,
-                takenAt: state.documentDate
+                takenAt: takenAt
             )
         } catch {
             // DEBUG demo: treat as written locally. Release: not persisted

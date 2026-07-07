@@ -94,27 +94,30 @@
 | DPA status | ☐ **MUST SIGN before any venous-draw booking** (paid-tier gate) |
 | Open items | Select vendor; DPA; scope-of-practice + clinical governance |
 
-### 8. EU OCR / vision extraction vendor (bloodwork upload) **[PLANNED]**
+### 8. EU OCR / vision extraction vendor (bloodwork upload) — **REALISED as AWS Bedrock EU (see #9)**
 | | |
 |---|---|
-| Data shared | Uploaded lab documents (photo/PDF) containing special-category health data |
+| Data shared | Uploaded lab documents (photo/PDF) containing special-category health data **+ the identifiers printed on the report** |
 | Role | **Processor** |
-| Region | Must be **EU-hosted** |
-| Live in code? | **MOCKED and gated OFF in production** — `ai-extraction.mock.ts` fabricates values; `ALLOW_MOCK_EXTRACTION` gate keeps it off for real users, who are routed to manual entry (`MOCKED_APIS.md` §11, `env.ts`) |
-| Transfer basis | EU-hosted; SCCs if non-EU vendor |
-| DPA status | ☐ **MUST SIGN before enabling real photo/PDF extraction**; contractually prohibit training on customer data |
-| Open items | Choose EU vendor; original-file storage (user-deletable); human-in-the-loop for low-confidence reads |
+| Region | **EU-hosted — AWS Bedrock eu-west-1** |
+| Live in code? | **REALISED — the real OCR vendor is AWS Bedrock (Claude Haiku vision); see entry #9 for the full record.** WIRED but **ships dark**: real extraction runs only when `ARCAEVO_AWS_*` creds are present (`ai-extraction.bedrock.ts`, `ai-extraction.ts`); otherwise the deterministic mock is dev/e2e-only (`ai-extraction.mock.ts`, `ALLOW_MOCK_EXTRACTION`), and real production users route to manual entry (`MOCKED_APIS.md` §11, `env.ts`). **This row is retained only as a pointer — the live record is #9.** |
+| Transfer basis | EU-hosted; **AWS US-parented → SCCs required** — see #9 |
+| DPA status | ☐ **MUST SIGN (AWS DPA + SCCs) before enabling real photo/PDF extraction** — tracked on the AWS Bedrock entry #9; contractually confirm no-training/no-retention |
+| Open items | See #9. Also: original-file storage is **deliberately not implemented** (image never persisted — zero retention); human-in-the-loop is the **confirm-before-save** step + low-confidence flagging |
 
-### 9. LLM / AI narration provider **[PLANNED]**
+### 9. AWS Bedrock (EU) — Claude Haiku vision/LLM: **AI narration + AI-OCR of blood reports**
 | | |
 |---|---|
-| Data shared | Deterministic rule outputs turned into plain-English narration. **Must be constrained so no raw health identifiers/values are sent unnecessarily**; today insights/chat are canned demo content (`STRATEGY.md` §2) |
-| Role | **Processor** |
-| Region | Choose an **EU-region** endpoint |
-| Live in code? | Not wired for real generation yet (`legal.ts` "AI narration" describes the intended posture: prohibited from training on data, cannot set thresholds) |
-| Transfer basis | EU endpoint + SCCs as needed |
-| DPA status | ☐ **SIGN before shipping real generated narration**; zero-retention / no-training terms |
-| Open items | Data-minimise the prompt; review generated copy against the wellness/MDR line (`LAUNCH_READINESS.md` §2) |
+| Data shared | **Two activities on the SAME Bedrock EU sub-processor** (extended here rather than listed twice): **(a) AI narration** — deterministic rule outputs turned into plain-English narration; input is **PII-free by type** (marker code/name/unit + values/delta + verdict word — never member ids/names/emails) (`MOCKED_APIS.md` §20). **(b) AI-OCR (NEW)** — the **raw blood-report image/PDF** uploaded by the member, transcribed to biomarker values; this input is **special-category health data that ALSO carries the direct identifiers printed on the report** (name, DOB, address, lab reference) — the identifiers cannot be reliably stripped before OCR, so the full image transits **in-flight only** (`MOCKED_APIS.md` §11) |
+| Role | **Processor** (AWS runs the model in-region on Arcaevo's instructions; the model provider Anthropic does not receive the data on Bedrock — **confirm against the executed DPA**) |
+| Region | **AWS Bedrock, eu-west-1** (EU residency) — `ARCAEVO_AWS_REGION` default `eu-west-1`; model `eu.anthropic.claude-haiku-4-5-…` (the EU cross-region inference profile) |
+| Live in code? | **Narration: LIVE-CAPABLE**, fail-safe OFF (`ai-narration.bedrock.ts`; credentials are the switch). **AI-OCR: WIRED but ships dark** — selected only when `ARCAEVO_AWS_*` creds are present (`ai-extraction.ts`, `ai-extraction.bedrock.ts`, `uploads/bloodwork/route.ts`); otherwise members route to manual entry. Narration uses the hand-rolled `node:crypto` SigV4 path; **OCR uses the sanctioned `@anthropic-ai/bedrock-sdk` client** (pinned, region-locked — confirm no payload logging) |
+| Transfer basis | EU-region inference; **AWS Inc. is US-parented → SCCs required** in the AWS DPA even for EU-region data. Per the AWS Bedrock DPA, inputs/outputs are **not retained and not used for training**, and the model provider does not receive the data on Bedrock — **strong posture, but must be sourced from the executed DPA and cited, not assumed** |
+| DPA status | ☐ **MUST SIGN before enabling either feature with real users** — AWS DPA + SCCs; **confirm the no-retention / no-training / provider-does-not-receive-data terms**. **Hard gate for OCR:** do NOT set `ARCAEVO_AWS_*` in production until the DPA/SCCs are executed, the privacy notice is updated, and the SDK payload-logging check is done (DPIA R10 / OCR checklist) |
+| Retention | **Narration:** no health values persisted server-side beyond the content-addressed, member-free `narrations` cache (PII-free by type). **AI-OCR image: ZERO retention** — never persisted, never logged, discarded immediately after extraction; only the validated numeric readings persist (`self_reported`) |
+| Open items | Data-minimise the narration prompt (already PII-free); confirm the AWS Bedrock DPA no-retention/no-training terms + cite; confirm `@anthropic-ai/bedrock-sdk` emits no payload telemetry; review generated/transcribed copy against the wellness/MDR line (scope-locked prompt + clinical-language output guard already coded); update the public `legal.ts` copy to disclose AI-OCR image processing (flagged — needs sign-off) |
+
+> **Note — AWS also appears as the email (SES) sub-processor** (see #4). SES (email) and Bedrock (narration/OCR) are **the same US-parented AWS entity under one AWS DPA + SCCs**, different services/regions of it; track them as one vendor relationship with per-service scopes.
 
 ### 10. Apple — HealthKit & platform — **NOT a processor for on-device HealthKit**
 | | |
@@ -136,13 +139,13 @@
 - ☐ **Vercel** (all data) — with SCCs
 - ☐ **EU ESP** (magic-link delivery = the only way in) — vendor must be chosen first
 - ☐ **PostHog EU** — before analytics is enabled with real users (or keep analytics off at launch)
+- ☐ **AWS Bedrock EU** (AI narration + AI-OCR — #9) + SCCs — **before setting `ARCAEVO_AWS_*` in production** (the credentials switch on both features; OCR additionally sends identifiable Art. 9 image data). Confirm no-retention/no-training terms; update the privacy notice; confirm `@anthropic-ai/bedrock-sdk` has no payload logging (DPIA R10 / OCR checklist)
 
 **Additionally required BEFORE paid blood-testing tiers:**
 - ☐ **Stripe** (EU entity) — controller/processor mix; before real payments
 - ☐ **LetsGetChecked** (lab) — before any real lab test; erasure must reach the lab copy
 - ☐ **Mobile phlebotomy vendor** — before any venous draw
-- ☐ **EU OCR vendor** — before enabling real photo/PDF extraction
-- ☐ **LLM narration provider** — before shipping real generated narration
+- ☑ **EU OCR vendor** — realised as **AWS Bedrock EU** (above); no separate vendor to choose
 
 **Not a DPA item:** Apple (on-device HealthKit) — governed by the Developer Program Agreement, not an Art. 28 DPA.
 

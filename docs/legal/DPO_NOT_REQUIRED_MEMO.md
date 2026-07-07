@@ -105,7 +105,7 @@ Reassess this memo, and **appoint a DPO (likely outsourced/fractional) before**,
 1. **Any public availability / open sign-up** — leaving the closed trial for general availability.
 2. **Onboarding beyond a set user count** — **[SET THRESHOLD — e.g. 250 active users; confirm the number with the solicitor/DPC guidance]**; reassess well *before* reaching it so appointment precedes the crossing.
 3. **Going live with real blood samples and/or real clinician review at any meaningful volume** — a material change in the nature and volume of Art. 9 processing.
-4. **Any material change** to purposes, data categories (e.g. enabling cycle data broadly, new biomarkers), processors, or cross-border transfers.
+4. **Any material change** to purposes, data categories (e.g. enabling cycle data broadly, new biomarkers), processors, or cross-border transfers — **including enabling the new AI-OCR of blood-report images** (automated transcription of uploaded reports via AWS Bedrock EU; see `DPIA.md` R10). At scale, **large-scale automated processing of special-category data** is a WP243 factor that weighs toward "large scale" and should be **revisited when OCR is enabled and as volume grows** — noted here as a factor to reconsider (not, on its own at trial scale, a conclusion that a DPO is now required).
 5. **Formation of a dedicated Arcaevo entity** on monetisation — re-make this assessment for the new controller and migrate/novate accordingly.
 6. **DPC guidance or a supervisory-authority signal** indicating a lower "large scale" threshold for health data.
 7. **Time-box:** in any event, **review by [DATE — e.g. 6 months from the assessment date]** even absent a trigger.

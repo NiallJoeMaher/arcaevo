@@ -63,19 +63,19 @@
 | Retention | On-device: a 60-day series queried live from HealthKit and held in memory (baseline window; workouts 14d, sleep 30d) — no raw on-disk health store (`apps/ios/Arcaevo/AppModel.swift`, `HealthKitProvider.swift`); backend daily aggregates retained for active account; erased on deletion |
 | Security | [S]; HealthKit read-only (no write/share types); health values excluded from iOS `UserDefaults` (Keychain holds only the session token); data-minimised sync (4 metrics, daily granularity, not raw streams) |
 
-## A4 — Blood-panel processing (upload / manual entry now; lab kits [PLANNED])
+## A4 — Blood-panel processing (upload / manual entry now; lab kits [PLANNED]) — incl. AI-OCR of report images
 
 | Attribute | Detail |
 |---|---|
-| Purpose | Capture biomarker values (user-uploaded/typed now; lab-returned [PLANNED]); compute personal baseline bands + RCV "real change" verdicts; render fusion timeline |
+| Purpose | Capture biomarker values (user-uploaded/typed now; lab-returned [PLANNED]); **AI-OCR transcription of an uploaded blood-report image/PDF into biomarker values** (member confirms every value before save); compute personal baseline bands + RCV "real change" verdicts; render fusion timeline |
 | Data subjects | Members |
-| Personal data categories | **Special-category (health).** Biomarker readings (code, value, unit, `takenAt`, baseline band, RCV verdict, `source: lab | self_reported`, `clinicianReviewed`); bloodwork uploads (kind photo/pdf/manual, filename, source lab name, document date, extracted values) — `BiomarkerReadingSchema`, `BloodworkUploadSchema` (`models.ts`) |
-| Special-category data | Yes — Art. 9 health data |
+| Personal data categories | **Special-category (health).** Biomarker readings (code, value, unit, `takenAt`, baseline band, RCV verdict, `source: lab | self_reported`, `clinicianReviewed`); bloodwork uploads (kind photo/pdf/manual, filename, source lab name, document date, extracted values) — `BiomarkerReadingSchema`, `BloodworkUploadSchema` (`models.ts`). **AI-OCR input (NEW):** the raw **report image/PDF** — special-category health data that **also carries the direct identifiers printed on the report** (name, DOB, address, lab reference). Transits to the OCR processor **in-flight only**; **there is no raw-image field on `BloodworkUpload`** — the image is never stored |
+| Special-category data | Yes — Art. 9 health data (the OCR input image additionally carries printed identifiers) |
 | Lawful basis | Art. 9(2)(a) explicit consent (`health_processing`); ordering a lab test additionally requires `clinician_review` consent (`consent-guard.ts` `clinicianReview` option) |
-| Recipients / processors | MongoDB Atlas; Vercel; **[PLANNED]** LetsGetChecked (lab), EU OCR vendor (extraction), mobile phlebotomy vendor |
-| Transfers | EU-only intended |
-| Retention | Active account; erased on deletion. **Note:** mock AI extraction is OFF in production (`ALLOW_MOCK_EXTRACTION` gate, `env.ts`) — real users are routed to manual hand-entry until a real EU OCR vendor lands |
-| Security | [S]; self-reported values permanently distinguished ("hollow gold dots", never presented as clinician-reviewed); confirm-array capped at 100 |
+| Recipients / processors | MongoDB Atlas; Vercel; **AWS Bedrock EU (eu-west-1) — Claude Haiku 4.5 vision, the AI-OCR processor** (same Bedrock EU sub-processor as AI narration §A6 — see `SUBPROCESSORS.md` "AWS (Bedrock + SES)"; **AWS is US-parented → AWS DPA + SCCs required**); **[PLANNED]** LetsGetChecked (lab), mobile phlebotomy vendor |
+| Transfers | EU-region processing (Bedrock eu-west-1). **AWS is US-parented → SCCs required** in the AWS DPA even for EU-region inference. Per the AWS Bedrock DPA, inputs/outputs are not retained and not used for training, and the model provider (Anthropic) does not receive the data on Bedrock — **to confirm against the executed DPA and cite** (DPIA R10 / OCR checklist) |
+| Retention | Active account; erased on deletion. **AI-OCR image/PDF: ZERO retention** — never persisted by us, never logged, EU-region only, **discarded immediately after extraction** (in-flight only); only the validated numeric readings persist (`self_reported`), following the existing biomarker-reading retention (`DATA_RETENTION.md` row 6). **Note:** mock AI extraction is OFF in production (`ALLOW_MOCK_EXTRACTION` gate, `env.ts`); the real OCR **ships dark** and is selected only when `ARCAEVO_AWS_*` creds are set (`ai-extraction.ts`) — otherwise real users are routed to manual hand-entry |
+| Security | [S]; self-reported values permanently distinguished ("hollow gold dots", never presented as clinician-reviewed); confirm-array capped at 100. **AI-OCR:** image never persisted (no raw-image field — `route.ts`) / never logged (`ai-extraction.bedrock.ts`, `ai-extraction.ts`, `route.ts`); EU-region only; discarded after extraction; **scope-locked** (transcription-only prompt + clinical-language output guard — no diagnosis); **confirm-before-save**; fail-safe to manual entry; sanctioned client `@anthropic-ai/bedrock-sdk` (pinned, region-locked — confirm no payload logging) |
 
 ## A5 — Menstrual / cycle data (opt-in) [HIGHEST SENSITIVITY]
 
@@ -178,7 +178,7 @@
 
 ## [S] — Common technical & organisational security measures (Art. 30(1)(g))
 
-- **EU-only hosting** — Vercel (dub1/fra1), MongoDB Atlas (eu-west-1), PostHog EU (`BUILD_STATE.md`, `MOCKED_APIS.md` §6/§9).
+- **EU-only hosting** — Vercel (dub1/fra1), MongoDB Atlas (eu-west-1), PostHog EU, **AWS Bedrock (eu-west-1) for AI narration + AI-OCR** (`BUILD_STATE.md`, `MOCKED_APIS.md` §6/§9/§11/§20). AWS is US-parented → **AWS DPA + SCCs required**.
 - **Server-side Art. 9 consent enforcement** on all 8 health endpoints; withdrawal instantly revokes every session (`consent-guard.ts`).
 - **Real, scheduled erasure** with a 30-day grace window (`erasure.ts`, `vercel.json` cron, `CRON_SECRET`).
 - **Fail-closed production secrets** — server refuses to boot without `SESSION_SECRET` + `ADMIN_PASSWORD` (`env.ts`, `instrumentation.ts`).

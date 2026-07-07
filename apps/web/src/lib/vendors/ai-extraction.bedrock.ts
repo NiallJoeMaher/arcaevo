@@ -93,6 +93,7 @@ export function createBedrockExtractionVendor({
 }: BedrockExtractionVendorConfig): BedrockExtractionVendor {
   return {
     async extract(media: Media): Promise<ValidationResult> {
+      // 1. Transport: raw model JSON text, or null on any failure.
       const text = await runVisionExtraction({
         client,
         modelId,

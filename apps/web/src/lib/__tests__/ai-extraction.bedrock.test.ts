@@ -135,6 +135,32 @@ describe("createBedrockExtractionVendor().extract", () => {
     expect(result.extracted[0]).toMatchObject({ unit: "µg/L", value: 41, flagged: false });
   });
 
+  it("fails safe to EMPTY when the raw text carries MULTIPLE JSON objects (ambiguous → drop)", async () => {
+    // The braces fallback slices first `{` … last `}`, which spans BOTH objects
+    // and is invalid JSON → drop. Proves robustParse never silently grabs one of
+    // several objects, so partial/ambiguous data is never surfaced.
+    const { client } = clientReturning(
+      '{"values":[{"code":"ferritin","value":45,"unit":"µg/L","confidence":0.98}]} {"values":[]}'
+    );
+
+    const result = await makeVendor(client).extract(IMAGE);
+
+    expect(result).toEqual({ extracted: [], droppedUnknown: [], droppedInvalid: 0 });
+  });
+
+  it("rejects EMPTY when clinical language sits INSIDE the JSON payload (guard scans full text)", async () => {
+    // Otherwise-valid JSON, but a diagnostic leak lives in a string value inside
+    // the JSON region. The guard runs on the FULL raw text (including inside the
+    // payload), so the whole extraction is still rejected.
+    const { client } = clientReturning(
+      '{"note":"you may have anaemia","values":[{"code":"ferritin","value":45,"unit":"µg/L","confidence":0.98}]}'
+    );
+
+    const result = await makeVendor(client).extract(IMAGE);
+
+    expect(result).toEqual({ extracted: [], droppedUnknown: [], droppedInvalid: 0 });
+  });
+
   it("composes identically for a PDF media path", async () => {
     const { client, create } = clientReturning(
       JSON.stringify({

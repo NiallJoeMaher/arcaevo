@@ -1,5 +1,5 @@
 /**
- * Scope-locked OCR prompt + clinical-language output guard (pure, no I/O).
+ * Scope-locked OCR prompt (pure, no I/O).
  *
  * The bloodwork OCR step reads a lab-report image/PDF (GDPR Art.9 health data)
  * and must ONLY transcribe the printed result values — never interpret them.
@@ -13,21 +13,16 @@
  *    model output leaks clinical/diagnostic language it is rejected (the caller
  *    then drops the extraction rather than surface a diagnosis).
  *
- * CONSISTENCY WITH THE NARRATION GUARD (deliberate): the forbidden vocabulary
- * here is aligned to the narration guardrail in
- * `vendors/ai-narration.bedrock.ts` (`sanitizeNarration`, which rejects
- * /(diagnos|disease|prescri|medicat|treatment)/i) and the forbidden-word list
- * baked into `NARRATION_SYSTEM_PROMPT` in `vendors/ai-narration.ts`
- * (diagnosis/diagnose/disease/prescribe/prescription/medication/treatment).
- * The narration guard exposes NO shareable clinical-term list (its regex is
- * inline in `sanitizeNarration`; the words are hardcoded strings in the
- * prompt), so a clean DRY reuse would require refactoring narration — that is
- * Task 8 (narration light-refactor onto a shared shape). Until then this keeps
- * an INDEPENDENT but vocabulary-aligned regex, a superset of the narration
- * terms (adds the OCR-specific leaks: deficiency, anaemia/anemia, "consult a
- * doctor", "you may/might have"). TODO(Task 8): consolidate onto one shared
- * clinical-term guard so narration + OCR can never drift apart.
+ * The output guard is now the SINGLE shared clinical-language guard in
+ * `ai/clinical-language.ts`, which the narration guardrail
+ * (`vendors/ai-narration.bedrock.ts` `sanitizeNarration`) also routes through —
+ * so the two safety vocabularies can never drift apart. `containsClinicalLanguage`
+ * is re-exported here so OCR callers keep their existing import path unchanged.
  */
+
+// The output guard lives in the shared clinical-language module so narration +
+// OCR can never fork the safety vocabulary. Re-exported below for OCR callers.
+export { containsClinicalLanguage } from "@/lib/ai/clinical-language";
 
 /**
  * Scope-locked system prompt: TRANSCRIBE result values only. Written as joined
@@ -40,22 +35,3 @@ export const OCR_SYSTEM_PROMPT = [
   "Never use diagnostic or clinical language of any kind — you are copying numbers, not reading meaning into them.",
   "If a value is unreadable, or the document is not a blood-test report, return no values rather than guessing.",
 ].join("\n");
-
-/**
- * OUTPUT GUARD — returns true if the text leaks clinical/diagnostic language.
- *
- * Vocabulary is aligned to (and a superset of) the narration guard:
- *   - narration `sanitizeNarration`: diagnos | disease | prescri | medicat | treatment
- *   - OCR-specific leaks: deficien(cy|t) | anaemia/anemia | consult a doctor |
- *     you may/might have.
- *
- * Deliberately word-scoped (\b … token boundaries) so legitimate transcription
- * — marker codes (ferritin, apob, hdl_c), values, units (µg/L, g/L, mmol/L),
- * and the plain words "value"/"reading"/"alternative" — never trips it.
- */
-const CLINICAL_LANGUAGE =
-  /\b(diagnos\w*|disease|anaemi\w*|anemi\w*|deficien\w*|medicat\w*|treat(?:ment|ing|s|ed)?|prescri\w*|dosage|consult (?:a|your) doctor|you (?:may|might) have)\b/i;
-
-export function containsClinicalLanguage(text: string): boolean {
-  return CLINICAL_LANGUAGE.test(text);
-}

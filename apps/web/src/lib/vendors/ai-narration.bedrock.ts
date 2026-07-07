@@ -23,6 +23,7 @@
  * model id only. The IAM secret exists only inside the HMAC chain.
  */
 import { logError } from "@/lib/log";
+import { containsClinicalLanguage } from "@/lib/ai/clinical-language";
 import { sha256Hex, signAwsRequestV4 } from "@/lib/aws-sigv4";
 import {
   NARRATION_SYSTEM_PROMPT,
@@ -51,11 +52,15 @@ interface AnthropicMessagesResponse {
  * Output guardrail (belt and braces on top of the system prompt): reject
  * empty, over-long, or medical-language outputs. Rejection = null = the
  * deterministic template ships. Exported for the unit tests.
+ *
+ * The clinical-language check routes through the SINGLE shared guard in
+ * `ai/clinical-language.ts` — the same guard the bloodwork OCR output uses — so
+ * the wellness-not-diagnosis vocabulary can never drift between the two.
  */
 export function sanitizeNarration(raw: string | undefined | null): string | null {
   const text = raw?.trim() ?? "";
   if (text.length === 0 || text.length > 600) return null;
-  if (/(diagnos|disease|prescri|medicat|treatment)/i.test(text)) return null;
+  if (containsClinicalLanguage(text)) return null;
   return text;
 }
 

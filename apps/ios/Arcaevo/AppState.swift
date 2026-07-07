@@ -116,8 +116,9 @@ struct UploadConfirmState: Codable, Equatable {
     init(extraction: BloodworkExtraction) {
         uploadId = extraction.uploadId ?? ""
         sourceName = extraction.sourceName ?? "Your document"
-        // Real OCR sends a null draw date — default to today so confirm's
-        // `takenAt` is always a valid YYYY-MM-DD (the member can still adjust it).
+        // Real OCR sends a null draw date — seed the confirm screen's editable
+        // date picker with today; the member sets the actual draw date there and
+        // that choice (not upload day) is what's sent as `takenAt`.
         documentDate = extraction.documentDate ?? DataV3Format.isoDay(Date())
         unreadableCount = extraction.unreadableCount ?? 0
         values = extraction.values.map {
@@ -557,8 +558,10 @@ final class AppState {
     }
 
     /// Blocked while any low-confidence read is unresolved — mirrors the
-    /// backend's 422 `unresolved_low_confidence`.
-    func confirmUpload() async -> Bool {
+    /// backend's 422 `unresolved_low_confidence`. `takenAt` is the YYYY-MM-DD
+    /// draw date the member confirms on-screen (real OCR can't read it), NOT the
+    /// upload day — otherwise a backfilled report misdates and corrupts baselines.
+    func confirmUpload(takenAt: String) async -> Bool {
         guard let state = uploadConfirm, !state.isBlocked else { return false }
         let values = state.values.map {
             ConfirmedBloodworkValue(code: $0.code, value: $0.confirmedValue)
@@ -567,7 +570,7 @@ final class AppState {
             _ = try await api.confirmBloodwork(
                 uploadId: state.uploadId,
                 values: values,
-                takenAt: state.documentDate
+                takenAt: takenAt
             )
         } catch {
             // DEBUG demo: treat as written locally. Release: not persisted

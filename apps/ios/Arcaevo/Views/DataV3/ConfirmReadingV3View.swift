@@ -8,6 +8,11 @@ struct ConfirmReadingV3View: View {
     @Environment(AppState.self) private var appState
     @State private var pushTimeline = false
     @State private var confirming = false
+    /// The member-confirmed blood-draw date. Real OCR can't read it, so it's
+    /// editable here; seeded from the extraction's date (today, on the real
+    /// path). This — not the upload day — is what's sent as `takenAt`.
+    @State private var drawDate: Date?
+    @State private var showDatePicker = false
 
     var body: some View {
         DataV3Screen {
@@ -39,11 +44,12 @@ struct ConfirmReadingV3View: View {
             .foregroundStyle(Color.arcDeepGreen)
             .padding(.bottom, 12)
 
-        Text("\(state.sourceName) · \(documentDateLabel(state)) — look right?")
+        Text("\(state.sourceName) · \(selectedDateLabel(state)) — look right?")
             .font(.arcSerif(24))
             .foregroundStyle(Color.ink)
             .lineSpacing(2)
             .padding(.bottom, state.unreadableCount > 0 ? 10 : 16)
+            .onAppear { seedDrawDate(from: state) }
 
         // Non-alarming hint when OCR couldn't read some markers — the member
         // can still add them via type-by-hand. Additive `unreadableCount`.
@@ -54,6 +60,11 @@ struct ConfirmReadingV3View: View {
                 .lineSpacing(3)
                 .padding(.bottom, 16)
         }
+
+        // Editable draw date — real OCR never reads it, so the member sets it.
+        // Wrong-dated backfill would corrupt the RCV/baseline math (readings
+        // sort by takenAt), so this drives the confirm submission's `takenAt`.
+        drawDateField
 
         ForEach(state.values) { value in
             if value.lowConfidence {
@@ -79,8 +90,9 @@ struct ConfirmReadingV3View: View {
             Button {
                 guard !confirming else { return }
                 confirming = true
+                let takenAt = BloodworkDrawDate.takenAt(from: drawDate ?? Date())
                 Task {
-                    let confirmed = await appState.confirmUpload()
+                    let confirmed = await appState.confirmUpload(takenAt: takenAt)
                     confirming = false
                     if confirmed { pushTimeline = true }
                 }
@@ -178,7 +190,66 @@ struct ConfirmReadingV3View: View {
         )
     }
 
+    // MARK: Draw date
+
+    /// The editable "Date of draw" control. OCR can't read the draw date, so the
+    /// member confirms it here; the DatePicker is capped at today (a draw can't
+    /// be in the future) and its value flows into the confirm `takenAt`.
+    private var drawDateField: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Date of draw")
+                .font(.arcSans(12, weight: .semibold))
+                .foregroundStyle(Color.ink)
+            Text("When was this blood drawn? Check your report — we can't read the date automatically.")
+                .font(.arcSans(11))
+                .foregroundStyle(Color.arcSecondaryLight)
+                .lineSpacing(2)
+
+            Button { withAnimation { showDatePicker.toggle() } } label: {
+                Text(drawDate.map(DataV3Format.shortDate) ?? "Pick the date of the draw")
+                    .font(.arcSans(14))
+                    .foregroundStyle(drawDate == nil ? Color.arcSecondaryLight : Color.ink)
+                    .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                    .padding(.horizontal, 14)
+                    .dataV3Card(radius: 12, border: Color.arcDarkSurface.opacity(0.16))
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+
+            if showDatePicker {
+                DatePicker(
+                    "Date of draw",
+                    selection: Binding(
+                        get: { drawDate ?? Date() },
+                        set: { drawDate = $0 }
+                    ),
+                    in: ...Date(), // a blood draw is today or earlier
+                    displayedComponents: .date
+                )
+                .datePickerStyle(.graphical)
+                .tint(Color.arcDeepGreen)
+                .padding(8)
+                .dataV3Card(radius: 12)
+            }
+        }
+        .padding(.bottom, 16)
+    }
+
+    /// Seed the picker once from the extraction's date (today on the real path;
+    /// the parsed document date on the mock path). Idempotent.
+    private func seedDrawDate(from state: UploadConfirmState) {
+        guard drawDate == nil else { return }
+        drawDate = DataV3Format.fromISODay(state.documentDate) ?? Date()
+    }
+
     // MARK: Helpers
+
+    /// Header date — reflects the member's current pick so the "look right?"
+    /// line and the picker never disagree.
+    private func selectedDateLabel(_ state: UploadConfirmState) -> String {
+        if let drawDate { return DataV3Format.shortDate(drawDate) }
+        return documentDateLabel(state)
+    }
 
     private func documentDateLabel(_ state: UploadConfirmState) -> String {
         guard let date = DataV3Format.fromISODay(state.documentDate) else { return state.documentDate }

@@ -82,6 +82,47 @@ final class BloodworkUploadTests: XCTestCase {
         XCTAssertFalse(ext.isManualEntryRequired)
     }
 
+    // MARK: - Draw date → takenAt (member's choice, not upload day)
+
+    private func gregorian(_ tz: String = "Europe/Dublin") -> Calendar {
+        var cal = Calendar(identifier: .gregorian)
+        cal.timeZone = TimeZone(identifier: tz)!
+        return cal
+    }
+
+    private func day(_ y: Int, _ m: Int, _ d: Int, _ cal: Calendar) -> Date {
+        DateComponents(calendar: cal, timeZone: cal.timeZone, year: y, month: m, day: d).date!
+    }
+
+    func testTakenAtUsesSelectedDateNotToday() {
+        let cal = gregorian()
+        // A report drawn months ago must stamp its OWN date, not the upload day.
+        let selected = day(2025, 2, 14, cal)
+        let now = day(2026, 7, 7, cal)
+        XCTAssertEqual(
+            BloodworkDrawDate.takenAt(from: selected, now: now, calendar: cal),
+            "2025-02-14"
+        )
+    }
+
+    func testTakenAtClampsFutureDrawToToday() {
+        let cal = gregorian()
+        let future = day(2030, 1, 1, cal)
+        let now = day(2026, 7, 7, cal)
+        // A draw can't be in the future — clamp (belt-and-braces with the picker).
+        XCTAssertEqual(
+            BloodworkDrawDate.takenAt(from: future, now: now, calendar: cal),
+            "2026-07-07"
+        )
+    }
+
+    func testTakenAtFormatMatchesServerContract() {
+        let cal = gregorian()
+        let d = day(2026, 12, 3, cal)
+        // Zero-padded YYYY-MM-DD, exactly what the confirm route expects.
+        XCTAssertEqual(BloodworkDrawDate.takenAt(from: d, now: d, calendar: cal), "2026-12-03")
+    }
+
     // MARK: - Photo compression (fit the server cap; stay a decodable JPEG)
 
     #if canImport(UIKit)

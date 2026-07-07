@@ -270,7 +270,7 @@ export async function runVisionExtraction({ client, modelId, system, media, time
     const req = client.messages.create(
       {
         model: modelId,
-        max_tokens: 1024,
+        max_tokens: 4096, // headroom: a full ~17-marker panel with alternatives can near ~1k tokens; avoids silent mid-JSON truncation. Output tokens bill only for what's generated.
         system,
         messages: [{ role: "user", content: [contentBlock(media), { type: "text", text: "Extract the blood-test values as JSON: { values: [{ code, value, unit, confidence, alternatives? }] }." }] }],
       },

@@ -56,7 +56,10 @@ describe("runVisionExtraction — request shape", () => {
     const [body, options] = create.mock.calls[0];
     expect(body.model).toBe(MODEL);
     expect(body.system).toBe(SYSTEM);
-    expect(body.max_tokens).toBe(1024);
+    // Generous ceiling: a full ~17-marker panel with `alternatives` arrays can
+    // approach ~1k tokens; 4096 avoids silent mid-JSON truncation (which would
+    // fail Task 5's parse and drop the whole panel to manual entry).
+    expect(body.max_tokens).toBe(4096);
 
     const content = body.messages[0].content;
     const image = content.find((b: { type: string }) => b.type === "image");
@@ -69,8 +72,11 @@ describe("runVisionExtraction — request shape", () => {
     expect(content.some((b: { type: string }) => b.type === "document")).toBe(false);
     expect(content.some((b: { type: string }) => b.type === "text")).toBe(true);
 
-    // Behaviour 5 (a): the hard deadline is forwarded to the SDK call options.
+    // Behaviour 5 (a): the hard deadline is forwarded to the SDK call options,
+    // and background retries are disabled so an abandoned (post-deadline)
+    // request does no further network work on a possibly-frozen instance.
     expect(options?.timeout).toBe(5000);
+    expect(options?.maxRetries).toBe(0);
   });
 
   it("forwards a default timeout when timeoutMs is omitted", async () => {
@@ -204,5 +210,36 @@ describe("runVisionExtraction — hard timeout", () => {
         timeoutMs: 20,
       })
     ).resolves.toBeNull();
+  });
+
+  it("returns null and raises NO unhandled rejection when the client rejects just after the deadline", async () => {
+    const { client, create } = fakeClient();
+    // create() rejects LATER than the (short) deadline, so the deadline wins the
+    // race and the late rejection must be silently swallowed by Promise.race —
+    // not surface as an unhandledRejection on Node/Vercel.
+    create.mockReturnValueOnce(
+      new Promise((_resolve, reject) => {
+        setTimeout(() => reject(new Error("late bedrock 500")), 40);
+      })
+    );
+
+    const unhandled = vi.fn();
+    process.on("unhandledRejection", unhandled);
+    try {
+      const out = await runVisionExtraction({
+        client,
+        modelId: MODEL,
+        system: SYSTEM,
+        media: { mime: "image/png", base64: "AAAA" },
+        timeoutMs: 10,
+      });
+      expect(out).toBeNull();
+      // Give the late rejection time to fire and any unhandledRejection to be
+      // reported before we assert it did not happen.
+      await new Promise((r) => setTimeout(r, 60));
+      expect(unhandled).not.toHaveBeenCalled();
+    } finally {
+      process.off("unhandledRejection", unhandled);
+    }
   });
 });

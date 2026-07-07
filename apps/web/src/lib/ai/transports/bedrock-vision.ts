@@ -31,7 +31,10 @@
  * — milliseconds in the TS SDK) AND enforced by a local race, because the SDK's
  * own timeout is retried (wall-clock can reach timeout × (maxRetries+1)) and an
  * injected/stalled client might never settle. The race guarantees a hard,
- * single deadline for the caller.
+ * single deadline for the caller. We also pass `maxRetries: 0`: once the race
+ * deadline wins we abandon the request, and without this the SDK would keep
+ * retrying in the background (default maxRetries=2 → up to timeoutMs×3 of wasted
+ * network work on a possibly-frozen serverless instance).
  *
  * Model id: taken as the `modelId` PARAM — the factory/vendor supplies it
  * (Task 5/6). The narration path uses the EU Haiku inference profile
@@ -68,8 +71,14 @@ export interface RunVisionExtractionArgs {
   timeoutMs?: number;
 }
 
-/** Generous headroom for a value list; a JSON marker array is small. */
-const MAX_TOKENS = 1024;
+/**
+ * Generous headroom for the value list. A full ~17-marker panel with
+ * `alternatives` arrays can approach ~1k tokens, so a tight ceiling risks silent
+ * mid-JSON truncation on exactly the largest reports (which then fail Task 5's
+ * parse and drop the whole panel to manual entry). Output tokens bill only for
+ * what is generated, so the higher ceiling is near-free insurance.
+ */
+const MAX_TOKENS = 4096;
 
 /**
  * The single user text block that pairs with the media block. Kept generic and
@@ -137,9 +146,14 @@ export async function runVisionExtraction({
           },
         ],
       },
-      { timeout: timeoutMs }
+      { timeout: timeoutMs, maxRetries: 0 }
     );
 
+    // Relies on Promise.race semantics: if `deadline` wins, the losing (possibly
+    // late-rejecting) `request` promise is swallowed by race's internal reaction
+    // and does NOT surface as an unhandledRejection on Node/Vercel. A future
+    // refactor away from Promise.race MUST preserve that, or it reintroduces an
+    // unhandled-rejection leak.
     const result = await Promise.race([request, deadline]);
     if (result === TIMEOUT) return null;
 

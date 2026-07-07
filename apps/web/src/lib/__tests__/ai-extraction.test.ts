@@ -60,6 +60,8 @@ describe("extraction vendor selection", () => {
       awsRegion: "eu-west-1",
       awsAccessKey: "AKIDEXAMPLE",
       awsSecretAccessKey: "fake-secret",
+      // We enforce our own single hard deadline; the SDK must not retry silently.
+      maxRetries: 0,
     });
   });
 

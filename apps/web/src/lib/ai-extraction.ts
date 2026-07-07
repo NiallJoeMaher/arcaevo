@@ -53,6 +53,9 @@ export function getExtractionVendor(): BedrockExtractionVendor | null {
   const creds = resolveNarrationCredentials();
   if (!creds) return null;
   try {
+    // Built PER REQUEST, never memoised: creds may be rotating STS session
+    // tokens (`sessionToken` is threaded through), so a cached client would pin
+    // stale credentials and start failing after the token rotates.
     const client = new AnthropicBedrockMantle({
       awsRegion: creds.region,
       awsAccessKey: creds.accessKeyId,

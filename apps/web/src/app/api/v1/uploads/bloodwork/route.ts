@@ -56,6 +56,10 @@ function manualEntryResponse(message: string, extra?: Record<string, unknown>) {
   );
 }
 
+/** Just below the confirm gate so an untrusted (flagged) read can never be
+ * silently confirmed. */
+const FLAGGED_SENTINEL_CONFIDENCE = CONFIDENCE_THRESHOLD - 0.01;
+
 /**
  * Map a validated real-OCR reading to the persisted (confidence-driven)
  * `extracted[]` shape. The confirm route and the `flagged[]` response both gate
@@ -67,7 +71,7 @@ function manualEntryResponse(message: string, extra?: Record<string, unknown>) {
 function toPersistedValue(v: ValidatedValue): ExtractedValue {
   const confidence =
     v.flagged && v.confidence >= CONFIDENCE_THRESHOLD
-      ? CONFIDENCE_THRESHOLD - 0.01
+      ? FLAGGED_SENTINEL_CONFIDENCE
       : v.confidence;
   return {
     code: v.code,
@@ -172,33 +176,45 @@ export async function POST(req: Request) {
   if (kind !== "manual" && media) {
     const vendor = getExtractionVendor();
     if (vendor) {
-      // extract() NEVER throws; the media bytes are discarded right here — never
+      // Belt-and-braces fail-safe: extract() is documented never-throw and that
+      // holds today, but this is the live Art.9 request path — wrap the whole
+      // extract-and-map block so ANY future regression in the vendor/transport/
+      // parse/map chain degrades to manual entry instead of surfacing a 500 to a
+      // member mid-upload. The media bytes are discarded right here — never
       // persisted, never logged (Art.9).
-      const result = await vendor.extract(media);
-      const unreadableCount =
-        result.droppedUnknown.length + result.droppedInvalid;
+      try {
+        const result = await vendor.extract(media);
+        const unreadableCount =
+          result.droppedUnknown.length + result.droppedInvalid;
 
-      if (result.extracted.length === 0) {
-        // Nothing legible — honest manual entry (nothing persisted). The
-        // additive `unreadableCount` lets the client say "N markers couldn't be
-        // read — add them manually".
+        if (result.extracted.length === 0) {
+          // Nothing legible — honest manual entry (nothing persisted). The
+          // additive `unreadableCount` lets the client say "N markers couldn't
+          // be read — add them manually".
+          return manualEntryResponse(
+            "We couldn't reliably read this document — enter your values by hand and we'll add them to your timeline.",
+            { unreadableCount }
+          );
+        }
+
+        return await persistAndRespond({
+          memberId: auth.member._id,
+          kind,
+          fileName: fileName ?? null,
+          // No OCR of the letterhead — use the uploaded file name as the source.
+          sourceName: fileName!,
+          // No OCR of the draw date — the member sets it at confirm (takenAt).
+          documentDate: null,
+          values: result.extracted.map(toPersistedValue),
+          extra: { unreadableCount },
+        });
+      } catch {
+        // Fail safe: never a 500 on the upload path. Nothing was persisted (the
+        // insert either didn't run or its failure landed here).
         return manualEntryResponse(
-          "We couldn't reliably read this document — enter your values by hand and we'll add them to your timeline.",
-          { unreadableCount }
+          "We couldn't reliably read this document — enter your values by hand and we'll add them to your timeline."
         );
       }
-
-      return persistAndRespond({
-        memberId: auth.member._id,
-        kind,
-        fileName: fileName ?? null,
-        // No OCR of the letterhead — use the uploaded file name as the source.
-        sourceName: fileName!,
-        // No OCR of the draw date — the member sets it at confirm (takenAt).
-        documentDate: null,
-        values: result.extracted.map(toPersistedValue),
-        extra: { unreadableCount },
-      });
     }
     // Creds absent but bytes present (e.g. dev with no keys) → fall through to
     // the mock/honest-manual gate below, exactly as before.

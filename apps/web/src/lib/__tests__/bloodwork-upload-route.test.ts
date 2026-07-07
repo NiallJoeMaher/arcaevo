@@ -178,6 +178,27 @@ describe("real-OCR path (creds + media)", () => {
     expect(persisted.confidence).toBeLessThan(0.9);
   });
 
+  it("vendor.extract THROWING degrades to manual entry (never a 500)", async () => {
+    // The vendor is documented never-throw, but a future regression must still
+    // fail safe: the member sees manual entry, not a 500 mid-upload.
+    const extract = vi.fn().mockRejectedValue(new Error("transport regression"));
+    getVendor.mockReturnValue({ extract });
+
+    const res = await POST(
+      req({
+        kind: "photo",
+        fileName: "labs.png",
+        media: { mime: "image/png", base64: SMALL_IMAGE_B64 },
+      })
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.manualEntryRequired).toBe(true);
+    expect(body.values).toEqual([]);
+    expect(col("bloodwork_uploads").docs).toHaveLength(0);
+  });
+
   it("EMPTY vendor result → honest manualEntryRequired, nothing persisted", async () => {
     const extract = vi.fn().mockResolvedValue({
       extracted: [],
@@ -237,6 +258,28 @@ describe("mock/manual parity (no creds)", () => {
     const body = await res.json();
     expect(body.markersFound).toBe(1);
     expect("unreadableCount" in body).toBe(false);
+  });
+
+  it("kind:manual carrying a media field ignores it: no vendor, no base64 persisted", async () => {
+    const extract = vi.fn();
+    getVendor.mockReturnValue({ extract });
+
+    const res = await POST(
+      req({
+        kind: "manual",
+        manualValues: [{ code: "apob", value: 0.9, unit: "g/L" }],
+        media: { mime: "image/png", base64: SMALL_IMAGE_B64 },
+      })
+    );
+
+    expect(res.status).toBe(201);
+    // The manual path never touches the real vendor / factory.
+    expect(getVendor).not.toHaveBeenCalled();
+    expect(extract).not.toHaveBeenCalled();
+    // Art.9: the ignored media never lands in Mongo.
+    const doc = col("bloodwork_uploads").docs[0];
+    expect(doc.media).toBeUndefined();
+    expect(JSON.stringify(doc)).not.toContain(SMALL_IMAGE_B64);
   });
 });
 
